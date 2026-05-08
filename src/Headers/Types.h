@@ -11,6 +11,7 @@
 
 struct ShaderProgramCollection {
     GLuint programID = 0;
+    GLuint conemapID = 0;
 };
 
 // Model params
@@ -21,6 +22,13 @@ struct ModelBaseParams {
     int drawMode = GL_TRIANGLES;
 };
 struct ModelParams {
+    ShaderProgramCollection shaderPrograms;
+    const char* name = "";
+    bool show = true;
+    bool wireFrame = false;
+    int drawMode = GL_TRIANGLES;
+};
+struct RayMarchedSurfaceParams {
     ShaderProgramCollection shaderPrograms;
     const char* name = "";
     bool show = true;
@@ -45,14 +53,6 @@ struct RenderParams {
     glm::ivec2 windowSize = glm::ivec2(0, 0);
     glm::mat4 viewProj = glm::identity<glm::mat4>();
     void* otherData = nullptr;
-};
-
-// ModelLoader
-class Mesh;
-class Material;
-struct ModelLoaderReturn {
-    std::vector<std::unique_ptr<Mesh>> meshes;
-    std::vector<std::shared_ptr<Material>> materials;
 };
 
 // Update info

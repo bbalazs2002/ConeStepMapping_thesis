@@ -30,7 +30,7 @@ protected:
 	char m_objNameBuffer[64] = "";
 
 public:
-	ModelBase(ModelBaseParams params) {
+	ModelBase(const ModelBaseParams& params) {
 		m_programID = params.shaderPrograms.programID;
 		m_show = params.show;
 		m_drawMode = params.drawMode;

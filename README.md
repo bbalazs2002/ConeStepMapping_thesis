@@ -91,5 +91,5 @@ This project uses vcpkg to manage its libraries. To ensure all features (like PN
 Run the following command in your terminal to install all necessary dependencies with the correct features:
 
 ```bash
-vcpkg install sdl3 sdl3-image[png,jpeg,tiff,webp] glew glm imgui[sdl3-binding,opengl3-binding] tinyobjloader
+vcpkg install sdl3 sdl3-image[png,jpeg,tiff,webp] glew glm imgui[sdl3-binding,opengl3-binding,docking-experimental] tinyobjloader
 ```

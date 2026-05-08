@@ -25,6 +25,7 @@
 #include "../Interfaces/IGraphicsApp.h"
 
 #include "Model/Model.h"
+#include "Model/RayMarchedSurface.h"
 
 class MyApp : public IGraphicsApp
 {
@@ -54,7 +55,7 @@ protected:
 	// Variables
 	float m_ElapsedTimeInSec = 0.0f;
 	int m_width = 640, m_height = 480;
-	std::unique_ptr<Model> m_model;
+	std::unique_ptr<RayMarchedSurface> m_model;
 
 	// Camera
 	Camera m_camera;
@@ -62,8 +63,10 @@ protected:
 
 	// Shader variables
 	GLuint m_programModelID = 0;		// Program rendering models
+	GLuint m_programRaymarchID = 0;		// Program showing ray-marched surfaces
 	GLuint m_programAxesID = 0;			// Program showing X,Y,Z directions
 	GLuint m_programSkyboxID = 0;		// Skybox shaders
+	GLuint m_programConemapID = 0;		// Conemap generation
 
 	// Shader initialization and termination
 	void InitShaders();
@@ -98,4 +101,25 @@ protected:
 
 	// ImGui state variables
 	bool m_showAxes = true;
+
+	int m_activeHeightMap = 0;
+	std::vector<std::string> m_heightMaps{
+		"Assets/HMaps/heightmap_dot.png",
+		"Assets/HMaps/spikes.png",
+		"Assets/HMaps/hemisphere.png",
+		"Assets/HMaps/cone.jpg",
+		"Assets/HMaps/heightmap-terrain.png",
+		"Assets/HMaps/heightmap-terrain2.png",
+		"Assets/HMaps/heightmap-river.png",
+		"Assets/HMaps/heightmap-pyramid.jpg",
+		"Assets/HMaps/heightmap-geometries.png",
+		"Assets/HMaps/Earth-heightmap-small.png",
+		"Assets/HMaps/desert-heightmap.jpg"
+	};
+
+	int m_activeTechnique = 1;
+	std::vector<std::string> m_rayMarchingTechniques{
+		"Linear search",
+		"Cone step mapping"
+	};
 };

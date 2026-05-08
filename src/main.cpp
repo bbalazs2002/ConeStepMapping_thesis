@@ -104,6 +104,9 @@ int main(int argc, char* args[]) {
     ImGui::StyleColorsDark();
     ImGui_ImplSDL3_InitForOpenGL(win, context);
     ImGui_ImplOpenGL3_Init();
+    // Enable docking panels
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     // --- 6. Main Application Loop ---
     {
@@ -122,6 +125,10 @@ int main(int argc, char* args[]) {
             SDL_GetWindowSize(win, &w, &h);
             app->Resize(w, h);
         }
+
+        // Set values for timer
+        Uint64 lastTime = SDL_GetPerformanceCounter();
+        uint64_t freq = SDL_GetPerformanceFrequency();
 
         while (!quit) {
             // Event Handling
@@ -149,7 +156,6 @@ int main(int argc, char* args[]) {
                         if ((ev.key.key == SDLK_F1) && (ev.key.mod & SDL_KMOD_CTRL)) {
                             showImGui = !showImGui;
                         }
-                        break;
 
                         if (!isKeyboardCaptured)
                             app->KeyboardDown(ev.key);
@@ -186,13 +192,18 @@ int main(int argc, char* args[]) {
             }
 
             // Create update info
-            static Uint32 LastTick = SDL_GetTicks();
-            Uint32 CurrentTick = SDL_GetTicks();
-            SUpdateInfo updateInfo
-            {
-                static_cast<float>(CurrentTick) / 1000.0f,
-                static_cast<float>(CurrentTick - LastTick) / 1000.0f
+            Uint64 currentTime = SDL_GetPerformanceCounter();
+
+            float deltaTime = static_cast<float>(currentTime - lastTime) / static_cast<float>(freq);
+            float totalTime = static_cast<float>(currentTime) / static_cast<float>(freq);
+
+            SUpdateInfo updateInfo{
+                totalTime,
+                deltaTime
             };
+
+            // Update lastTime
+            lastTime = currentTime;
 
             // Logic Update and Rendering
             app->Update(updateInfo);

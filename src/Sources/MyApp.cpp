@@ -1,14 +1,22 @@
-#include "../Headers/MyApp.h"
-#include "../Utils/SDL_GLDebugMessageCallback.h"
-#include "../Utils/ObjParser.h"
-#include "../Utils/ProgramBuilder.h"
-#include "../Utils/Log.h"
-
-#include <imgui.h>
+// standard
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <memory>
+
+// ImGui
+#include <imgui.h>
+#include <imgui_internal.h>
+
+// Utils
+#include "../Utils/SDL_GLDebugMessageCallback.h"
+#include "../Utils/ProgramBuilder.h"
+#include "../Utils/Log.h"
+
+#include "../Headers/MyApp.h"
+#include "../Headers/Types.h"
+#include "../Headers/Model/Model.h"
+#include "../Headers/Model/RayMarchedSurface.h"
 
 MyApp::MyApp()
 {
@@ -23,6 +31,12 @@ MyApp::~MyApp()
 void MyApp::InitShaders()
 {
 
+	// conemap generation
+	m_programConemapID = glCreateProgram();
+	ProgramBuilder{ m_programConemapID }
+		.ShaderStage(GL_COMPUTE_SHADER, "src/Shaders/Conemap/Comp_Conemap.comp")
+		.Link();
+
 	// models
 	m_programModelID = glCreateProgram();
 	ProgramBuilder{ m_programModelID }
@@ -30,11 +44,22 @@ void MyApp::InitShaders()
 		.ShaderStage(GL_FRAGMENT_SHADER, "src/Shaders/Models/Frag_Model.frag")
 		.Link();
 
+	// ray-marched surfaces
+	m_programRaymarchID = glCreateProgram();
+	ProgramBuilder{ m_programRaymarchID}
+		.ShaderStage(GL_VERTEX_SHADER, "src/Shaders/RayMarching/Vert_Model.vert")
+		.ShaderStage(GL_GEOMETRY_SHADER, "src/Shaders/RayMarching/Geom_Model_old.geom")
+		.ShaderStage(GL_FRAGMENT_SHADER, "src/Shaders/RayMarching/Frag_Improved.frag")
+		.Link();
+
 	InitAxesShader();
 	InitSkyboxShader();
 }
 void MyApp::CleanShaders()
 {
+	glDeleteProgram(m_programConemapID);
+	m_programConemapID = 0;
+
 	glDeleteProgram(m_programModelID);
 	m_programModelID = 0;
 
@@ -73,6 +98,7 @@ void MyApp::InitGeometry()
 {
 
 	// Equinox from .obj file with .mtl
+	/*
 	m_model = std::make_unique<Model>(
 		ModelParams{
 			ShaderProgramCollection{
@@ -82,7 +108,29 @@ void MyApp::InitGeometry()
 			true
 		}
 	);
-	m_model.get()->SetObjPath("Assets/Equinox-render/Equinox.obj");
+	// m_model.get()->SetObjPath("Assets/Equinox-render/Equinox.obj");
+	m_model.get()->SetObjPath("Assets/Fire_Extinguisher/Fire_Extinguisher.obj");
+	m_model.get()->AddTransform(glm::transpose(glm::mat4{
+			{ 1, 0, 0, 0 },
+			{ 0, 1, 0, 5 },
+			{ 0, 0, 1, 0 },
+			{ 0, 0, 0, 1 }
+		}
+	));
+	*/
+
+	m_model = std::make_unique<RayMarchedSurface>(
+		RayMarchedSurfaceParams{
+			ShaderProgramCollection{
+				m_programRaymarchID,
+				 m_programConemapID
+			},
+			"Quad",
+			true
+		}
+	);
+	m_model.get()->SetHeightmap("Assets/HMaps/heightmap_dot.png");
+	m_model.get()->SetObjPath("Assets/Quad/Quad.obj");
 	m_model.get()->AddTransform(glm::transpose(glm::mat4{
 			{ 1, 0, 0, 0 },
 			{ 0, 1, 0, 5 },
@@ -157,12 +205,12 @@ void MyApp::CleanTexture() {
 void MyApp::InitSkyboxTexture() {
 	// skybox texture
 	static const char* skyboxFiles[6] = {
-		"Assets/xpos.png",
-		"Assets/xneg.png",
-		"Assets/ypos.png",
-		"Assets/yneg.png",
-		"Assets/zpos.png",
-		"Assets/zneg.png",
+		"Assets/sky1/px.png",
+		"Assets/sky1/nx.png",
+		"Assets/sky1/py.png",
+		"Assets/sky1/ny.png",
+		"Assets/sky1/pz.png",
+		"Assets/sky1/nz.png",
 	};
 
 	ImageRGBA images[6];
@@ -224,7 +272,7 @@ bool MyApp::Init()
 
 	// Camera
 	m_camera.SetView(
-		glm::vec3(0, 20, 20),	// From where we look at the scene - eye
+		glm::vec3(0, 10, 5),	// From where we look at the scene - eye
 		glm::vec3(0, 4, 0),		// Which point of the scene we are looking at - at
 		glm::vec3(0, 1, 0)		// Upwards direction - up
 	);
@@ -302,10 +350,304 @@ void MyApp::Render()
 }
 void MyApp::RenderGUI()
 {
-	ImGui::Begin("Options window");
+	ImGuiID dockspace_id;
+
+	// Make a fullscreen invisible window to host the dockspace
+	{
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImGui::SetNextWindowPos(viewport->Pos);
+		ImGui::SetNextWindowSize(viewport->Size);
+		ImGui::SetNextWindowViewport(viewport->ID);
+
+		ImGuiWindowFlags host_flags =
+			ImGuiWindowFlags_NoTitleBar |
+			ImGuiWindowFlags_NoCollapse |
+			ImGuiWindowFlags_NoResize |
+			ImGuiWindowFlags_NoMove |
+			ImGuiWindowFlags_NoBringToFrontOnFocus |
+			ImGuiWindowFlags_NoNavFocus |
+			ImGuiWindowFlags_NoBackground;
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+		ImGui::Begin("DockspaceHost", nullptr, host_flags);
+		dockspace_id = ImGui::GetID("MainDockspace");
+		ImGui::PopStyleVar(3);
+
+		ImGui::DockSpace(dockspace_id, ImVec2(0, 0), ImGuiDockNodeFlags_PassthruCentralNode);
+
+		ImGui::End();
+	}
+
+	// Init docked windows layout
+	static bool ImGuiLayoutInitialized = false;
+	if (!ImGuiLayoutInitialized) {
+		ImGui::DockBuilderRemoveNode(dockspace_id);
+		ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+		ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
+
+		ImGuiID dock_top, dock_left, dock_bottom;
+
+		// First split bottom from the full width dockspace
+		ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Down, 0.5f, &dock_bottom, &dock_top);
+
+		// Then split left from the remaining top area
+		ImGui::DockBuilderSplitNode(dock_top, ImGuiDir_Left, 0.4f, &dock_left, &dock_top);
+
+		ImGui::DockBuilderDockWindow("Global options", dock_left);
+		ImGui::DockBuilderDockWindow("Model options", dock_left);
+		ImGui::DockBuilderDockWindow("Visual debug", dock_bottom);
+		ImGui::DockBuilderDockWindow("Numerical debug", dock_bottom);
+
+		ImGui::DockBuilderFinish(dockspace_id);
+
+		ImGuiLayoutInitialized = true;
+	}
+
+	auto m = m_model.get();
+
+	////////////////////////////
+	// --- Global options --- //
+	////////////////////////////
+	if (ImGui::Begin("Global options"))
 	{
 		ImGui::Text("Render resolution %dx%d", m_width, m_height);
 		ImGui::Checkbox("Show axes", &m_showAxes);
+
+		ImGui::SliderFloat3("light_dir", &m->m_lightDir.x, -10.f, 10.f);
+
+		ImGui::SliderInt("max steps", &m->m_maxSteps, 1, 100);
+		ImGui::SliderFloat("epsilon", &m->m_epsilon, 0.0, 1.0, "%.3f");
+		ImGui::SliderFloat("modelNormalMult", &m->m_modelNormalMult, 0.1, 2.0, "%.3f");
+		ImGui::Checkbox("show non-converge", &m->m_displayNonConverged);
+		ImGui::Checkbox("discard fragments", &m->m_discardFragments);
+		ImGui::Checkbox("show con-step flags", &m->m_showFlags);
+	}
+	ImGui::End();
+
+	///////////////////////////
+	// --- Model options --- //
+	///////////////////////////
+	if (ImGui::Begin("Model options"))
+	{
+		GLuint conemapID = m_model.get()->GetConemapID();
+		if (conemapID > 0) {
+			ImGui::Image(conemapID, ImVec2(256, 256));
+		}
+
+		auto wireframe = m->GetWireFrame();
+		if (ImGui::Checkbox("Wireframe", &wireframe)) {
+			m->SetWireFrame(wireframe);
+		}
+
+		// ray marching technique
+		if (ImGui::BeginCombo("Ray marching technique", m_rayMarchingTechniques[m_activeTechnique].c_str()))
+		{
+			for (int i = 0; i < m_rayMarchingTechniques.size(); ++i) {
+				if (ImGui::Selectable(m_rayMarchingTechniques[i].c_str(), m_activeTechnique == i)) {
+					m_activeTechnique = i;
+					m->m_activeTechnique = i;
+				}
+			}
+			ImGui::EndCombo();
+		}
+
+		auto interpolate = m->GetInterpolateTexture();
+		if (ImGui::Checkbox("Texture interpolation", &interpolate)) {
+			m->SetInterpolateTexture(interpolate);
+		}
+
+		// heightmap
+		int hmapID = m_activeHeightMap;
+		if (ImGui::BeginCombo("Heightmap", m_heightMaps[hmapID].c_str()))
+		{
+			for (int i = 0; i < m_heightMaps.size(); ++i) {
+				if (ImGui::Selectable(m_heightMaps[i].c_str(), hmapID == i)) {
+					m_activeHeightMap = i;
+					m->SetHeightmap(m_heightMaps[i].c_str());
+				}
+			}
+			ImGui::EndCombo();
+		}
+	}
+	ImGui::End();
+
+	///////////////////
+	// --- Debug --- //
+	///////////////////
+	if (ImGui::Begin("Visual debug"))
+	{
+		bool pointsChanged = false;
+		glm::vec3 pb = m->GetDebugRayStart();
+		glm::vec3 pd = m->GetDebugRayDir();
+
+		ImGui::Checkbox("Show debug", &m->m_showDebug);
+		ImGui::Checkbox("Show steps", &m->m_showSteps);
+		ImGui::Checkbox("Show enter/exit", &m->m_showEnterExit);
+		ImGui::Checkbox("Show cones", &m->m_showCones);
+		if (ImGui::SliderFloat3("Base", &pb.x, -10.0f, 10.0f)) {
+			pointsChanged = true;
+		}
+		if (ImGui::SliderFloat3("Direction", &pd.x, -1.0f, 1.0f)) {
+			pointsChanged = true;
+		}
+		if (ImGui::Button("To camera")) {
+			pb = m_camera.GetEye();
+			pd = m_camera.GetAt() - pb;
+			pointsChanged = true;
+		}
+
+		if (pointsChanged) {
+			m->SetDebugRay(pb, glm::normalize(pd));
+		}
+	}
+	ImGui::End();
+
+	if (ImGui::Begin("Numerical debug"))
+	{
+		bool pointsChanged = false;
+		glm::vec3 pb = m->GetDebugRayStart();
+		glm::vec3 pd = m->GetDebugRayDir();
+
+		if (ImGui::SliderFloat3("Base", &pb.x, -10.0f, 10.0f)) {
+			pointsChanged = true;
+		}
+		if (ImGui::SliderFloat3("Direction", &pd.x, -1.0f, 1.0f)) {
+			pointsChanged = true;
+		}
+		if (ImGui::Button("To camera")) {
+			pb = m_camera.GetEye();
+			pd = glm::normalize(m_camera.GetAt() - pb);
+			pointsChanged = true;
+		}
+
+		if (pointsChanged) {
+			m->SetDebugRay(pb, pd);
+		}
+
+		{
+			glBindBuffer(GL_SHADER_STORAGE_BUFFER, m->GetDebugSSBOID());
+			GLint size = 0;
+			glGetBufferParameteriv(GL_SHADER_STORAGE_BUFFER, GL_BUFFER_SIZE, &size);
+			glm::vec4* data = (glm::vec4*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+			if (data) {
+				ImGui::Text("Step count: %.4f", data[0].x);
+				ImGui::Text("Termination flags: %d", (int)data[0].y);
+				ImGui::Text("Eye (scene space): %.4f; %.4f; %.4f", data[1].x, data[1].y, data[1].z);
+				ImGui::Text("Direction (scene space): %.4f; %.4f; %.4f", data[2].x, data[2].y, data[2].z);
+
+				if (ImGui::BeginTable("Verteces (scene space)", 4)) {
+
+					ImGui::TableSetupColumn("pos");
+					ImGui::TableSetupColumn("norm");
+					ImGui::TableSetupColumn("merged");
+					ImGui::TableSetupColumn("tex");
+					ImGui::TableHeadersRow();
+
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0); ImGui::Text("0; 0; 0");
+					ImGui::TableSetColumnIndex(1); ImGui::Text("0; 1; 0");
+					ImGui::TableSetColumnIndex(2); ImGui::Text("0; 1; 0");
+					ImGui::TableSetColumnIndex(3); ImGui::Text("0; 0");
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0); ImGui::Text("0; 0; 1");
+					ImGui::TableSetColumnIndex(1); ImGui::Text("0; 1; 0");
+					ImGui::TableSetColumnIndex(2); ImGui::Text("0; 1; 0");
+					ImGui::TableSetColumnIndex(3); ImGui::Text("0; 1");
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0); ImGui::Text("1; 0; 1");
+					ImGui::TableSetColumnIndex(1); ImGui::Text("0; 1; 0");
+					ImGui::TableSetColumnIndex(2); ImGui::Text("0; 1; 0");
+					ImGui::TableSetColumnIndex(3); ImGui::Text("1; 1");
+
+					ImGui::EndTable();
+				}
+
+				ImGui::Text("scene2texture space:");
+				if (ImGui::BeginTable("scene2texture space", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0); ImGui::Text("%.4f", data[3].x);
+					ImGui::TableSetColumnIndex(1); ImGui::Text("%.4f", data[3].y);
+					ImGui::TableSetColumnIndex(2); ImGui::Text("%.4f", data[3].z);
+					ImGui::TableSetColumnIndex(3); ImGui::Text("%.4f", data[3].w);
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0); ImGui::Text("%.4f", data[4].x);
+					ImGui::TableSetColumnIndex(1); ImGui::Text("%.4f", data[4].y);
+					ImGui::TableSetColumnIndex(2); ImGui::Text("%.4f", data[4].z);
+					ImGui::TableSetColumnIndex(3); ImGui::Text("%.4f", data[4].w);
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0); ImGui::Text("%.4f", data[5].x);
+					ImGui::TableSetColumnIndex(1); ImGui::Text("%.4f", data[5].y);
+					ImGui::TableSetColumnIndex(2); ImGui::Text("%.4f", data[5].z);
+					ImGui::TableSetColumnIndex(3); ImGui::Text("%.4f", data[5].w);
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0); ImGui::Text("%.4f", data[6].x);
+					ImGui::TableSetColumnIndex(1); ImGui::Text("%.4f", data[6].y);
+					ImGui::TableSetColumnIndex(2); ImGui::Text("%.4f", data[6].z);
+					ImGui::TableSetColumnIndex(3); ImGui::Text("%.4f", data[6].w);
+
+					ImGui::EndTable();
+				}
+				ImGui::Text("Eye (texture space): %.4f; %.4f; %.4f; %.4f", data[7].x, data[7].y, data[7].z, data[7].w);
+
+				ImGui::Text("scene2unit space:");
+				if (ImGui::BeginTable("scene2unit space", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0); ImGui::Text("%.4f", data[8].x);
+					ImGui::TableSetColumnIndex(1); ImGui::Text("%.4f", data[8].y);
+					ImGui::TableSetColumnIndex(2); ImGui::Text("%.4f", data[8].z);
+					ImGui::TableSetColumnIndex(3); ImGui::Text("%.4f", data[8].w);
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0); ImGui::Text("%.4f", data[9].x);
+					ImGui::TableSetColumnIndex(1); ImGui::Text("%.4f", data[9].y);
+					ImGui::TableSetColumnIndex(2); ImGui::Text("%.4f", data[9].z);
+					ImGui::TableSetColumnIndex(3); ImGui::Text("%.4f", data[9].w);
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0); ImGui::Text("%.4f", data[10].x);
+					ImGui::TableSetColumnIndex(1); ImGui::Text("%.4f", data[10].y);
+					ImGui::TableSetColumnIndex(2); ImGui::Text("%.4f", data[10].z);
+					ImGui::TableSetColumnIndex(3); ImGui::Text("%.4f", data[10].w);
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0); ImGui::Text("%.4f", data[11].x);
+					ImGui::TableSetColumnIndex(1); ImGui::Text("%.4f", data[11].y);
+					ImGui::TableSetColumnIndex(2); ImGui::Text("%.4f", data[11].z);
+					ImGui::TableSetColumnIndex(3); ImGui::Text("%.4f", data[11].w);
+
+					ImGui::EndTable();
+				}
+				ImGui::Text("Eye (unit space): %.4f; %.4f; %.4f; %.4f", data[12].x, data[12].y, data[12].z, data[12].w);
+
+				ImGui::Text("In (texture space): %.4f; %.4f; %.4f", data[13].x, data[13].y, data[13].z);
+				ImGui::Text("Out (texture space): %.4f; %.4f; %.4f", data[14].x, data[14].y, data[14].z);
+				ImGui::Text("v (texture space): %.4f; %.4f; %.4f", data[15].x, data[15].y, data[15].z);
+
+				ImGui::Text("plus data: %.4f; %.4f; %.4f; %.4f", data[16].x, data[16].y, data[16].z, data[16].w);
+
+				if (ImGui::BeginTable("Steps", 5)) {
+					ImGui::TableSetupColumn("ti");
+					ImGui::TableSetupColumn("t");
+					ImGui::TableSetupColumn("height");
+					ImGui::TableSetupColumn("tan");
+					ImGui::TableSetupColumn("ui");
+					ImGui::TableHeadersRow();
+
+					for (int i = 0; i < (int)floor(data[0].x); ++i) {
+						ImGui::TableNextRow();
+						ImGui::TableSetColumnIndex(0); ImGui::Text("%.4f", data[17 + i * 2].x);
+						ImGui::TableSetColumnIndex(1); ImGui::Text("%.4f", data[17 + i * 2].y);
+						ImGui::TableSetColumnIndex(2); ImGui::Text("%.4f", data[17 + i * 2].z);
+						ImGui::TableSetColumnIndex(3); ImGui::Text("%.4f", data[17 + i * 2].w);
+						ImGui::TableSetColumnIndex(4); ImGui::Text("%.4f; %.4f; %.4f", data[17 + i * 2 + 1].x, data[17 + i * 2 + 1].y, data[17 + i * 2 + 1].z);
+					}
+
+					ImGui::EndTable();
+
+				}
+			}
+			glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+			glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+		}
 	}
 	ImGui::End();
 }

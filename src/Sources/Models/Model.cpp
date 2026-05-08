@@ -1,3 +1,5 @@
+#include <memory>
+
 // GLM
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -8,11 +10,11 @@
 
 #include "../../Headers/Types.h"
 #include "../../Headers/config.h"
-#include "../../Headers/Model/ModelLoader.h"
 #include "../../Headers/Model/ModelBase.h"
 #include "../../Headers/Model/Model.h"
+#include "../../Headers/Model/Mesh.h"
 
-Model::Model(ModelParams params) : ModelBase(MODEL2MODELBASE) {
+Model::Model(const ModelParams& params) : ModelBase(MODEL2MODELBASE) {
 	m_wireframe = params.wireFrame;
 }
 Model::~Model() {
@@ -72,7 +74,6 @@ void Model::Render(const RenderParams& p) {
 	glPolygonMode(GL_BACK, polygonMode[1]);
 	glLineWidth(defLineWidth);
 	glUseProgram(0);
-
 }
 
 void Model::SetObjPath() {
@@ -80,13 +81,34 @@ void Model::SetObjPath() {
 	if (tempPath == m_objPath) {
 		return;
 	}
-	m_objPath = tempPath;
 
 	// clean old geometry
 	CleanGeometry();
 	CleanMaterials();
+
 	// load the new file
-	ModelLoaderReturn meshMatData = ModelLoader::LoadFromOBJ(m_objPath);
-	m_meshes = std::move(meshMatData.meshes);
-	m_materials = std::move(meshMatData.materials);
+	ModelLoaderData modelData = ModelLoader::LoadFromOBJ(tempPath);
+	if (modelData.matMesh.size() <= 0) {
+		return;
+	}
+	m_objPath = tempPath;
+
+	// Build materials
+	m_materials = std::move(Material::convertFromTinyObjLoader(modelData.materials, ModelLoader::ResolveMTLSearchPath(tempPath, "./")));
+
+	// Build meshes
+	for (auto& mm : modelData.matMesh) {
+
+		// Create a unique_ptr for the mesh - Mesh will be owned by the Model/Return object
+		auto mesh = std::make_unique<Mesh>();
+
+		// Assign material using shared_ptr from the temporary storage
+		// Note: We access modelData.materials BEFORE moving it to retVal
+		if (mm.materialID >= 0 && mm.materialID < static_cast<int>(modelData.materials.size())) {
+			mesh->SetMaterial(m_materials[mm.materialID]);
+		}
+
+		mesh->Build(std::move(mm.mesh));
+		m_meshes.push_back(std::move(mesh));
+	}
 }

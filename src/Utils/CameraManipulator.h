@@ -18,8 +18,8 @@ public:
 	void SetCamera( Camera* _pCamera );
     void Update( float _deltaTime );
 
-	inline void  SetSpeed(float _speed) { m_speed = _speed; }
-	inline float GetSpeed() const noexcept { return m_speed; }
+	inline void  SetSpeed(float _speed) { m_baseSpeed = _speed; }
+	inline float GetSpeed() const noexcept { return m_baseSpeed * m_speedMultiplier; }
 
 	void KeyboardDown(const SDL_KeyboardEvent& key);
 	void KeyboardUp(const SDL_KeyboardEvent& key);
@@ -44,10 +44,14 @@ private:
 	glm::vec3 m_center = glm::vec3( 0.0f );
 
 	// The traversal speed of the camera
-	float m_speed = 16.0f;
+	float m_baseSpeed = 16.0f;
+	float m_speedMultiplier = 1.0f;
 
 	// Traveling indicator to different directions.
 	float	m_goForward = 0.0f;
 	float	m_goRight   = 0.0f;
 	float   m_goUp      = 0.0f;
+
+	// Is SHIFT pressed
+	bool m_isShiftDown = false;
 };

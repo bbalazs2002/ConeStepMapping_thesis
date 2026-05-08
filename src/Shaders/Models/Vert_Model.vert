@@ -3,7 +3,7 @@
 // VBO-ból érkezõ változók
 layout (location = 0 ) in vec3 vs_in_pos;
 layout (location = 1 ) in vec3 vs_in_norm;
-layout (location = 2 ) in vec2 vs_in_tex;
+layout (location = 3 ) in vec2 vs_in_tex;
 
 // a pipeline-ban tovább adandó értékek
 out vec3 vs_out_pos;

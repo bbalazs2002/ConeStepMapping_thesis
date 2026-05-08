@@ -3,25 +3,16 @@
 #include <memory>
 
 #include "../Types.h"
+#include "../../Utils/GLUtils.hpp"
 
 class Mesh {
 private:
 	std::shared_ptr<Material> m_material;
 	OGLObject m_GPU;
 
-	static inline const std::initializer_list<VertexAttributeDescriptor> vertexAttribList =
-	{
-		{ 0, offsetof(Vertex, position), 3, GL_FLOAT },
-		{ 1, offsetof(Vertex, normal), 3, GL_FLOAT },
-		{ 2, offsetof(Vertex, texcoord), 2, GL_FLOAT }
-	};
-
 public:
 	~Mesh() {
 		CleanOGLObject(m_GPU);
-
-		// material is deleted from wrapper class
-		m_material = nullptr;
 	}
 
 	inline void SetMaterial(std::shared_ptr<Material> material) {
@@ -37,7 +28,10 @@ public:
 		return m_GPU.count;
 	}
 
-	void Build(std::vector<Vertex> verteces, std::vector<unsigned int> indeces);
+	template <typename VertexT = Vertex>
+	void Build(MeshObject<VertexT>&& mesh) {
+		m_GPU = CreateGLObjectFromMesh(mesh, VertexT::GetLayout());
+	}
 
 	void Render(const MeshRenderParams& p);
 };

@@ -30,112 +30,105 @@ void CameraManipulator::SetCamera( Camera* _pCamera )
 }
 
 void CameraManipulator::Update(float _deltaTime) {
-	if (!m_pCamera) return;
+    if (!m_pCamera) return;
 
-	// Update the camera based on the model parameters.
+    // 1. Calculate view direction from spherical coordinates
+    glm::vec3 lookDirection(
+        cosf(m_u) * sinf(m_v),
+        cosf(m_v),
+        sinf(m_u) * sinf(m_v)
+    );
 
-	// Calculate the new view direction based on spherical coordinates.
-	glm::vec3 lookDirection(cosf(m_u) * sinf(m_v),
-		cosf(m_v),
-		sinf(m_u) * sinf(m_v));
+    // 2. Define the camera's local coordinate system
+    // In UE5-style flight, 'forward' is the look direction itself
+    glm::vec3 forward = lookDirection;
+    glm::vec3 worldUp = m_pCamera->GetWorldUp();
+    glm::vec3 right = glm::normalize(glm::cross(forward, worldUp));
 
-	// Calculate the new camera position based on the view direction and distance.
-	glm::vec3 eye = m_center - m_distance * lookDirection;
+    // 3. Determine final movement speed
+    // Combine base speed with the scroll-wheel multiplier and frame delta
+    float finalSpeed = m_baseSpeed * m_speedMultiplier * _deltaTime;
 
-	// Set the new up vector to be the same as the world's up vector.
-	glm::vec3 up = m_pCamera->GetWorldUp();
+    // Apply Shift boost if active
+    if (m_isShiftDown) {
+        finalSpeed *= 4.0f;
+    }
 
-	// Calculate the new right vector from the cross product of the view direction and the up vector.
-	glm::vec3 right = glm::normalize(glm::cross(lookDirection, up));
+    // 4. Calculate position offset
+    // W/S: forward/backward, A/D: strafe, Q/E: vertical lift
+    glm::vec3 deltaPosition = (
+        static_cast<float>(m_goForward) * forward +
+        static_cast<float>(m_goRight) * right +
+        static_cast<float>(m_goUp) * worldUp
+        ) * finalSpeed;
 
-	// Calculate the new forward vector from the cross product of the up and right vectors.
-	glm::vec3 forward = glm::cross(up, right);
+    // 5. Update positions
+    // Move both the focal point (center) and the eye to maintain relative distance
+    m_center += deltaPosition;
+    glm::vec3 eye = m_center - m_distance * lookDirection;
 
-	// Calculate the movement offset based on the camera's movement direction and speed.
-	glm::vec3 deltaPosition = (m_goForward * forward + m_goRight * right + m_goUp * up) * m_speed * _deltaTime;
-
-	// Update the camera position and the view target position.
-	eye += deltaPosition;
-	m_center += deltaPosition;
-
-	// Update the camera with the new position and look-at target.
-	m_pCamera->SetView(eye, m_center, m_pCamera->GetWorldUp());
+    // 6. Finalize view matrix
+    m_pCamera->SetView(eye, m_center, worldUp);
 }
 
-
-void CameraManipulator::KeyboardDown(const SDL_KeyboardEvent& key)
-{
-	switch ( key.key )
-	{
-	case SDLK_LSHIFT:
-	case SDLK_RSHIFT:
-		if ( key.repeat == 0 ) m_speed /= 4.0f;
-		break;
-	case SDLK_W:
-		m_goForward = 1;
-		break;
-	case SDLK_S:
-		m_goForward = -1;
-		break;
-	case SDLK_A:
-		m_goRight = -1;
-		break;
-	case SDLK_D:
-		m_goRight = 1;
-		break;
-	case SDLK_E:
-		m_goUp = 1;
-		break;
-	case SDLK_Q:
-		m_goUp = -1;
-		break;
-	}
+void CameraManipulator::KeyboardDown(const SDL_KeyboardEvent& key) {
+    // SDL3-ban a key.key közvetlenül elérhető
+    switch (key.key) {
+        case SDLK_LSHIFT:
+        case SDLK_RSHIFT:
+            if (!key.repeat) {
+                m_isShiftDown = true;
+                m_baseSpeed /= 4.0f;
+            }
+            break;
+        case SDLK_W: m_goForward = 1;  break;
+        case SDLK_S: m_goForward = -1; break;
+        case SDLK_A: m_goRight = -1;   break;
+        case SDLK_D: m_goRight = 1;    break;
+        case SDLK_E: m_goUp = 1;       break;
+        case SDLK_Q: m_goUp = -1;      break;
+    }
 }
 
-void CameraManipulator::KeyboardUp(const SDL_KeyboardEvent& key)
-{
-	
-	switch ( key.key )
-	{
-	case SDLK_LSHIFT:
-	case SDLK_RSHIFT:
-		m_speed *= 4.0f;
-		break;
-	case SDLK_W:
-	case SDLK_S:
-		m_goForward = 0;
-		break;
-	case SDLK_A:
-	case SDLK_D:
-		m_goRight = 0;
-		break;
-	case SDLK_Q:
-	case SDLK_E:
-		m_goUp = 0;
-		break;
-	}
+void CameraManipulator::KeyboardUp(const SDL_KeyboardEvent& key) {
+    switch (key.key) {
+        case SDLK_LSHIFT:
+        case SDLK_RSHIFT:
+            m_isShiftDown = false;
+            m_baseSpeed *= 4.0f;
+            break;
+        case SDLK_W: if (m_goForward > 0) m_goForward = 0; break;
+        case SDLK_S: if (m_goForward < 0) m_goForward = 0; break;
+        case SDLK_A: if (m_goRight < 0)   m_goRight = 0;   break;
+        case SDLK_D: if (m_goRight > 0)   m_goRight = 0;   break;
+        case SDLK_Q: if (m_goUp < 0)      m_goUp = 0;      break;
+        case SDLK_E: if (m_goUp > 0)      m_goUp = 0;      break;
+    }
 }
 
+void CameraManipulator::MouseMove(const SDL_MouseMotionEvent& mouse) {
+    // UE5-ben a jobb gombbal forgatjuk a nézetet (FPS-szerűen)
+    if (mouse.state & SDL_BUTTON_MASK(SDL_BUTTON_LEFT)) {
+        float sensitivity = 0.005f; // Érzékenység
+        m_u += mouse.xrel * sensitivity;
+        m_v = glm::clamp<float>(m_v + mouse.yrel * sensitivity, 0.1f, 3.1f);
+    }
 
-void CameraManipulator::MouseMove(const SDL_MouseMotionEvent& mouse)
-{
-	if ( mouse.state & SDL_BUTTON_LMASK )
-	{
-		float du = mouse.xrel / 100.0f;
-		float dv = mouse.yrel / 100.0f;
-
-		m_u += du;
-		m_v = glm::clamp<float>( m_v + dv, 0.1f, 3.1f );
-	}
-	if ( mouse.state & SDL_BUTTON_RMASK )
-	{
-		float dDistance = mouse.yrel / 100.0f;
-		m_distance += dDistance;
-	}
+    // A bal gomb az Unrealben előre-hátra tol és forgat, 
+    // de a legegyszerűbb UE5 élményhez a jobb gombos forgás az alap.
 }
 
-void CameraManipulator::MouseWheel(const SDL_MouseWheelEvent& wheel)
-{
-	float dDistance = static_cast<float>( wheel.y ) * m_speed / -100.0f;
-	m_distance += dDistance;
+void CameraManipulator::MouseWheel(const SDL_MouseWheelEvent& wheel) {
+    // Scale exponentially
+    if (m_isShiftDown) {
+        if (wheel.y > 0) m_speedMultiplier *= 1.1f;
+        else if (wheel.y < 0) m_speedMultiplier /= 1.1f;
+    }
+    else {
+        float dDistance = static_cast<float>(wheel.y) * m_baseSpeed * m_speedMultiplier / -100.0f;
+        m_distance += dDistance;
+    }
+
+    // Set minimum and maximum value
+    m_speedMultiplier = glm::clamp(m_speedMultiplier, 0.1f, 50.0f);
 }

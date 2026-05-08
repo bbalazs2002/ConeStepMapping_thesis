@@ -1,0 +1,162 @@
+#version 430 core
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(binding = 0) uniform writeonly image2D outputImage;
+
+uniform int width = 1;
+uniform int height = 1;
+uniform sampler2D inputImage;
+
+float getTan(float fx, vec2 xuv, vec2 nxny) {
+	vec2 yuv = nxny / vec2(width - 1, height - 1);
+	float fy = texture(inputImage, yuv).r;
+
+	return max(0., length(xuv - yuv) / (fy - fx));
+}
+
+void main() {
+
+	/* FLAT CONEMAP
+	for (int i = 0; i < 5; ++i) {
+		for (int j = 0; j < 5; ++j) {
+			imageStore(outputImage, ivec2(i, j), vec4(0, 1., 0, 1.));		
+		}
+	}
+	return;
+	*/
+
+	/* STATIC SPIKE CONEMAP
+	// tangents
+	// float a = (2.f * sqrt(2)) / 5.f;
+	// float b = sqrt(5.f) / 5.f;
+	// float c = 2.f / 5.f;
+	// float d = sqrt(2.f) / 5.f;
+	// float e = 1.f / 5.f;
+	// float f = 1.f;
+
+	float a = 0.5657f;
+	float b = 0.4472f;
+	float c = 0.4f;
+	float d = 0.2828f;
+	float e = 0.2f;
+	float f = 1.f;
+
+	imageStore(outputImage, ivec2(0, 0), vec4(0, a, 0, 1.));
+	imageStore(outputImage, ivec2(0, 1), vec4(0, b, 0, 1.));
+	imageStore(outputImage, ivec2(0, 2), vec4(0, c, 0, 1.));
+	imageStore(outputImage, ivec2(0, 3), vec4(0, b, 0, 1.));
+	imageStore(outputImage, ivec2(0, 4), vec4(0, a, 0, 1.));
+
+	imageStore(outputImage, ivec2(1, 0), vec4(0, b, 0, 1.));
+	imageStore(outputImage, ivec2(1, 1), vec4(0, d, 0, 1.));
+	imageStore(outputImage, ivec2(1, 2), vec4(0, e, 0, 1.));
+	imageStore(outputImage, ivec2(1, 3), vec4(0, d, 0, 1.));
+	imageStore(outputImage, ivec2(1, 4), vec4(0, b, 0, 1.));
+
+	imageStore(outputImage, ivec2(2, 0), vec4(0, c, 0, 1.));
+	imageStore(outputImage, ivec2(2, 1), vec4(0, e, 0, 1.));
+	imageStore(outputImage, ivec2(2, 2), vec4(1., f, 0, 1.));
+	imageStore(outputImage, ivec2(2, 3), vec4(0, e, 0, 1.));
+	imageStore(outputImage, ivec2(2, 4), vec4(0, c, 0, 1.));
+
+	imageStore(outputImage, ivec2(3, 0), vec4(0, b, 0, 1.));
+	imageStore(outputImage, ivec2(3, 1), vec4(0, d, 0, 1.));
+	imageStore(outputImage, ivec2(3, 2), vec4(0, e, 0, 1.));
+	imageStore(outputImage, ivec2(3, 3), vec4(0, d, 0, 1.));
+	imageStore(outputImage, ivec2(3, 4), vec4(0, b, 0, 1.));
+
+	imageStore(outputImage, ivec2(4, 0), vec4(0, a, 0, 1.));
+	imageStore(outputImage, ivec2(4, 1), vec4(0, b, 0, 1.));
+	imageStore(outputImage, ivec2(4, 2), vec4(0, c, 0, 1.));
+	imageStore(outputImage, ivec2(4, 3), vec4(0, b, 0, 1.));
+	imageStore(outputImage, ivec2(4, 4), vec4(0, a, 0, 1.));
+
+	return;
+	*/
+
+	/* DYNAMICLY GENERATED CONEMAP */
+
+	// Filter collapsed textures
+	if (width < 2 || height < 2) {
+		return;
+	}
+
+	int x = int(gl_GlobalInvocationID.x);
+	int y = int(gl_GlobalInvocationID.y);
+
+	vec2 xuv = vec2(float(x) / float(width - 1), float(y) / float(height - 1));
+	float fx = texture(inputImage, xuv).r;
+
+	float minTan = 1.;		// deg. 45
+
+	// Expand outward layer by layer
+	for (int r = 1; r < max(width, height); ++r) {
+
+		// Break if there is no smaller tangen
+		if (length(xuv - (vec2(x, y + r) / vec2(width - 1, height - 1))) / (1 - fx) > minTan) {		// smallest possible tangent is greater than minTan
+			break;
+		}
+
+		float tn = -1.;
+		
+		int nx = 0;
+		int ny = 0;
+
+		for (int i = -r; i <= r; i += 2 * r) {  // {-r, r}
+			for (int j = -r; j <= r; ++j) {     // {-r, -r+1, ..., r}
+				nx = x + i;
+				ny = y + j;
+				if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+					tn = getTan(fx, xuv, vec2(nx, ny));
+					if (tn > 0) {
+						minTan = min(minTan, tn);
+					}
+				}
+
+				// Skip corners to prevent duplicate checks
+				if (j == -r || j == r) continue;
+
+				nx = x + j;
+				ny = y + i;
+				if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+					tn = getTan(fx, xuv, vec2(nx, ny));
+					if (tn > 0) {
+						minTan = min(minTan, tn);
+					}
+				}
+			}
+		}
+
+		// No more fields found in the matrix
+		if (tn < 0) {
+			break;
+		}
+	}
+
+	// Naive
+	/*
+	int nx, ny;
+	float tn;
+
+	for (int i = 0; i < width; ++i) {
+		for (int j = 0; j < height; ++j) {
+			if (i == x && j == y) {
+				continue;
+			}
+
+			nx = i;
+			ny = j;
+			tn = getTan(fx, xuv, vec2(nx, ny));
+			if (tn > 0) {
+				minTan = min(minTan, tn);
+			}
+
+		}
+	}
+	*/
+
+	imageStore(outputImage, ivec2(gl_GlobalInvocationID), vec4(fx, minTan, 0, 1.));
+	// imageStore(outputImage, ivec2(gl_GlobalInvocationID), vec4(fx, .5, 0, 1.));
+    
+}

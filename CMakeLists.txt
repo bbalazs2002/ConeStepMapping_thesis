@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(SDL3-OpenGL-Base)
+project(CSM_thesis)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -23,10 +23,12 @@ find_package(tinyobjloader CONFIG REQUIRED)
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-    interface=struct
-    PROJECT_ROOT="${CMAKE_CURRENT_SOURCE_DIR}/"     # Define the project root directory path for the source code
-    GLM_ENABLE_EXPERIMENTAL                         # Enable experimental GLM extensions globally
-    $<$<CONFIG:Debug>:DEBUG>                        # Define DEBUG macro when CMake is in Debug mode
+    interface=struct                                        # Define the interface keyword as struct
+    PROJECT_ROOT="${CMAKE_CURRENT_SOURCE_DIR}/"             # Define the project root directory path for the source code
+    GLM_ENABLE_EXPERIMENTAL                                 # Enable experimental GLM extensions globally
+    $<$<CONFIG:Debug>:DEBUG>                                # Define DEBUG macro when CMake is in Debug mode
+    SSBO_PADDING=5                                          # SSBO padding for cone step mapping debug
+    IMGUI_HAS_DOCK                                          # Enable ImGui docking panels
 )
 
 # 4. Link libraries (using the specific vcpkg targets)

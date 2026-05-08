@@ -4,6 +4,9 @@
 #include <filesystem>
 #include <memory>
 
+// TinyObjLoader
+#include <tiny_obj_loader.h>
+
 // GLM
 #include <glm/glm.hpp>
 
@@ -13,6 +16,7 @@
 // Utils
 #include "../../Utils/Log.h"
 #include "../../Utils/GLUtils.hpp"
+#include "../../Utils/ModelLoader.h"
 
 class Material {
 private:
@@ -32,6 +36,9 @@ private:
 	static inline GLuint lastTextureTargets[4];
 
 public:
+
+	Material() {}
+	
 	~Material() {
 		glDeleteTextures(1, &m_diffuseTex);
 		m_diffuseTex = 0;
@@ -219,6 +226,37 @@ public:
 
 		// Restore the active texture unit to GL_TEXTURE0 for safety after all bindings.
 		glActiveTexture(GL_TEXTURE0);
+	}
+
+	static std::vector<std::shared_ptr<Material>> convertFromTinyObjLoader(std::vector<tinyobj::material_t> materials, const std::filesystem::path& textureFolder = "./") {
+
+		std::vector<std::shared_ptr<Material>> retVal;
+
+		if (materials.empty()) {
+			retVal.push_back(std::make_shared<Material>());
+		}
+
+		for (const auto& mat : materials) {
+			auto material = std::make_shared<Material>();
+			material->SetName(mat.name);
+			material->SetDiffuseColor(glm::vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]));
+			material->SetSpecularColor(glm::vec3(mat.specular[0], mat.specular[1], mat.specular[2]));
+			material->SetAmbientColor(glm::vec3(mat.ambient[0], mat.ambient[1], mat.ambient[2]));
+			material->SetShininess(mat.shininess);
+
+			if (!mat.diffuse_texname.empty())
+				material->SetDiffuseTex(Material::LoadTexture(ModelLoader::ResolveTexturePath(mat.diffuse_texname, textureFolder)));
+			if (!mat.specular_texname.empty())
+				material->SetSpecularTex(Material::LoadTexture(ModelLoader::ResolveTexturePath(mat.specular_texname, textureFolder)));
+			if (!mat.emissive_texname.empty())
+				material->SetEmissionTex(Material::LoadTexture(ModelLoader::ResolveTexturePath(mat.emissive_texname, textureFolder)));
+			if (!mat.normal_texname.empty())
+				material->SetNormalTex(Material::LoadTexture(ModelLoader::ResolveTexturePath(mat.normal_texname, textureFolder)));
+
+			retVal.push_back(material);
+		}
+
+		return retVal;
 	}
 
 };

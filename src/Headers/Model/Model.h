@@ -6,6 +6,7 @@
 #include "../Types.h"
 #include "../Material/Material.h"
 #include "../Model/Mesh.h"
+#include "../../Utils/GLUtils.hpp"
 
 class Model : public ModelBase {
 protected:
@@ -17,11 +18,11 @@ protected:
 public:
 	char m_objPathBuffer[256] = "";
 
-	Model(ModelParams params);
+	Model(const ModelParams& params);
 	~Model();
 
 	// IDrawable methods
-	void Render(const RenderParams& p) override;
+	virtual void Render(const RenderParams& p) override;
 
 	inline void AddMaterial(std::shared_ptr<Material> material) {
 		m_materials.push_back(std::move(material));
@@ -47,11 +48,12 @@ public:
 	inline bool GetWireFrame() const {
 		return m_wireframe;
 	}
+
 	inline void SetObjPath(const char* path) {
 		strcpy_s(m_objPathBuffer, path);
 		SetObjPath();
 	}
-	void SetObjPath();
+	virtual void SetObjPath();
 
 	inline void CleanGeometry() {
 		m_meshes.clear();

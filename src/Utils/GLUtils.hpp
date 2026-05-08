@@ -8,44 +8,81 @@
 
 #include "Log.h"
 
-/* 
-
-Az http://www.opengl-tutorial.org/ oldal alapján.
-
-*/
-
-// Segéd osztályok
+struct VertexAttributeDescriptor
+{
+    GLuint index = -1;
+    GLuint strideInBytes = 0;
+    GLint  numberOfComponents = 0;
+    GLenum glType = GL_NONE;
+};
 
 struct VertexPosColor
 {
     glm::vec3 position;
     glm::vec3 color;
+
+    static std::vector<VertexAttributeDescriptor> GetLayout() {
+        return {
+            { 0, offsetof(VertexPosColor, position), 3, GL_FLOAT },
+            { 1, offsetof(VertexPosColor, color),    3, GL_FLOAT }
+        };
+    }
 };
 
 struct VertexPosTex
 {
     glm::vec3 position;
     glm::vec2 texcoord;
+
+    static std::vector<VertexAttributeDescriptor> GetLayout() {
+        return {
+            { 0, offsetof(VertexPosTex, position), 3, GL_FLOAT },
+            { 1, offsetof(VertexPosTex, texcoord), 2, GL_FLOAT }
+        };
+    }
 };
 
 struct VertexPos2DTex
 {
     glm::vec2 position;
     glm::vec2 texcoord;
+
+    static std::vector<VertexAttributeDescriptor> GetLayout() {
+        return {
+            { 0, offsetof(VertexPos2DTex, position), 2, GL_FLOAT },
+            { 1, offsetof(VertexPos2DTex, texcoord), 2, GL_FLOAT }
+        };
+    }
 };
 
-struct Vertex
-{
+struct Vertex {
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec2 texcoord;
+
+    static std::vector<VertexAttributeDescriptor> GetLayout() {
+        return {
+            { 0, offsetof(Vertex, position), 3, GL_FLOAT },
+            { 1, offsetof(Vertex, normal), 3, GL_FLOAT },
+            { 2, offsetof(Vertex, texcoord), 2, GL_FLOAT }
+        };
+    }
 };
 
 struct VertexMergedNorm {
     glm::vec3 position;
     glm::vec3 normal;
-    glm::vec3 mergedNormal;
+    glm::vec3 mergedNormal; // For seamless displacement
     glm::vec2 texcoord;
+
+    static std::vector<VertexAttributeDescriptor> GetLayout() {
+        return {
+            { 0, offsetof(VertexMergedNorm, position), 3, GL_FLOAT },
+            { 1, offsetof(VertexMergedNorm, normal), 3, GL_FLOAT },
+            { 2, offsetof(VertexMergedNorm, mergedNormal), 3, GL_FLOAT },
+            { 3, offsetof(VertexMergedNorm, texcoord), 2, GL_FLOAT }
+        };
+    }
 };
 
 struct ImageRGBA
@@ -112,15 +149,6 @@ struct OGLObject
     GLsizei count = 0; // mennyi indexet/vertexet kell rajzolnunk
 };
 
-
-struct VertexAttributeDescriptor
-{
-	GLuint index = -1;
-    GLuint strideInBytes = 0;
-	GLint  numberOfComponents = 0;
-	GLenum glType = GL_NONE;
-};
-
 // Segéd függvények
 
 GLuint AttachShader( const GLuint programID, GLenum shaderType, const std::filesystem::path& _fileName );
@@ -129,10 +157,9 @@ void LinkProgram( const GLuint programID, bool OwnShaders = true );
 
 
 template <typename VertexT>
-[[nodiscard]] OGLObject CreateGLObjectFromMesh( const MeshObject<VertexT>& mesh, std::initializer_list<VertexAttributeDescriptor> vertexAttrDescList )
+[[nodiscard]] OGLObject CreateGLObjectFromMesh( const MeshObject<VertexT>& mesh, std::vector<VertexAttributeDescriptor> vertexAttrDescList )
 {
 	OGLObject meshGPU = { 0 };
-
 
 	// hozzunk létre egy új VBO erőforrás nevet
 	glCreateBuffers(1, &meshGPU.vboID);
@@ -168,7 +195,7 @@ template <typename VertexT>
 			vertexAttrDesc.numberOfComponents,	  // komponens szam
 			vertexAttrDesc.glType,				  // adatok tipusa
 			GL_FALSE,							  // normalizalt legyen-e
-			vertexAttrDesc.strideInBytes       // az attribútum hol kezdődik a sizeof(VertexT)-nyi területen belül
+			vertexAttrDesc.strideInBytes          // az attribútum hol kezdődik a sizeof(VertexT)-nyi területen belül
 		);
 	}
 	glVertexArrayElementBuffer( meshGPU.vaoID, meshGPU.iboID );

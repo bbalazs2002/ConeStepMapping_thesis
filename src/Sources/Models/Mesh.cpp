@@ -14,11 +14,6 @@
 #include "../../Headers/Model/Mesh.h"
 #include "../../Headers/Types.h"
 
-void Mesh::Build(std::vector<Vertex> verteces, std::vector<GLuint> indeces) {
-	MeshObject<Vertex> mesh{verteces, indeces};
-	m_GPU = CreateGLObjectFromMesh(mesh, vertexAttribList);
-}
-
 void Mesh::Render(const MeshRenderParams& p) {
 	// -- Check if the model can be rendered --
 	if (GetMaterial() == nullptr) {
