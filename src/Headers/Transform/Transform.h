@@ -16,7 +16,7 @@
 
 class Transform {
 public:
-    Transform();
+    Transform() = default;
     explicit Transform(const glm::vec3& location,
         const glm::quat& rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
         const glm::vec3& scale = glm::vec3(1.0f));
@@ -54,20 +54,24 @@ public:
     }
 
     inline bool IsDirty() const { return m_dirty; }
-    inline void Clean() { m_dirty = false; }
 
     // ── Matrix computation ────────────────────────────────────────────────────
 
-    // Returns the local transformation matrix (without parent)
-    glm::mat4 GetMatrix() const;
+    // Returns the local transformation matrix.
+    // Recomputes and caches only when dirty, otherwise returns the cached value.
+    const glm::mat4& GetMatrix() const;
 
-    // Returns the world transformation matrix (parent chain applied recursively)
+    // Returns the world transformation matrix (parent chain applied recursively).
+    // NOTE: The world matrix is not cached – recomputed on every call if a
+    // parent is set. For deeply nested hierarchies this may be a bottleneck.
     glm::mat4 GetWorldMatrix() const;
 
 private:
     glm::vec3  m_location = glm::vec3(0.0f);
-    glm::quat  m_rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f); // identity quaternion
-    glm::vec3  m_scale = glm::vec3(1.0f);
-    Transform* m_parent = nullptr;
-    mutable bool m_dirty = true;
+    glm::quat  m_rotation = glm::identity<glm::quat>();
+    glm::vec3  m_scale    = glm::vec3(1.0f);
+    Transform* m_parent   = nullptr;
+
+    mutable bool      m_dirty        = true;
+    mutable glm::mat4 m_cachedMatrix = glm::identity<glm::mat4>();
 };

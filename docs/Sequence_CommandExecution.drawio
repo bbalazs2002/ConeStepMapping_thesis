@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1"
+  tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1"
+  pageWidth="1200" pageHeight="730" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+<mxCell id="P_U" value="User
+(ImGui)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="30" width="120" height="40" as="geometry"/></mxCell>
+<mxCell id="P_IV" value="ImGuiVisitor" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="220" y="30" width="140" height="40" as="geometry"/></mxCell>
+<mxCell id="P_CQ" value="CommandQueue" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="440" y="30" width="140" height="40" as="geometry"/></mxCell>
+<mxCell id="P_MA" value="MyApp::Update()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="660" y="30" width="160" height="40" as="geometry"/></mxCell>
+<mxCell id="P_RMS" value="RayMarchedSurface" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="900" y="30" width="160" height="40" as="geometry"/></mxCell>
+<mxCell id="L_U" value="" style="endArrow=none;dashed=1;strokeColor=#666666;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="100" y="70" as="sourcePoint"/><mxPoint x="100" y="700" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="L_IV" value="" style="endArrow=none;dashed=1;strokeColor=#6c8ebf;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="290" y="70" as="sourcePoint"/><mxPoint x="290" y="700" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="L_CQ" value="" style="endArrow=none;dashed=1;strokeColor=#82b366;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="510" y="70" as="sourcePoint"/><mxPoint x="510" y="700" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="L_MA" value="" style="endArrow=none;dashed=1;strokeColor=#6c8ebf;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="740" y="70" as="sourcePoint"/><mxPoint x="740" y="700" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="L_RMS" value="" style="endArrow=none;dashed=1;strokeColor=#d6b656;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="980" y="70" as="sourcePoint"/><mxPoint x="980" y="700" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="PH1" value="Phase 1: RenderGUI()" style="text;html=1;fontStyle=1;fontSize=11;" vertex="1" parent="1"><mxGeometry x="40" y="88" width="400" height="20" as="geometry"/></mxCell>
+<mxCell id="M1" value="clicks technique selector" style="endArrow=block;endFill=1;dashed=0;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="100" y="120" as="sourcePoint"/><mxPoint x="290" y="120" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="M2_f" value="make_unique&lt;SetTechniqueCommand&gt;(surface, technique)" style="endArrow=block;endFill=1;dashed=0;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="290" y="165" as="sourcePoint"/><mxPoint x="370" y="165" as="targetPoint"/><Array as="points"><mxPoint x="370" y="165"/><mxPoint x="370" y="205"/></Array></mxGeometry></mxCell>
+<mxCell id="M2_r" value="" style="endArrow=block;endFill=1;dashed=0;edgeStyle=none;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="370" y="205" as="sourcePoint"/><mxPoint x="290" y="205" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="M3" value="Push(cmd)  [via ICommandQueue*]" style="endArrow=block;endFill=1;dashed=0;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="290" y="240" as="sourcePoint"/><mxPoint x="510" y="240" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="M3r" value="" style="endArrow=open;endFill=0;dashed=1;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="510" y="270" as="sourcePoint"/><mxPoint x="290" y="270" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="SEP" value="" style="line;strokeColor=#cccccc;fillColor=none;" vertex="1" parent="1"><mxGeometry x="40" y="300" width="1080" height="6" as="geometry"/></mxCell>
+<mxCell id="PH2" value="Phase 2: next MyApp::Update()  [frame boundary]" style="text;html=1;fontStyle=1;fontSize=11;" vertex="1" parent="1"><mxGeometry x="40" y="315" width="400" height="20" as="geometry"/></mxCell>
+<mxCell id="M4" value="commandQueue.Execute()" style="endArrow=block;endFill=1;dashed=0;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="740" y="360" as="sourcePoint"/><mxPoint x="510" y="360" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="F1" value="loop [for each cmd in m_queue]" style="swimlane;startSize=20;fillColor=none;strokeColor=#d6b656;fontSize=10;align=left;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="400" y="378" width="620" height="175" as="geometry"/></mxCell>
+<mxCell id="M5" value="cmd→Execute()  →  SetTechniqueCommand::Execute()" style="endArrow=block;endFill=1;dashed=0;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="510" y="420" as="sourcePoint"/><mxPoint x="980" y="420" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="M6_f" value="surface→SetTechnique(m_technique)" style="endArrow=block;endFill=1;dashed=0;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="980" y="465" as="sourcePoint"/><mxPoint x="1055" y="465" as="targetPoint"/><Array as="points"><mxPoint x="1055" y="465"/><mxPoint x="1055" y="500"/></Array></mxGeometry></mxCell>
+<mxCell id="M6_r" value="" style="endArrow=block;endFill=1;dashed=0;edgeStyle=none;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1055" y="500" as="sourcePoint"/><mxPoint x="980" y="500" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="N1" value="SetTechniqueCommand::Execute():
+  m_surface→SetTechnique(m_technique)
+  Never direct assignment  [OCP]" style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;fillColor=#fffacd;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1"><mxGeometry x="680" y="405" width="280" height="55" as="geometry"/></mxCell>
+<mxCell id="N2" value="unique_ptr&lt;ICommand&gt; destroyed
+automatically after loop" style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;fillColor=#fffacd;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1"><mxGeometry x="400" y="568" width="240" height="36" as="geometry"/></mxCell>
+<mxCell id="M7r" value="" style="endArrow=open;endFill=0;dashed=1;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="510" y="575" as="sourcePoint"/><mxPoint x="740" y="575" as="targetPoint"/></mxGeometry></mxCell>
+  </root>
+</mxGraphModel>

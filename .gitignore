@@ -8,6 +8,8 @@ lib/
 # --- Visual Studio ---
 # A VS által generált rejtett mappa (Intellisense, DB fájlok, stb.)
 .vs/
+# A VS Code lokális beállításai
+.vscode/
 # Felhasználóspecifikus beállítások (amit kértél)
 CMakeSettings.json
 # CMake Presets (opcionális, de gyakran lokális útvonalakat tartalmaz)
@@ -25,3 +27,4 @@ vcpkg_installed/
 # --- Egyéb ---
 .DS_Store
 Thumbs.db
+temp/

@@ -1,0 +1,170 @@
+@startuml ClassDiagram_Overview
+skinparam defaultFontName Monospaced
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageBackgroundColor #f9f9f9
+skinparam packageBorderColor #aaaaaa
+skinparam packageFontColor #666666
+skinparam packageFontStyle bold
+skinparam class {
+  BackgroundColor<<interface>> #dae8fc
+  BorderColor<<interface>>     #6c8ebf
+  FontStyle<<interface>>       italic
+  BackgroundColor<<abstract>>  #e1d5e7
+  BorderColor<<abstract>>      #9673a6
+  FontStyle<<abstract>>        italic
+  BackgroundColor<<concrete>>  #fff2cc
+  BorderColor<<concrete>>      #d6b656
+  BackgroundColor<<manager>>   #d5e8d4
+  BorderColor<<manager>>       #82b366
+  BackgroundColor<<utility>>   #f5f5f5
+  BorderColor<<utility>>       #666666
+  FontColor<<utility>>         #333333
+}
+
+package "Application core" {
+  interface IGraphicsApp <<interface>> {
+  }
+  class MyApp <<concrete>> {
+  }
+}
+
+package "Command system" {
+  interface ICommandQueue <<interface>> {
+  }
+  interface ICommand <<interface>> {
+  }
+  class CommandQueue <<manager>> {
+  }
+  class SetHeightmapCommand <<concrete>> {
+  }
+  class SetTechniqueCommand <<concrete>> {
+  }
+  class DeleteObjectCommand <<concrete>> {
+  }
+}
+
+package "Managers" {
+  class ShaderManager <<manager>> {
+  }
+  class SceneManager <<manager>> {
+  }
+  class MaterialManager <<manager>> {
+  }
+  class TextureManager <<manager>> {
+  }
+  class SkyboxRenderer <<manager>> {
+  }
+  class AxesRenderer <<manager>> {
+  }
+}
+
+package "Camera" {
+  interface ICamera <<interface>> {
+  }
+  class Camera <<concrete>> {
+  }
+}
+
+package "GUI Visitor" {
+  interface IGUIVisitor <<interface>> {
+  }
+  interface IGUIVisitable <<interface>> {
+  }
+  class ImGuiVisitor <<concrete>> {
+  }
+}
+
+package "Renderer Visitor" {
+  interface IModelRendererVisitor <<interface>> {
+  }
+  interface IModelRendererVisitable <<interface>> {
+  }
+  class OpenGLRendererVisitor <<manager>> {
+  }
+}
+
+package "Scene hierarchy" {
+  interface IDrawable <<interface>> {
+  }
+  abstract class ModelBase <<abstract>> {
+  }
+  class Transform <<utility>> {
+  }
+  abstract class Model <<abstract>> {
+  }
+  class Mesh <<utility>> {
+  }
+  class Material <<utility>> {
+  }
+  class Texture <<utility>> {
+  }
+}
+
+package "Ray Marching" {
+  abstract class RayMarchedSurface <<abstract>> {
+  }
+  interface IRayMarchingTechnique <<interface>> {
+  }
+  class LinearSearch <<concrete>> {
+  }
+  class ConeStepMapping <<concrete>> {
+  }
+}
+
+package "Utils" {
+  class CameraManipulator <<utility>> {
+  }
+  class ProgramBuilder <<utility>> {
+  }
+  class ModelLoader <<utility>> {
+  }
+  class GLUtils <<utility>> {
+  }
+}
+
+' --- Realizations
+MyApp ..|> IGraphicsApp
+CommandQueue ..|> ICommandQueue
+Camera ..|> ICamera
+ImGuiVisitor ..|> IGUIVisitor
+OpenGLRendererVisitor ..|> IModelRendererVisitor
+ModelBase ..|> IDrawable
+ModelBase ..|> IGUIVisitable
+ModelBase ..|> IModelRendererVisitable
+SetHeightmapCommand ..|> ICommand
+SetTechniqueCommand ..|> ICommand
+DeleteObjectCommand ..|> ICommand
+LinearSearch ..|> IRayMarchingTechnique
+ConeStepMapping ..|> IRayMarchingTechnique
+
+' --- Inheritance
+Model --|> ModelBase
+RayMarchedSurface --|> ModelBase
+
+' --- Composition (MyApp owns)
+MyApp *-- CommandQueue
+MyApp *-- SceneManager
+MyApp *-- ShaderManager
+MyApp *-- MaterialManager
+MyApp *-- TextureManager
+MyApp *-- Camera
+MyApp *-- ImGuiVisitor
+MyApp *-- SkyboxRenderer
+MyApp *-- AxesRenderer
+MyApp *-- OpenGLRendererVisitor
+
+' --- Aggregation
+SceneManager o-- "0..*" IDrawable
+CommandQueue o-- "0..*" ICommand
+MyApp o-- "0..*" IRayMarchingTechnique : m_techniques
+RayMarchedSurface o-- IRayMarchingTechnique
+Model *-- "1..*" Mesh
+Mesh o-- Material
+Material o-- "0..4" Texture
+
+' --- Dependencies
+MaterialManager ..> Material
+TextureManager ..> Texture
+ImGuiVisitor ..> ICommandQueue
+@enduml

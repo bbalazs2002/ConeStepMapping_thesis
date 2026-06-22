@@ -1,0 +1,127 @@
+@startuml ClassDiagram_SceneHierarchy
+skinparam defaultFontName Monospaced
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageBackgroundColor #f9f9f9
+skinparam packageBorderColor #aaaaaa
+skinparam packageFontColor #666666
+skinparam packageFontStyle bold
+skinparam class {
+  BackgroundColor<<interface>> #dae8fc
+  BorderColor<<interface>>     #6c8ebf
+  FontStyle<<interface>>       italic
+  BackgroundColor<<abstract>>  #e1d5e7
+  BorderColor<<abstract>>      #9673a6
+  FontStyle<<abstract>>        italic
+  BackgroundColor<<concrete>>  #fff2cc
+  BorderColor<<concrete>>      #d6b656
+  BackgroundColor<<manager>>   #d5e8d4
+  BorderColor<<manager>>       #82b366
+  BackgroundColor<<utility>>   #f5f5f5
+  BorderColor<<utility>>       #666666
+  FontColor<<utility>>         #333333
+}
+
+package "Scene hierarchy" {
+  interface IDrawable <<interface>> {
+    + Render(in v : IModelRendererVisitor&) : void
+    + Update(in info : SUpdateInfo) : void
+    + ~IDrawable() = default
+  }
+  abstract class ModelBase <<abstract>> {
+    (+,+) m_name : string
+    (+,+) m_show : bool
+    (+,+) m_drawMode : int
+    (+,#) m_transform : Transform
+    (+,!) m_deleteMarker : bool
+    --
+    + GetProgramID() : GLuint  {pure virtual}
+    + Render(in v : IModelRendererVisitor&) : void
+    + Update(in info : SUpdateInfo) : void
+    + GetTransform() : Transform&
+    + MarkForDeletion() : void
+    + IsMarkedForDeletion() : bool
+    + AcceptGUIVisitor(in v : IGUIVisitor&) : void
+    + AcceptRendererVisitor(in v : IModelRendererVisitor&) : void
+  }
+  class Transform <<utility>> {
+    (+,+) m_location : vec3
+    (+,+) m_rotation : quat
+    (+,+) m_scale : vec3
+    (+,+) m_parent : Transform*
+    --
+    + GetMatrix() : const mat4&
+    + GetWorldMatrix() : mat4
+    + SetLocation(in loc : vec3) : void
+    + SetRotation(in rot : quat) : void
+    + SetScale(in scale : vec3) : void
+    + SetParent(in parent : Transform*) : void
+  }
+  abstract class Model <<abstract>> {
+    # m_programID : GLuint
+    (+,+) m_objPath : string
+    (+,+) m_wireframe : bool
+    --
+    + GetProgramID() : GLuint override
+    + Update(in info : SUpdateInfo) : void
+    + SetObjPath(in path : string) : void
+    + CleanGeometry() : void
+    + AcceptGUIVisitor(in v : IGUIVisitor&) : void
+    + AcceptRendererVisitor(in v : IModelRendererVisitor&) : void
+  }
+  class Mesh <<utility>> {
+    - m_GPU : OGLObject
+    (+,+) m_material : shared_ptr<Material>
+    --
+    + Build(in mesh : MeshObject) : void
+    + Render(in p : MeshRenderParams) : void
+    + GetVAO() : GLuint
+    + GetVertexCount() : GLsizei
+  }
+  class Material <<utility>> {
+    (+,+) m_name : string
+    (+,+) m_diffuseColor : vec3
+    (+,+) m_specularColor : vec3
+    (+,+) m_ambientColor : vec3
+    (+,+) m_shininess : float
+    (+,+) m_diffuseTex : shared_ptr<Texture>
+    (+,+) m_specularTex : shared_ptr<Texture>
+    (+,+) m_emissionTex : shared_ptr<Texture>
+    (+,+) m_normalTex : shared_ptr<Texture>
+    --
+    {static} + UploadMaterialToShader(in prog : GLuint, in mat : shared_ptr<Material>, in targets : GLuint[4]) : void
+    {static} + UploadMaterialToShader(in prog : GLuint, in mat : shared_ptr<Material>) : void
+    {static} + ClearMaterialFromShader() : void
+    + operator==(in other : const Material&) : bool
+    {static} + Hash(in mat : const Material&) : size_t
+  }
+  class Texture <<utility>> {
+    - m_id : GLuint
+    --
+    + GetID() : GLuint
+    + IsValid() : bool
+  }
+}
+
+interface IGUIVisitable <<interface>> {
+}
+interface IModelRendererVisitable <<interface>> {
+}
+class SceneManager <<manager>> {
+}
+abstract class RayMarchedSurface <<abstract>> {
+}
+interface IRayMarchingTechnique <<interface>> {
+}
+
+ModelBase ..|> IDrawable
+ModelBase ..|> IGUIVisitable
+ModelBase ..|> IModelRendererVisitable
+Model --|> ModelBase
+RayMarchedSurface --|> ModelBase
+ModelBase *-- Transform
+Model *-- "1..*" Mesh
+Mesh o-- Material
+Material o-- "0..4" Texture
+SceneManager o-- "0..*" IDrawable
+@enduml

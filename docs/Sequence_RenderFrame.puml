@@ -1,0 +1,53 @@
+@startuml Sequence_RenderFrame
+skinparam defaultFontName Monospaced
+skinparam shadowing false
+hide stereotype
+skinparam sequenceArrowThickness 1.5
+skinparam participant {
+  BackgroundColor<<blue>>   #dae8fc
+  BorderColor<<blue>>       #6c8ebf
+  BackgroundColor<<yellow>> #fff2cc
+  BorderColor<<yellow>>     #d6b656
+  BackgroundColor<<green>>  #d5e8d4
+  BorderColor<<green>>      #82b366
+  BackgroundColor<<grey>>   #f5f5f5
+  BorderColor<<grey>>       #666666
+  FontColor<<grey>>         #333333
+}
+skinparam actor {
+  BackgroundColor<<grey>> #f5f5f5
+  BorderColor<<grey>>     #666666
+  FontColor<<grey>>       #333333
+}
+
+participant "MyApp" as app <<blue>>
+participant "SceneManager" as sm <<blue>>
+participant "ModelBase" as mb <<yellow>>
+participant "OpenGLRendererVisitor" as rv <<blue>>
+participant "SkyboxRenderer / AxesRenderer" as sa <<blue>>
+
+app -> sa : skyboxRenderer.Render(camera)
+sa --> app
+
+app -> sm : sceneManager.Render(m_rendererVisitor)
+
+loop for each drawable in m_drawables
+  sm -> mb : drawable.Render(v)
+  mb -> rv : AcceptRendererVisitor(v)  →  v.Visit(*this)
+  rv -> rv : VisitModelBase(target)
+  note right
+    reads m_camera.GetViewProj()
+    reads m_camera.GetEye()
+  end note
+  rv --> mb
+  mb --> sm
+end
+
+sm --> app
+
+app -> sm : sceneManager.RenderGUI(m_imguiVisitor)
+sm --> app
+
+app -> sa : axesRenderer.Render(camera)
+sa --> app
+@enduml

@@ -1,0 +1,81 @@
+@startuml ClassDiagram_RayMarching
+skinparam defaultFontName Monospaced
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageBackgroundColor #f9f9f9
+skinparam packageBorderColor #aaaaaa
+skinparam packageFontColor #666666
+skinparam packageFontStyle bold
+skinparam class {
+  BackgroundColor<<interface>> #dae8fc
+  BorderColor<<interface>>     #6c8ebf
+  FontStyle<<interface>>       italic
+  BackgroundColor<<abstract>>  #e1d5e7
+  BorderColor<<abstract>>      #9673a6
+  FontStyle<<abstract>>        italic
+  BackgroundColor<<concrete>>  #fff2cc
+  BorderColor<<concrete>>      #d6b656
+  BackgroundColor<<manager>>   #d5e8d4
+  BorderColor<<manager>>       #82b366
+  BackgroundColor<<utility>>   #f5f5f5
+  BorderColor<<utility>>       #666666
+  FontColor<<utility>>         #333333
+}
+
+package "Ray Marching" {
+  interface IRayMarchingTechnique <<interface>> {
+    + GetProgramID() : GLuint
+    + SetUniforms(in surface : const RayMarchedSurface&) : void
+    + GetName() : string
+  }
+  class LinearSearch <<concrete>> {
+    - m_programID : GLuint
+    --
+    + GetProgramID() : GLuint override
+    + SetUniforms(in surface : const RayMarchedSurface&) : void
+    + GetName() : string override
+  }
+  class ConeStepMapping <<concrete>> {
+    - m_programID : GLuint
+    --
+    + GetProgramID() : GLuint override
+    + SetUniforms(in surface : const RayMarchedSurface&) : void
+    + GetName() : string override
+  }
+  abstract class RayMarchedSurface <<abstract>> {
+    (+,+) m_hMapPath : string
+    # m_HMapTextureID : GLuint
+    (+,!) m_conemapTextureID : GLuint
+    (+,+) m_technique : shared_ptr<IRayMarchingTechnique>
+    (+,+) m_maxSteps : int
+    (+,+) m_epsilon : float
+    (+,+) m_lightDir : vec3
+    (+,+) m_normalMult : float
+    (+,+) m_discardFragments : bool
+    (+,+) m_displayNonConverged : bool
+    (+,+) m_showFlags : bool
+    (+,+) m_interpolateTexture : bool
+    (+,+) m_debugConfig : RayMarchDebugConfig
+    --
+    + GetProgramID() : GLuint override
+    + Render(in v : IModelRendererVisitor&) : void
+    + AcceptGUIVisitor(in v : IGUIVisitor&) : void
+    + AcceptRendererVisitor(in v : IModelRendererVisitor&) : void
+  }
+}
+
+class MyApp <<concrete>> {
+}
+abstract class ModelBase <<abstract>> {
+}
+class ShaderManager <<manager>> {
+}
+
+LinearSearch ..|> IRayMarchingTechnique
+ConeStepMapping ..|> IRayMarchingTechnique
+RayMarchedSurface --|> ModelBase
+RayMarchedSurface o-- IRayMarchingTechnique
+MyApp o-- "0..*" IRayMarchingTechnique
+ShaderManager ..> LinearSearch
+ShaderManager ..> ConeStepMapping
+@enduml

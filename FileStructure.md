@@ -1,9 +1,9 @@
-# Fájlstruktúra
+# File Structure
 
-Jelölések:
-- ✅ Marad (változatlan)
-- 🔧 Módosul
-- 🆕 Új fájl
+Legend:
+- ✅ Unchanged
+- 🔧 Modified
+- 🆕 New file
 
 ---
 
@@ -11,14 +11,15 @@ Jelölések:
 src/
 ├── main.cpp                                              ✅
 │
-├── Interface/
+├── Interfaces/
 │   ├── IGraphicsApp.h                                    ✅
 │   ├── IDrawable.h                                       ✅
 │   ├── ICommand.h                                        🆕
 │   ├── IGUIVisitor.h                                     🆕
 │   ├── IGUIVisitable.h                                   🆕
 │   ├── IModelRendererVisitor.h                           🆕
-│   └── IModelRendererVisitable.h                         🆕
+│   ├── IModelRendererVisitable.h                         🆕
+│   └── IRayMarchingTechnique.h                           🆕
 │
 ├── Headers/
 │   ├── MyApp.h                                           🔧
@@ -40,13 +41,14 @@ src/
 │   ├── Manager/
 │   │   ├── SceneManager.h                                🆕
 │   │   ├── ShaderManager.h                               🆕
-│   │   └── MaterialManager.h                             🆕
+│   │   ├── MaterialManager.h                             🆕
+│   │   └── TextureManager.h                              🆕
 │   │
 │   ├── Renderer/
 │   │   ├── SkyboxRenderer.h                              🆕
 │   │   └── AxesRenderer.h                                🆕
 │   │
-│   ├── GUI/
+│   ├── GUIVisitor/
 │   │   └── ImGuiVisitor.h                                🆕
 │   │
 │   ├── RendererVisitor/
@@ -58,16 +60,18 @@ src/
 │   │   ├── Mesh.h                                        🔧
 │   │   └── RayMarchedSurface.h                           🔧
 │   │
-│   ├── Material/
-│   │   └── Material.h                                    🔧
-│   │
 │   ├── RayMarching/
-│   │   ├── IRayMarchingTechnique.h                       🆕
 │   │   ├── LinearSearch.h                                🆕
 │   │   └── ConeStepMapping.h                             🆕
 │   │
+│   ├── Material/
+│   │   └── Material.h                                    🔧
+│   │
+│   ├── Texture/
+│   │   └── Texture.h                                     🆕
+│   │
 │   └── Transform/
-│       └── Transform.h                                   🔧  (volt: Transformation.h)
+│       └── Transform.h                                   🔧  (was: Transformation.h)
 │
 ├── Sources/
 │   ├── MyApp.cpp                                         🔧
@@ -87,35 +91,39 @@ src/
 │   ├── Manager/
 │   │   ├── SceneManager.cpp                              🆕
 │   │   ├── ShaderManager.cpp                             🆕
-│   │   └── MaterialManager.cpp                           🆕
+│   │   ├── MaterialManager.cpp                           🆕
+│   │   └── TextureManager.cpp                            🆕
 │   │
 │   ├── Renderer/
 │   │   ├── SkyboxRenderer.cpp                            🆕
 │   │   └── AxesRenderer.cpp                              🆕
 │   │
-│   ├── GUI/
+│   ├── GUIVisitor/
 │   │   └── ImGuiVisitor.cpp                              🆕
 │   │
 │   ├── RendererVisitor/
 │   │   └── OpenGLRendererVisitor.cpp                     🆕
 │   │
 │   ├── Models/
-│   │   ├── ModelBase.cpp                                 🆕  (volt csak header)
+│   │   ├── ModelBase.cpp                                 🆕  (was header-only)
 │   │   ├── Model.cpp                                     🔧
 │   │   ├── Mesh.cpp                                      🔧
 │   │   └── RayMarchedSurface.cpp                         🔧
-│   │
-│   ├── Material/
-│   │   └── Material.cpp                                  🆕  (volt csak header)
 │   │
 │   ├── RayMarching/
 │   │   ├── LinearSearch.cpp                              🆕
 │   │   └── ConeStepMapping.cpp                           🆕
 │   │
+│   ├── Material/
+│   │   └── Material.cpp                                  🆕  (was header-only)
+│   │
+│   ├── Texture/
+│   │   └── Texture.cpp                                   🆕
+│   │
 │   └── Transform/
-│       └── Transform.cpp                                 🔧  (volt: Transformation.cpp)
+│       └── Transform.cpp                                 🔧  (was: Transformation.cpp)
 │
-├── Utils/                                                ✅ (teljes mappa változatlan)
+├── Utils/                                                ✅ (entire folder unchanged)
 │   ├── Camera.h / .cpp
 │   ├── CameraManipulator.h / .cpp
 │   ├── GLUtils.hpp / .cpp
@@ -124,7 +132,7 @@ src/
 │   ├── ProgramBuilder.h / .cpp
 │   └── SDL_GLDebugMessageCallback.h / .cpp
 │
-└── Shaders/                                              ✅ (teljes mappa változatlan)
+└── Shaders/                                              ✅ (entire folder unchanged)
     ├── Axes/
     ├── Conemap/
     ├── Models/
@@ -135,46 +143,52 @@ src/
 
 ---
 
-## Implementációs irányelvek
+## Implementation Guidelines
 
-### Forward declaration szabály
-Minden header csak forward declarationt használ külső osztályokra,
-a teljes definíció csak a .cpp fájlban szerepel #include-dal.
-Kivétel: örökölt szülőosztályok és interfészek (teljes definíció szükséges).
+### Forward declaration rule
+Headers use forward declarations for external classes; full definitions
+only in .cpp files via #include.
+Exception: inherited base classes and interfaces require full definitions.
 
-### Inline getterek és setterek
-Minden getter és setter a headerben kerül definícióra:
+### Inline getters and setters
+All getters and setters are defined in the header for potential inlining:
 ```cpp
 // Transform.h
 inline const glm::vec3& GetLocation() const { return m_location; }
-inline void SetLocation(const glm::vec3& loc) { m_location = loc; }
+inline void SetLocation(const glm::vec3& loc) { m_location = loc; m_dirty = true; }
 ```
-Komplex logikát tartalmazó metódusok (pl. SetHeightmap, SetInterpolateTexture)
-továbbra is .cpp-ben maradnak.
+Methods with complex logic (e.g. SetHeightmap, SetInterpolateTexture) remain in .cpp.
 
-### const referencia paraméterek
-Minden Render() és Update() hívásban a paraméterek const referenciák:
+### const reference parameters
+All Render() and Update() calls use const references where only reading occurs:
 ```cpp
 void OpenGLRendererVisitor::Visit(const Model& model);
 void OpenGLRendererVisitor::Visit(const RayMarchedSurface& rms);
 ```
 
-### GPU szinkronizáció
-- CommandQueue::Execute() a MyApp::Update() legelső utasítása
-- Erőforrást törlő/módosító Command-ok előtt glFenceSync() használata
-- Érintett Command-ok: SetHeightmapCommand, DeleteObjectCommand,
+### GPU synchronization
+- CommandQueue::Execute() is the first call in MyApp::Update()
+- Use glFenceSync() before resource-destroying/modifying Commands
+- Affected Commands: SetHeightmapCommand, DeleteObjectCommand,
   SetMaterialCommand, SetTechniqueCommand
 
-### Destruktorok
-- Material destruktora törli a GPU textúra handle-ket (glDeleteTextures)
-- MaterialManager::Release() ellenőrzi a shared_ptr use_count-ot
-- Minden OpenGL handle-t tároló osztálynak explicit destruktorra van szüksége
+### Destructors
+- Texture destructor calls glDeleteTextures (RAII)
+- Material destructor is = default (shared_ptr<Texture> members handle cleanup)
+- TextureManager uses weak_ptr cache – textures are freed automatically
+  when all shared_ptr owners release them
+- Every class owning OpenGL handles needs an explicit destructor
 
-### Új modell típus hozzáadásának lépései
-1. Új osztály létrehozása (ModelBase leszármazottja) – új fájl
-2. AcceptGUIVisitor() és AcceptRendererVisitor() implementálása
-3. IGUIVisitor::Visit() bővítése az új típussal
-4. IModelRendererVisitor::Visit() bővítése az új típussal
-5. ImGuiVisitor::Visit() implementálása
-6. OpenGLRendererVisitor::Visit() implementálása
-7. MyApp::Init()-ben példányosítás és SceneManager-hez adás
+### Transform caching
+- GetMatrix() recomputes only when m_dirty == true, returns const ref to cache
+- GetWorldMatrix() is not cached – may be a bottleneck for deep hierarchies
+- Parent-child hierarchy is partially implemented (see Transform.h NOTE)
+
+### Adding a new model type (checklist)
+1. Create new class extending ModelBase – new file only
+2. Implement AcceptGUIVisitor() and AcceptRendererVisitor()
+3. Add Visit() overload to IGUIVisitor interface
+4. Add Visit() overload to IModelRendererVisitor interface
+5. Implement Visit() in ImGuiVisitor
+6. Implement Visit() in OpenGLRendererVisitor
+7. Instantiate and add to SceneManager in MyApp::Init()

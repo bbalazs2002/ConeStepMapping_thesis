@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1"
+  tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1"
+  pageWidth="1400" pageHeight="860" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+<mxCell id="P_MA" value="MyApp" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="60" y="30" width="140" height="40" as="geometry"/></mxCell>
+<mxCell id="P_SM" value="SceneManager" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="280" y="30" width="160" height="40" as="geometry"/></mxCell>
+<mxCell id="P_MB" value="ModelBase" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="540" y="30" width="140" height="40" as="geometry"/></mxCell>
+<mxCell id="P_RV" value="OpenGLRendererVisitor" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="760" y="30" width="200" height="40" as="geometry"/></mxCell>
+<mxCell id="P_SA" value="SkyboxRenderer
+AxesRenderer" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1060" y="30" width="160" height="40" as="geometry"/></mxCell>
+<mxCell id="L_MA" value="" style="endArrow=none;dashed=1;strokeColor=#6c8ebf;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="130" y="70" as="sourcePoint"/><mxPoint x="130" y="810" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="L_SM" value="" style="endArrow=none;dashed=1;strokeColor=#6c8ebf;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="360" y="70" as="sourcePoint"/><mxPoint x="360" y="810" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="L_MB" value="" style="endArrow=none;dashed=1;strokeColor=#d6b656;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="610" y="70" as="sourcePoint"/><mxPoint x="610" y="810" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="L_RV" value="" style="endArrow=none;dashed=1;strokeColor=#6c8ebf;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="860" y="70" as="sourcePoint"/><mxPoint x="860" y="810" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="L_SA" value="" style="endArrow=none;dashed=1;strokeColor=#6c8ebf;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1140" y="70" as="sourcePoint"/><mxPoint x="1140" y="810" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="M1" value="skyboxRenderer→Render(camera)" style="endArrow=block;endFill=1;dashed=0;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="130" y="110" as="sourcePoint"/><mxPoint x="1140" y="110" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="M1r" value="" style="endArrow=open;endFill=0;dashed=1;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1140" y="145" as="sourcePoint"/><mxPoint x="130" y="145" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="M2" value="sceneManager.Render(m_rendererVisitor)" style="endArrow=block;endFill=1;dashed=0;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="130" y="195" as="sourcePoint"/><mxPoint x="360" y="195" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="F1" value="loop [for each drawable in m_drawables]" style="swimlane;startSize=20;fillColor=none;strokeColor=#d6b656;fontSize=10;align=left;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="240" y="212" width="820" height="295" as="geometry"/></mxCell>
+<mxCell id="M3" value="drawable→Render(v)" style="endArrow=block;endFill=1;dashed=0;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="360" y="255" as="sourcePoint"/><mxPoint x="610" y="255" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="M4" value="AcceptRendererVisitor(v)  →  v.Visit(*this)" style="endArrow=block;endFill=1;dashed=0;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="610" y="305" as="sourcePoint"/><mxPoint x="860" y="305" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="M5_f" value="VisitModelBase(target)" style="endArrow=block;endFill=1;dashed=0;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="860" y="355" as="sourcePoint"/><mxPoint x="935" y="355" as="targetPoint"/><Array as="points"><mxPoint x="935" y="355"/><mxPoint x="935" y="395"/></Array></mxGeometry></mxCell>
+<mxCell id="M5_r" value="" style="endArrow=block;endFill=1;dashed=0;edgeStyle=none;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="935" y="395" as="sourcePoint"/><mxPoint x="860" y="395" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="N1" value="reads m_camera→GetViewProj()
+reads m_camera→GetEye()" style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;fillColor=#fffacd;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1"><mxGeometry x="945" y="342" width="220" height="40" as="geometry"/></mxCell>
+<mxCell id="M5r" value="" style="endArrow=open;endFill=0;dashed=1;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="860" y="415" as="sourcePoint"/><mxPoint x="610" y="415" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="M6r" value="" style="endArrow=open;endFill=0;dashed=1;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="610" y="445" as="sourcePoint"/><mxPoint x="360" y="445" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="M7r" value="" style="endArrow=open;endFill=0;dashed=1;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="360" y="535" as="sourcePoint"/><mxPoint x="130" y="535" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="M8" value="sceneManager.RenderGUI(m_imguiVisitor)" style="endArrow=block;endFill=1;dashed=0;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="130" y="585" as="sourcePoint"/><mxPoint x="360" y="585" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="M8r" value="" style="endArrow=open;endFill=0;dashed=1;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="360" y="625" as="sourcePoint"/><mxPoint x="130" y="625" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="M9" value="axesRenderer→Render(camera)" style="endArrow=block;endFill=1;dashed=0;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="130" y="675" as="sourcePoint"/><mxPoint x="1140" y="675" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="M9r" value="" style="endArrow=open;endFill=0;dashed=1;edgeStyle=none;align=center;verticalAlign=bottom;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="1140" y="710" as="sourcePoint"/><mxPoint x="130" y="710" as="targetPoint"/></mxGeometry></mxCell>
+  </root>
+</mxGraphModel>
