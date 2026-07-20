@@ -114,32 +114,32 @@ TEST(ModelLoader_MergeNormals, DistinctPositionsKeepOwnNormals) {
 // LoadFromOBJ
 // -----------------------------------------------------------------------
 
-// UT-25: valid OBJ file returns non-empty data
+// UT-25: valid OBJ file returns non-empty matMesh
+// Uses tests/assets/minimal.obj — a committed single-triangle OBJ without MTL.
+// (materials may be empty when no .mtl is present, which is expected here.)
 TEST(ModelLoader_Load, ValidOBJReturnsData) {
-    auto data = ModelLoader::LoadFromOBJ<Vertex>(
-        "Assets/Fire_Extinguisher/Fire_Extinguisher.obj");
+    auto data = ModelLoader::LoadFromOBJ<Vertex>("tests/assets/minimal.obj");
     EXPECT_FALSE(data.matMesh.empty());
-    EXPECT_FALSE(data.materials.empty());
 }
 
 // Each matMesh entry has a non-empty vertex array
 TEST(ModelLoader_Load, ValidOBJHasVertices) {
-    auto data = ModelLoader::LoadFromOBJ<Vertex>(
-        "Assets/Fire_Extinguisher/Fire_Extinguisher.obj");
+    auto data = ModelLoader::LoadFromOBJ<Vertex>("tests/assets/minimal.obj");
     for (const auto& mm : data.matMesh)
         EXPECT_FALSE(mm.mesh.vertexArray.empty()) << "Empty mesh for materialID=" << mm.materialID;
 }
 
 // UT-26: non-existent file returns empty matMesh (no throw)
 TEST(ModelLoader_Load, MissingOBJReturnsEmpty) {
-    auto data = ModelLoader::LoadFromOBJ<Vertex>("Assets/does_not_exist.obj");
+    auto data = ModelLoader::LoadFromOBJ<Vertex>("tests/assets/does_not_exist.obj");
     EXPECT_TRUE(data.matMesh.empty());
 }
 
 // UT-27: VertexMergedNorm without transformFunc throws runtime_error
+// The file must exist so InternalLoader reaches the vertex-type dispatch code.
 TEST(ModelLoader_Load, CustomVertexWithoutTransformFuncThrows) {
     EXPECT_THROW(
-        ModelLoader::LoadFromOBJ<VertexMergedNorm>("Assets/uv-sphere-32.obj"),
+        ModelLoader::LoadFromOBJ<VertexMergedNorm>("tests/assets/minimal.obj"),
         std::runtime_error
     );
 }
