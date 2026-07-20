@@ -1,0 +1,16 @@
+{
+  "name": "csm-thesis",
+  "version-string": "1.0.0",
+  "dependencies": [
+    "glew",
+    "glm",
+    "gtest",
+    "tinyobjloader",
+    {
+      "name": "imgui",
+      "features": ["docking-experimental"]
+    },
+    "sdl3",
+    "sdl3-image"
+  ]
+}

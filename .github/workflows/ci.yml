@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+    branches: [main, Architecture_v2]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # Job 1: Build + No-GL unit tests
+  # Runs on the standard GitHub-hosted Windows runner (no GPU required).
+  # ─────────────────────────────────────────────────────────────────────────
+  no-gl-tests:
+    name: Build + No-GL Tests
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Bootstrap vcpkg and cache the installed packages.
+      # If vcpkg.json is added to the repo later, lukka/run-vcpkg picks it up automatically.
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6' # pin to a known good commit
+          # Explicit package list (classic mode — no vcpkg.json in repo yet).
+          # Verify exact names with: vcpkg search <package>
+          runVcpkgInstall: true
+          vcpkgJsonGlob: '' # disable manifest-mode lookup
+
+      - name: Install vcpkg packages
+        shell: pwsh
+        run: |
+          $packages = @(
+            "glew:x64-windows",
+            "glm:x64-windows",
+            "gtest:x64-windows",
+            "tinyobjloader:x64-windows",
+            "imgui[docking-experimental]:x64-windows",
+            "sdl3:x64-windows",
+            "sdl3-image:x64-windows"
+          )
+          foreach ($pkg in $packages) {
+            & "$env:VCPKG_ROOT/vcpkg.exe" install $pkg
+          }
+
+      - name: Configure CMake
+        shell: pwsh
+        run: |
+          cmake -B build `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DBUILD_TESTS=ON `
+            -A x64
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Run No-GL Tests
+        run: ctest --test-dir build -L NoGL -C Release --output-on-failure
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Job 2: GL tests
+  # Runs on a self-hosted runner that has a GPU and OpenGL 4.5 drivers.
+  # Label your runner with [self-hosted, windows, gl] in GitHub repo settings.
+  # Setup guide: temp/Testing/.github/runner_setup.md
+  # ─────────────────────────────────────────────────────────────────────────
+  gl-tests:
+    name: GL Tests (Self-Hosted)
+    runs-on: [self-hosted, windows, gl]
+    # Run GL tests even if no-gl-tests failed, so we get independent feedback
+    if: always()
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        shell: pwsh
+        run: |
+          cmake -B build `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DBUILD_TESTS=ON `
+            -A x64
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Run GL Tests
+        run: ctest --test-dir build -L GL -C Release --output-on-failure
