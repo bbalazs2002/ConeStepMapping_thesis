@@ -19,32 +19,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Bootstrap vcpkg and cache the installed packages.
-      # If vcpkg.json is added to the repo later, lukka/run-vcpkg picks it up automatically.
-      - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgGitCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6' # pin to a known good commit
-          # Explicit package list (classic mode — no vcpkg.json in repo yet).
-          # Verify exact names with: vcpkg search <package>
-          runVcpkgInstall: true
-          vcpkgJsonGlob: '' # disable manifest-mode lookup
-
-      - name: Install vcpkg packages
+      # Clone the latest vcpkg — needed because SDL3 was only added in 2024,
+      # and any pinned 2023 commit lacks the port.
+      - name: Bootstrap vcpkg
         shell: pwsh
         run: |
-          $packages = @(
-            "glew:x64-windows",
-            "glm:x64-windows",
-            "gtest:x64-windows",
-            "tinyobjloader:x64-windows",
-            "imgui[docking-experimental]:x64-windows",
-            "sdl3:x64-windows",
-            "sdl3-image:x64-windows"
-          )
-          foreach ($pkg in $packages) {
-            & "$env:VCPKG_ROOT/vcpkg.exe" install $pkg
-          }
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git vcpkg
+          .\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+          echo "VCPKG_ROOT=${{ github.workspace }}\vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      # Cache the installed package tree. Key: OS + vcpkg.json contents.
+      # A vcpkg.json change invalidates the cache and triggers a full reinstall.
+      - name: Cache vcpkg installed packages
+        uses: actions/cache@v4
+        with:
+          path: vcpkg_installed
+          key: vcpkg-${{ runner.os }}-x64-${{ hashFiles('vcpkg.json') }}
+
+      # Manifest mode: vcpkg reads vcpkg.json in the repo root automatically.
+      - name: Install vcpkg packages
+        shell: pwsh
+        run: .\vcpkg\vcpkg.exe install --triplet x64-windows
 
       - name: Configure CMake
         shell: pwsh
