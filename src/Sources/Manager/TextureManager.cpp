@@ -4,7 +4,9 @@
 std::shared_ptr<Texture> TextureManager::GetOrLoad(const std::filesystem::path& path, bool flip)
 {
     CollectGarbage();
-    std::string key = path.string();
+    // flip is part of the key: same file loaded with different flip produces a
+    // different GL texture, so they must not share a cache entry.
+    std::string key = path.string() + (flip ? "|1" : "|0");
     auto it = m_cache.find(key);
     if (it != m_cache.end()) {
         if (auto existing = it->second.lock())
@@ -19,11 +21,10 @@ std::shared_ptr<Texture> TextureManager::GetOrLoadCubemap(const std::array<std::
 {
     CollectGarbage();
 
-    // Cache key: the 6 face paths joined together. Distinct from GetOrLoad()'s
-    // single-path keys, so 2D textures and cubemaps never collide in m_cache.
     std::string key;
     for (const auto& face : faces)
         key += face.string() + "|";
+    key += (flip ? "1" : "0");
 
     auto it = m_cache.find(key);
     if (it != m_cache.end()) {

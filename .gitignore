@@ -36,3 +36,4 @@ docs/*.pdf
 Thumbs.db
 temp/
 .claude/
+imgui.ini
