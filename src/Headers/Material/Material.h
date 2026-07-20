@@ -1,110 +1,77 @@
 #pragma once
 
 #include <string>
-#include <filesystem>
 #include <memory>
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
+class Texture;  // forward declaration
+
 class Material {
 public:
     Material() = default;
+    ~Material();  // = default in .cpp
 
-    // Destructor releases all GPU texture handles
-    ~Material();
-
-    // ── Getters / Setters (inline) ────────────────────────────────────────────
+    // -- Getters / Setters -----------------------------------------------------
 
     inline const std::string& GetName() const { return m_name; }
     inline void SetName(const std::string& name) { m_name = name; }
 
-    inline const glm::vec3& GetAmbientColor() const { return m_ambientColor; }
-    inline void SetAmbientColor(const glm::vec3& color) { m_ambientColor = color; }
+    inline const glm::vec3& GetAmbientColor()  const { return m_ambientColor; }
+    inline void SetAmbientColor(const glm::vec3& c)  { m_ambientColor = c; }
 
-    inline const glm::vec3& GetDiffuseColor() const { return m_diffuseColor; }
-    inline void SetDiffuseColor(const glm::vec3& color) { m_diffuseColor = color; }
+    inline const glm::vec3& GetDiffuseColor()  const { return m_diffuseColor; }
+    inline void SetDiffuseColor(const glm::vec3& c)  { m_diffuseColor = c; }
 
     inline const glm::vec3& GetSpecularColor() const { return m_specularColor; }
-    inline void SetSpecularColor(const glm::vec3& color) { m_specularColor = color; }
+    inline void SetSpecularColor(const glm::vec3& c) { m_specularColor = c; }
 
     inline float GetShininess() const { return m_shininess; }
-    inline void SetShininess(float shininess) { m_shininess = shininess; }
+    inline void  SetShininess(float s) { m_shininess = s; }
 
-    inline GLuint GetDiffuseTex() const { return m_diffuseTex; }
-    inline void SetDiffuseTex(GLuint tex) { m_diffuseTex = tex; }
+    inline const std::shared_ptr<Texture>& GetDiffuseTex()  const { return m_diffuseTex; }
+    inline const std::shared_ptr<Texture>& GetSpecularTex() const { return m_specularTex; }
+    inline const std::shared_ptr<Texture>& GetEmissionTex() const { return m_emissionTex; }
+    inline const std::shared_ptr<Texture>& GetNormalTex()   const { return m_normalTex; }
 
-    inline GLuint GetSpecularTex() const { return m_specularTex; }
-    inline void SetSpecularTex(GLuint tex) { m_specularTex = tex; }
+    inline void SetDiffuseTex (std::shared_ptr<Texture> t) { m_diffuseTex  = std::move(t); }
+    inline void SetSpecularTex(std::shared_ptr<Texture> t) { m_specularTex = std::move(t); }
+    inline void SetEmissionTex(std::shared_ptr<Texture> t) { m_emissionTex = std::move(t); }
+    inline void SetNormalTex  (std::shared_ptr<Texture> t) { m_normalTex   = std::move(t); }
 
-    inline GLuint GetEmissionTex() const { return m_emissionTex; }
-    inline void SetEmissionTex(GLuint tex) { m_emissionTex = tex; }
-
-    inline GLuint GetNormalTex() const { return m_normalTex; }
-    inline void SetNormalTex(GLuint tex) { m_normalTex = tex; }
-
-    // ── Equality and hashing (for MaterialManager) ────────────────────────────
+    // -- Equality and hashing --------------------------------------------------
 
     bool operator==(const Material& other) const;
-
     static std::size_t Hash(const Material& mat);
 
-    // ── Static utilities ──────────────────────────────────────────────────────
+    // -- Shader upload ---------------------------------------------------------
 
-    /**
-     * @brief Loads an image from a file, creates an OpenGL texture object,
-     *        and configures its parameters (mipmaps, filtering, wrapping).
-     *
-     * @param path     Filesystem path to the image file.
-     * @param flip     Whether to flip the image vertically on load.
-     * @return         OpenGL texture ID, or 0 on failure.
-     */
-    static GLuint LoadTexture(const std::filesystem::path& path, bool flip = false);
-
-    /**
-     * @brief Uploads material properties and binds textures to the active shader program.
-     *
-     * Packs color and texture handles into vec4 structures (materialData) to reduce
-     * uniform overhead. The shader program must be active before calling this function.
-     *
-     * @param programID      Handle of the active shader program.
-     * @param material       Material to upload.
-     * @param textureTargets Texture unit indices for [Diffuse, Specular, Emission, Normal].
-     */
     static void UploadMaterialToShader(
         GLuint programID,
         const std::shared_ptr<Material>& material,
         GLuint textureTargets[4]
     );
-
-    // Overload using default texture units [0, 1, 2, 3]
     static void UploadMaterialToShader(
         GLuint programID,
         const std::shared_ptr<Material>& material
     );
-
-    /**
-     * @brief Unbinds all material textures from their texture units.
-     *
-     * Prevents stale texture state from affecting subsequent draw calls.
-     */
     static void ClearMaterialFromShader();
 
+protected:
+    std::string m_name = "default_material";
+
+    glm::vec3 m_ambientColor  = glm::vec3(0.1f);
+    glm::vec3 m_diffuseColor  = glm::vec3(1.0f);
+    glm::vec3 m_specularColor = glm::vec3(0.0f);
+    float     m_shininess     = 32.0f;
+
+    std::shared_ptr<Texture> m_diffuseTex;
+    std::shared_ptr<Texture> m_specularTex;
+    std::shared_ptr<Texture> m_emissionTex;
+    std::shared_ptr<Texture> m_normalTex;
+
 private:
-    std::string m_name = "default";
-
-    glm::vec3 m_ambientColor = glm::vec3(1.0f);
-    glm::vec3 m_diffuseColor = glm::vec3(1.0f);
-    glm::vec3 m_specularColor = glm::vec3(1.0f);
-
-    float m_shininess = 32.0f;
-
-    GLuint m_diffuseTex = 0;
-    GLuint m_specularTex = 0;
-    GLuint m_emissionTex = 0;
-    GLuint m_normalTex = 0;
-
-    // Stores the last texture units used by UploadMaterialToShader,
-    // so ClearMaterialFromShader knows which units to unbind.
-    inline static GLuint s_lastTextureTargets[4] = {0, 1, 2, 3};
+    inline static GLuint s_lastTextureTargets[4] = { 0, 0, 0, 0 };
+    inline static bool   s_hasUploadedData       = false;
 };

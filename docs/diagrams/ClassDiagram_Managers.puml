@@ -1,0 +1,117 @@
+@startuml ClassDiagram_Managers
+skinparam defaultFontName Monospaced
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageBackgroundColor #f9f9f9
+skinparam packageBorderColor #aaaaaa
+skinparam packageFontColor #666666
+skinparam packageFontStyle bold
+skinparam class {
+  BackgroundColor<<interface>> #dae8fc
+  BorderColor<<interface>>     #6c8ebf
+  FontStyle<<interface>>       italic
+  BackgroundColor<<abstract>>  #e1d5e7
+  BorderColor<<abstract>>      #9673a6
+  FontStyle<<abstract>>        italic
+  BackgroundColor<<concrete>>  #fff2cc
+  BorderColor<<concrete>>      #d6b656
+  BackgroundColor<<manager>>   #d5e8d4
+  BorderColor<<manager>>       #82b366
+  BackgroundColor<<utility>>   #f5f5f5
+  BorderColor<<utility>>       #666666
+  FontColor<<utility>>         #333333
+}
+hide <<utility>> stereotype
+
+package "Managers" {
+  class ShaderManager <<manager>> {
+    - m_programs : map<string, GLuint>
+    --
+    + Load(in name : string, in stages : vector<ShaderStage>) : GLuint
+    + Get(in name : string) : GLuint
+    + ReloadAll() : void
+    + DeleteAll() : void
+  }
+  class SceneManager <<manager>> {
+    - m_updatables : vector<shared_ptr<IUpdatable>>
+    (+,!) m_sceneObjects : vector<shared_ptr<ISceneObject>>
+    - m_rendererVisitables : vector<shared_ptr<IModelRendererVisitable>>
+    - m_selected : const ISceneObject* = nullptr
+    --
+    + Add(in s : shared_ptr<ISceneObject>) : void
+    + Remove(in s : shared_ptr<ISceneObject>) : void
+    + Update(in info : SUpdateInfo) : void
+    + Render(in v : IModelRendererVisitor&) : void
+    + RenderGUI(in v : IGUIVisitor&) : void
+    + GetSceneObjects() : const vector<shared_ptr<ISceneObject>>&
+    + SetSelected(in selected : const ISceneObject*) : void
+    + GetSelected() : const ISceneObject*
+    + Clear() : void
+  }
+  class MaterialManager <<manager>> {
+    - m_materials : unordered_map<size_t, weak_ptr<Material>>
+    --
+    + GetOrCreate(in mat : Material) : shared_ptr<Material>
+    - CollectGarbage() : void
+  }
+  class TextureManager <<manager>> {
+    - m_cache : unordered_map<string, weak_ptr<Texture>>
+    --
+    + GetOrLoad(in path : path, in flip : bool) : shared_ptr<Texture>
+    + GetOrLoadCubemap(in faces : array<path, 6>, in flip : bool) : shared_ptr<Texture>
+    - CollectGarbage() : void
+    + GetCachedCount() : size_t
+  }
+  class SkyboxRenderer <<manager>> {
+    - m_programID : GLuint
+    - m_cubemap : shared_ptr<Texture>
+    - m_gpuObject : OGLObject
+    --
+    + SkyboxRenderer(in programID : GLuint, in cubemap : shared_ptr<Texture>)
+    + ~SkyboxRenderer()
+    + Render(in cam : ICamera&) : void
+  }
+  class AxesRenderer <<manager>> {
+    - m_programID : GLuint
+    --
+    + AxesRenderer(in programID : GLuint)
+    + ~AxesRenderer() = default
+    + Render(in cam : ICamera&) : void
+  }
+}
+
+class MyApp <<concrete>> {
+}
+interface IUpdatable <<interface>> {
+}
+interface ISceneObject <<interface>> {
+}
+interface IGUIVisitable <<interface>> {
+}
+interface IModelRendererVisitable <<interface>> {
+}
+class Material <<utility>> {
+}
+class Texture <<utility>> {
+}
+interface ICamera <<interface>> {
+}
+
+MyApp *-- ShaderManager
+MyApp *-- SceneManager
+MyApp *-- MaterialManager
+MyApp *-- TextureManager
+MyApp *-- SkyboxRenderer
+MyApp *-- AxesRenderer
+SceneManager o-- "0..*" ISceneObject
+SceneManager o-- "0..*" IUpdatable
+SceneManager o-- "0..*" IModelRendererVisitable
+MaterialManager ..> "0..*" Material : m_materials
+TextureManager ..> "0..*" Texture : m_cache
+ShaderManager --> SkyboxRenderer : programID
+ShaderManager --> AxesRenderer : programID
+TextureManager --> SkyboxRenderer : cubemap
+SkyboxRenderer o-- Texture : m_cubemap
+SkyboxRenderer ..> ICamera
+AxesRenderer ..> ICamera
+@enduml

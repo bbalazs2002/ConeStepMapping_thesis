@@ -118,6 +118,35 @@ GLuint AttachShader(const GLuint programID, GLenum shaderType, const std::filesy
     return AttachShaderCode(programID, shaderType, shaderCode);
 }
 
+// Reads the file, preprocesses #includes, injects defines after the #version line, then compiles.
+GLuint AttachShaderWithDefines(const GLuint programID, GLenum shaderType,
+                               const std::filesystem::path& fileName,
+                               const std::vector<std::string>& defines)
+{
+    if (defines.empty())
+        return AttachShader(programID, shaderType, fileName);
+
+    std::filesystem::path fullPath = std::filesystem::path(PROJECT_ROOT) / fileName;
+
+    LOG("[GLUtils] Loading shader (with defines): ", fullPath.generic_string());
+
+    std::string shaderCode;
+    loadShaderCode(shaderCode, fullPath.generic_string());
+    preprocessShaderCode(shaderCode, fullPath);
+
+    // Inject defines immediately after the #version line so they are visible everywhere.
+    // OpenGL requires #version to be the very first token, so we must not prepend before it.
+    auto newlinePos = shaderCode.find('\n');
+    if (newlinePos != std::string::npos) {
+        std::string defineBlock;
+        for (const auto& d : defines)
+            defineBlock += "#define " + d + "\n";
+        shaderCode.insert(newlinePos + 1, defineBlock);
+    }
+
+    return AttachShaderCode(programID, shaderType, shaderCode);
+}
+
 GLuint AttachShaderCode(const GLuint programID, GLenum shaderType, std::string_view shaderCode) {
     if (programID == 0) {
         LOG_ERROR("[GLUtils] AttachShaderCode: Program ID is 0! Init program before loading shaders.");
@@ -226,7 +255,7 @@ GLsizei NumberOfMIPLevels( const ImageRGBA& image )
     ImageRGBA img;
 
     // 1. Open the file using UTF-8 path
-    std::string pathStr = fullPath.u8string();
+    std::string pathStr = fullPath.generic_string();
     SDL_IOStream* stream = SDL_IOFromFile(pathStr.c_str(), "rb");
 
     if (!stream) {

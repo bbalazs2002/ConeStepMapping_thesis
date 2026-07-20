@@ -24,7 +24,15 @@ vcpkg_installed/
 *.vcxproj
 *.user
 
+# --- Docs: csak a forrás fájlok kellenek ---
+docs/*.png
+docs/*.jpg
+docs/*.jpeg
+docs/*.svg
+docs/*.pdf
+
 # --- Egyéb ---
 .DS_Store
 Thumbs.db
 temp/
+.claude/

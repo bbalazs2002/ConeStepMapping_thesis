@@ -1,7 +1,6 @@
 # ConeStepMapping – Architecture Reference
 
-> Source of truth: `ConeStepMapping_ClassDiagram_v14.drawio`  
-> Design rationale: `temp/session.md`, `temp/design_review.md`
+> Source of truth: `docs/Architecture.md` (design); `docs/*.puml` (diagrams)
 
 ---
 
@@ -54,12 +53,17 @@ GL-kontextustól függő tagok (`unique_ptr`) `nullptr`-ek addig, amíg `Init()`
 | # | `m_skyboxRenderer : unique_ptr<SkyboxRenderer>` |
 | # | `m_axesRenderer : unique_ptr<AxesRenderer>` |
 | # | `m_rendererVisitor : unique_ptr<OpenGLRendererVisitor>` |
+| # | `m_conemapGenerator : unique_ptr<ConemapGenerator>` |
 | # | `m_techniques : map<string, shared_ptr<IRayMarchingTechnique>>` |
 | # | `m_imguiVisitor : ImGuiVisitor` |
 | # | `m_camera : Camera` |
 | # | `m_cameraManipulator : CameraManipulator` |
 | `(+,#)` | `m_windowSize : ivec2` |
 | `(+,!)` | `m_elapsedTime : float` |
+| # | `m_showAxes : bool = true` |
+| # | `m_selectedIndex : int = -1` |
+| # | `m_debugIndex : int = 0` |
+| # | `m_heightMaps : const vector<string>` |
 | + | `Init() : bool` |
 | + | `Update(info : SUpdateInfo)` |
 | + | `Render()` |
@@ -95,28 +99,76 @@ GL-kontextustól függő tagok (`unique_ptr`) `nullptr`-ek addig, amíg `Init()`
 
 **Invariant:** `Execute()` is the first call in `MyApp::Update()` — ensures no OpenGL resource is touched during an active render pass. Must call `glFenceSync()` before resource-modifying commands. After `Execute()`, `unique_ptr`s are destroyed automatically.
 
+### `DeleteObjectCommand` *(concrete ICommand)*
+| Member | Signature |
+|---|---|
+| - | `m_sceneManager : SceneManager&` |
+| - | `m_target : shared_ptr<ISceneObject>` |
+| + | `Execute() : void` |
+
 ### `SetHeightmapCommand` *(concrete ICommand)*
 | Member | Signature |
 |---|---|
-| - | `m_surface : RayMarchedSurface*` |
+| - | `m_surface : shared_ptr<RayMarchedModel>` |
+| - | `m_textureManager : TextureManager&` |
 | - | `m_path : string` |
+| - | `m_generator : ConemapGenerator*` |
 | + | `Execute() : void` |
+
+**`Execute()`** loads the heightmap texture from `m_path` via `TextureManager::GetOrLoad()`, then calls `m_surface->SetHeightmap(texture, m_generator)`.
+
+`m_surface` is a `shared_ptr` to keep the target alive until execution. `m_generator` is nullable — `nullptr` means skip conemap generation; lifetime guaranteed by `MyApp`.
 
 ### `SetTechniqueCommand` *(concrete ICommand)*
 | Member | Signature |
 |---|---|
-| - | `m_surface : RayMarchedSurface*` |
+| - | `m_surface : shared_ptr<RayMarchedModel>` |
 | - | `m_technique : shared_ptr<IRayMarchingTechnique>` |
 | + | `Execute() : void` |
 
-**`Execute()`** calls `m_surface->SetTechnique(m_technique)` — never assigns `m_technique` directly.
-
-### `DeleteObjectCommand` *(concrete ICommand)*
+### `SetLocationCommand` *(concrete ICommand)*
 | Member | Signature |
 |---|---|
-| - | `m_sceneManager : SceneManager*` |
-| - | `m_target : shared_ptr<IDrawable>` |
+| - | `m_target : shared_ptr<ModelBase>` |
+| - | `m_location : vec3` |
 | + | `Execute() : void` |
+
+### `SetRotationCommand` *(concrete ICommand)*
+| Member | Signature |
+|---|---|
+| - | `m_target : shared_ptr<ModelBase>` |
+| - | `m_rotation : quat` |
+| + | `Execute() : void` |
+
+### `SetScaleCommand` *(concrete ICommand)*
+| Member | Signature |
+|---|---|
+| - | `m_target : shared_ptr<ModelBase>` |
+| - | `m_scale : vec3` |
+| + | `Execute() : void` |
+
+### `SetMaxStepsCommand` *(concrete ICommand)*
+| Member | Signature |
+|---|---|
+| - | `m_surface : shared_ptr<RayMarchedModel>` |
+| - | `m_maxSteps : int` |
+| + | `Execute() : void` |
+
+### `SetEpsilonCommand` *(concrete ICommand)*
+| Member | Signature |
+|---|---|
+| - | `m_surface : shared_ptr<RayMarchedModel>` |
+| - | `m_epsilon : float` |
+| + | `Execute() : void` |
+
+### `SetMaterialCommand` *(concrete ICommand)*
+| Member | Signature |
+|---|---|
+| - | `m_mesh : shared_ptr<Mesh>` |
+| - | `m_material : shared_ptr<Material>` |
+| + | `Execute() : void` |
+
+Material per-`Mesh` van tárolva — a command `Mesh`-t céloz, nem `Model`-t.
 
 ---
 
@@ -131,59 +183,76 @@ GL-kontextustól függő tagok (`unique_ptr`) `nullptr`-ek addig, amíg `Init()`
 | + | `ReloadAll() : void` |
 | + | `DeleteAll() : void` |
 
+**`ReloadAll()` (`Ctrl+F5`):** relinks each program **in place** — same `GLuint`, new compiled code. Does not call `glDeleteProgram`/`glCreateProgram`. This is essential: every class that caches a `programID` at construction (`LinearSearch`, `ConeStepMapping`, `ConemapGenerator`, `SkyboxRenderer`, `AxesRenderer`) would otherwise hold a dangling handle after the first reload. Safe because `GLUtils::LinkProgram(id, true)` already detaches+deletes the attached shader objects after every link call, regardless of success — relinking the same program object leaks nothing.
+
 ### `SceneManager`
 | Member | Signature |
 |---|---|
-| - | `m_drawables : vector<shared_ptr<IDrawable>>` |
-| + | `Add(d : shared_ptr<IDrawable>) : void` |
-| + | `Remove(d : shared_ptr<IDrawable>) : void` |
+| - | `m_updatables : vector<shared_ptr<IUpdatable>>` |
+| (+,!) | `m_sceneObjects : vector<shared_ptr<ISceneObject>>` |
+| - | `m_rendererVisitables : vector<shared_ptr<IModelRendererVisitable>>` |
+| - | `m_selected : const ISceneObject* = nullptr` |
+| + | `Add(s : shared_ptr<ISceneObject>) : void` |
+| + | `Remove(s : shared_ptr<ISceneObject>) : void` *(clears `m_selected` if the removed object was selected)* |
 | + | `Update(info : SUpdateInfo) : void` |
-| + | `Render(v : IModelRendererVisitor&) : void` |
+| + | `Render(v : IModelRendererVisitor&) : void` *(calls `v.SetSelected(m_selected)` before the loop)* |
 | + | `RenderGUI(v : IGUIVisitor&) : void` |
+| + | `GetSceneObjects() : const vector<shared_ptr<ISceneObject>>&` |
+| + | `SetSelected(selected : const ISceneObject*) : void` |
+| + | `GetSelected() : const ISceneObject*` |
 | + | `Clear() : void` |
 
 **Ownership:** `SceneManager` is the primary owner of scene objects. `MyApp` creates them via `make_shared<ConcreteType>(...)` and calls `Add()`. `MyApp` may retain its own `shared_ptr` to objects it needs to reference later (e.g. for ImGui controls). The object stays alive as long as at least one `shared_ptr` holds it — this guarantees that `DeleteObjectCommand` keeps the target alive until `Execute()` runs and GL resources are safely freed after GPU sync.
+
+`m_sceneObjects` doubles as the GUI-visitable list — `ISceneObject` extends `IGUIVisitable`, so `RenderGUI()` iterates this vector directly. No separate `m_guiVisitables` vector needed.
 
 ### `MaterialManager`
 | Member | Signature |
 |---|---|
 | - | `m_materials : unordered_map<size_t, weak_ptr<Material>>` |
 | + | `GetOrCreate(mat : Material) : shared_ptr<Material>` |
-| + | `CollectGarbage() : void` |
+| - | `CollectGarbage() : void` |
 
-Key: `Material::Hash()`. Cache uses `weak_ptr` — manager does not prevent destruction.
+Key: `Material::Hash()`. Cache uses `weak_ptr` — manager does not prevent destruction. `CollectGarbage()` private; `GetOrCreate()` hívja a hívás elején. Nem fut rendereléskor — csak scene setup idején, amikor egy objektum material-t kér le.
 
 ### `TextureManager`
 | Member | Signature |
 |---|---|
 | - | `m_cache : unordered_map<string, weak_ptr<Texture>>` |
 | + | `GetOrLoad(path : path, flip : bool) : shared_ptr<Texture>` |
-| + | `CollectGarbage() : void` |
+| + | `GetOrLoadCubemap(faces : array<path, 6>, flip : bool) : shared_ptr<Texture>` |
+| - | `CollectGarbage() : void` |
 | + | `GetCachedCount() : size_t` |
 
-Key: file path string. Cache uses `weak_ptr`.
+Key: file path string (`GetOrLoad`) or the 6 face paths joined with `"|"` (`GetOrLoadCubemap`) — both share `m_cache`; the joined-key format cannot collide with a single-path key. Cache uses `weak_ptr`. `CollectGarbage()` private; both lookup methods call it at the start.
 
 ### `SkyboxRenderer` *(RAII)*
 | Member | Signature |
 |---|---|
 | - | `m_programID : GLuint` |
-| - | `m_textureID : GLuint` |
+| - | `m_cubemap : shared_ptr<Texture>` |
 | - | `m_gpuObject : OGLObject` |
-| + | `SkyboxRenderer(sm : ShaderManager&)` *(constructor — loads GL resources)* |
-| + | `~SkyboxRenderer()` *(destructor — frees GL resources)* |
+| + | `SkyboxRenderer(programID : GLuint, cubemap : shared_ptr<Texture>)` *(constructor — builds the cube VAO; texture is supplied, not loaded)* |
+| + | `~SkyboxRenderer()` *(destructor — frees the VAO; does NOT delete the program or the texture — `ShaderManager`/`shared_ptr<Texture>` own those)* |
 | + | `Render(cam : ICamera&) : void` |
+
+**Texture ownership:** `SkyboxRenderer` does not load image files itself. `MyApp::Init()` calls `TextureManager::GetOrLoadCubemap(faces, flip)` and passes the resulting `shared_ptr<Texture>` into the constructor — same Flyweight-cached pattern as every other texture in the codebase (heightmap, conemap, material textures). This keeps `SkyboxRenderer` a pure renderer (shader + geometry + a reference to GPU data it doesn't own), consistent with how `RayMarchedModel` holds `shared_ptr<Texture>` for its conemap.
 
 ### `AxesRenderer` *(RAII)*
 | Member | Signature |
 |---|---|
 | - | `m_programID : GLuint` |
-| + | `AxesRenderer(sm : ShaderManager&)` *(constructor — loads GL resources)* |
-| + | `~AxesRenderer()` *(destructor — frees GL resources)* |
+| + | `AxesRenderer(programID : GLuint)` *(constructor — loads GL resources)* |
+| + | `~AxesRenderer() = default` *(does NOT delete the program; ShaderManager owns it)* |
 | + | `Render(cam : ICamera&) : void` |
+
+**Shader-program ownership:** `SkyboxRenderer`/`AxesRenderer` take a plain `GLuint programID`, matching `LinearSearch`/`ConeStepMapping`/`ConemapGenerator` — none of these classes know `ShaderManager` exists. `MyApp::Init()` is the single mediator: it calls `ShaderManager::Load()` for every program and hands out the resulting IDs to whichever class needs them. `ShaderManager` remains the sole owner of program lifetime (`DeleteAll()` in `MyApp::Clean()`); consumer classes never call `glDeleteProgram`.
 
 ---
 
 ## Camera
+
+> `ICamera` és `Camera` egyaránt a `src/Utils/` mappában található. Az interfész a Utils zárt rendszerének része, így más kameraimplementációk is megvalósíthatják anélkül, hogy a Utils belső részeitől függnének.
 
 ### `ICamera` *(interface)*
 | Member | Signature |
@@ -215,22 +284,35 @@ Key: file path string. Cache uses `weak_ptr`.
 | Member | Signature |
 |---|---|
 | + | `Visit(target : Model&) : void` |
-| + | `Visit(target : RayMarchedSurface&) : void` |
+| + | `Visit(target : RayMarchedModel&) : void` |
 
 ### `IGUIVisitable` *(interface)*
 | Member | Signature |
 |---|---|
 | + | `AcceptGUIVisitor(v : IGUIVisitor&) : void` |
 
+### `ISceneObject` *(interface)* — extends `IGUIVisitable`
+| Member | Signature |
+|---|---|
+| + | `GetName() : const string&` *(pure virtual)* |
+| + | `~ISceneObject() = default` *(virtual destructor)* |
+
+Minden `SceneManager`-be kerülő objektumnak meg kell valósítania ezt az interfészt. `ModelBase` megvalósítja — így `Model` és `RayMarchedModel` is automatikusan eleget tesz ennek. `SceneManager::GetSceneObjects()` ezen a típuson keresztül ad vissza listát, nem konrét `ModelBase`-en — ezért `MyApp` névhez és GUI-látogatáshoz nem kell cast, csak `RayMarchedModel`-specifikus vezérlőkhöz.
+
 ### `ImGuiVisitor` *(concrete)* — realizes `IGUIVisitor`
 | Member | Signature |
 |---|---|
-| - | `m_commandQueue : ICommandQueue*` |
+| - | `m_commandQueue : ICommandQueue&` |
+| + | `ImGuiVisitor(queue : ICommandQueue&)` |
 | + | `Visit(target : Model&) : void` |
-| + | `Visit(target : RayMarchedSurface&) : void` |
+| + | `Visit(target : RayMarchedModel&) : void` |
 | - | `VisitModelBase(target : ModelBase&) : void` |
 
-**Invariant:** never modifies objects directly — creates `ICommand` instances and pushes to `ICommandQueue`. Depends on the interface, not the concrete `CommandQueue`.
+**Invariant:** never modifies objects directly — creates `ICommand` instances and pushes to `ICommandQueue`. Depends on the interface, not the concrete `CommandQueue`. Reference member guarantees non-null; lifetime guaranteed by `MyApp`.
+
+`shared_ptr` access for commands: `Visit()` calls `target.shared_from_this()` (available because `ModelBase` inherits `enable_shared_from_this<ModelBase>`); for `RayMarchedModel`-specific commands, the result is `dynamic_pointer_cast<RayMarchedModel>(...)`. `shared_from_this()` is only valid when the object is already managed by a `shared_ptr`, which is guaranteed since all scene objects are added via `SceneManager::Add(shared_ptr<ISceneObject>)`.
+
+Direct modification (without commands) is used only for properties that have no corresponding command and do not require deferred execution: `SetShow()`, `SetWireframe()`, `SetLightDir()`, `SetNormalMult()`, boolean render flags, and `RayMarchDebugConfig` fields.
 
 ---
 
@@ -240,55 +322,57 @@ Key: file path string. Cache uses `weak_ptr`.
 | Member | Signature |
 |---|---|
 | + | `Visit(target : const Model&) : void` |
-| + | `Visit(target : const RayMarchedSurface&) : void` |
+| + | `Visit(target : const RayMarchedModel&) : void` |
+| + | `SetSelected(selected : const ISceneObject*) : void` *(default no-op — `SceneManager::Render()` calls this before iterating; concrete visitors override to store the selected pointer)* |
 
 ### `IModelRendererVisitable` *(interface)*
 | Member | Signature |
 |---|---|
 | + | `AcceptRendererVisitor(v : IModelRendererVisitor&) : void` |
 
-### `OpenGLRendererVisitor` *(concrete, RAII)* — realizes `IModelRendererVisitor`
+### `OpenGLRendererVisitor` *(concrete)* — realizes `IModelRendererVisitor`
 | Member | Signature |
 |---|---|
-| - | `m_programID : GLuint` |
-| - | `m_camera : const ICamera*` |
-| + | `OpenGLRendererVisitor(sm : ShaderManager&, cam : const ICamera&)` *(constructor — loads GL resources)* |
-| + | `~OpenGLRendererVisitor()` *(destructor — frees GL resources)* |
+| - | `m_camera : const ICamera&` |
+| - | `m_selected : const ModelBase* = nullptr` |
+| + | `OpenGLRendererVisitor(cam : const ICamera&)` |
+| + | `~OpenGLRendererVisitor() = default` |
+| + | `SetSelected(selected : const ModelBase*) : void` |
 | + | `Visit(target : const Model&) : void` |
-| + | `Visit(target : const RayMarchedSurface&) : void` |
+| + | `Visit(target : const RayMarchedModel&) : void` |
 | - | `VisitModelBase(target : const ModelBase&) : void` |
 
-**`VisitModelBase()`** calls `target.GetProgramID()` virtually — works correctly for both `Model` and `RayMarchedSurface` without knowing the concrete type. Camera data (`viewProj`, `cameraPos`) is read live from `m_camera` in every `Visit()` call — no manual sync needed.
+**`VisitModelBase()`** calls `target.GetProgramID()` virtually — works correctly for both `Model` and `RayMarchedModel` without knowing the concrete type. Camera data (`viewProj`, `cameraPos`) is read live from `m_camera` in every `Visit()` call — no manual sync needed. Reference member guarantees non-null; lifetime guaranteed by `MyApp`.
+
+**`SetSelected()`** is called once per frame by `MyApp::Render()` before `SceneManager::Render(*this)`, passing the raw pointer of the currently selected `ModelBase` (or `nullptr` if nothing is selected). `Visit(const Model&)` then checks `&target == m_selected` to decide whether to run the selection highlight pass.
 
 ---
 
 ## Scene hierarchy
 
-### `IDrawable` *(interface)*
+### `IUpdatable` *(interface)*
 | Member | Signature |
 |---|---|
-| + | `Render(v : IModelRendererVisitor&) : void` |
 | + | `Update(info : SUpdateInfo) : void` |
-| + | `~IDrawable() = default` *(virtual destructor)* |
+| + | `~IUpdatable() = default` *(virtual destructor)* |
 
-### `ModelBase` *(abstract)* — realizes `IDrawable`, `IGUIVisitable`, `IModelRendererVisitable`
+`SceneManager` három specializált vektort tart fenn: `m_sceneObjects`, `m_updatables`, `m_rendererVisitables`. Az `Add(shared_ptr<ISceneObject>)` híváskor egyszer futnak a `dynamic_pointer_cast` hívások az `IUpdatable` és `IModelRendererVisitable` vektorokhoz; `m_sceneObjects`-ba cast nélkül kerül be az objektum. A per-frame loopok (`Update`, `Render`, `RenderGUI`) mindig csak a specializált vektoron futnak. Az `IDrawable` interfész eltávolítva — szerepét `ISceneObject` vette át mint belépési pont. Az `m_show` ellenőrzés az `OpenGLRendererVisitor::Visit()` metódusokba került.
+
+### `ModelBase` *(abstract)* — realizes `ISceneObject`, `IModelRendererVisitable`, `IUpdatable`; inherits `enable_shared_from_this<ModelBase>`
 | Member | Signature |
 |---|---|
 | `(+,+)` | `m_name : string` |
 | `(+,+)` | `m_show : bool` |
 | `(+,+)` | `m_drawMode : int` |
 | `(+,#)` | `m_transform : Transform` |
-| `(+,!)` | `m_deleteMarker : bool` |
 | + | `GetProgramID() : GLuint` *(pure virtual)* |
-| + | `Render(v : IModelRendererVisitor&) : void` |
-| + | `Update(info : SUpdateInfo) : void` |
+| + | `GetName() : const string&` *(override; satisfies ISceneObject)* |
+| + | `Update(info : SUpdateInfo) : void` *(no-op default; override if needed)* |
 | + | `GetTransform() : Transform&` |
-| + | `MarkForDeletion() : void` |
-| + | `IsMarkedForDeletion() : bool` |
-| + | `AcceptGUIVisitor(v : IGUIVisitor&) : void` |
-| + | `AcceptRendererVisitor(v : IModelRendererVisitor&) : void` |
+| + | `AcceptGUIVisitor(v : IGUIVisitor&) : void` *(pure virtual; from ISceneObject → IGUIVisitable)* |
+| + | `AcceptRendererVisitor(v : IModelRendererVisitor&) : void` *(pure virtual)* |
 
-**`m_programID` nem tagváltozó** — `GetProgramID()` pure virtual, leszármazottak implementálják.
+**Meshing:** meshek hozzáadása `AddMesh()`-en keresztül, tipikusan `MyApp::Init()`-ben egy loader utility segítségével.
 
 ### `Transform` *(concrete)*
 | Member | Signature |
@@ -304,26 +388,32 @@ Key: file path string. Cache uses `weak_ptr`.
 | + | `SetScale(scale : vec3) : void` |
 | + | `SetParent(parent : Transform*) : void` |
 
-### `Model` *(abstract)* — inherits `ModelBase`
+### `Model` *(concrete)* — inherits `ModelBase`
 | Member | Signature |
 |---|---|
-| # | `m_programID : GLuint` |
-| `(+,+)` | `m_objPath : string` |
-| `(+,+)` | `m_wireframe : bool` |
-| + | `GetProgramID() : GLuint override` *(returns m_programID)* |
-| + | `Update(info : SUpdateInfo) : void` |
-| + | `SetObjPath(path : string) : void` |
-| + | `CleanGeometry() : void` |
-| + | `AcceptGUIVisitor(v : IGUIVisitor&) : void` |
-| + | `AcceptRendererVisitor(v : IModelRendererVisitor&) : void` |
+| + | `Model(name : string = "unnamed")` |
+| # | `m_programID : GLuint = 0` |
+| # | `m_selectedProgramID : GLuint = 0` |
+| `(+,+)` | `m_wireframe : bool = false` |
+| + | `GetProgramID() : GLuint override` |
+| + | `SetProgram(id : GLuint) : void` |
+| + | `GetSelectedProgramID() : GLuint` |
+| + | `SetSelectedProgram(id : GLuint) : void` |
+| + | `SetWireFrame(wf : bool) : void` |
+| + | `AddMesh(mesh : shared_ptr<Mesh>) : void` |
+| + | `AcceptGUIVisitor(v : IGUIVisitor&) : void override` |
+| + | `AcceptRendererVisitor(v : IModelRendererVisitor&) : void override` |
+
+**Program ID pairs** on `Model`: `m_programID` (normal render) and `m_selectedProgramID` (wireframe overlay for selected state) follow the same ownership pattern — `ShaderManager` owns the GL programs, `MyApp::Init()` fetches both via `Get()` and assigns them via `SetProgram()`/`SetSelectedProgram()`. If `m_selectedProgramID` is `0` (not assigned), `OpenGLRendererVisitor::Visit()` skips the outline pass silently.
 
 ### `Mesh` *(util)*
 | Member | Signature |
 |---|---|
 | - | `m_GPU : OGLObject` |
 | `(+,+)` | `m_material : shared_ptr<Material>` |
+| `(+,+)` | `m_drawMode : int = GL_TRIANGLES` |
 | + | `Build(mesh : MeshObject) : void` |
-| + | `Render(p : MeshRenderParams) : void` |
+| + | `Render() : void` |
 | + | `GetVAO() : GLuint` |
 | + | `GetVertexCount() : GLsizei` |
 
@@ -344,6 +434,8 @@ Key: file path string. Cache uses `weak_ptr`.
 | `<u>+</u>` | `ClearMaterialFromShader() : void` |
 | + | `operator==(other : const Material&) : bool` |
 | `<u>+</u>` | `Hash(mat : const Material&) : size_t` |
+| `<u>-</u>` | `s_lastTextureTargets : GLuint[4]` |
+| `<u>-</u>` | `s_hasUploadedData : bool = false` |
 
 **Invariant:** destructor `= default` — `shared_ptr<Texture>` members handle GPU cleanup.
 
@@ -351,54 +443,93 @@ Key: file path string. Cache uses `weak_ptr`.
 | Member | Signature |
 |---|---|
 | - | `m_id : GLuint` |
+| - | `m_type : GLenum` *(`GL_TEXTURE_2D` or `GL_TEXTURE_CUBE_MAP`)* |
 | + | `GetID() : GLuint` |
 | + | `IsValid() : bool` |
+| + | `GetType() : GLenum` |
 
-**Invariant:** non-copyable, movable. Destructor calls `glDeleteTextures`. OpenGL 4.5 DSA (`glCreateTextures`, `glTextureParameteri`, `glBindTextureUnit`).
+**Invariant:** non-copyable, movable (both `m_id` and `m_type` transfer on move). Destructor calls `glDeleteTextures`. OpenGL 4.5 DSA (`glCreateTextures`, `glTextureParameteri`, `glBindTextureUnit`).
+
+**`GetType()`:** lets external code (e.g. a future ImGui texture preview) branch on 2D-vs-cubemap without the `Texture` class itself needing any type-specific public API — binding/sampling stay uniform (`glBindTextureUnit` is target-agnostic at bind time), only consumers that actually need to *display* the texture differently (a cubemap can't be shown directly via `ImGui::Image`) query this.
+
+**Three constructors**, one GPU-resource shape each: `Texture(path, flip)` (file → `GL_TEXTURE_2D`, mipmapped, `GL_REPEAT`), `Texture(width, height, internalFormat)` (empty, compute shader output, single mip, `GL_CLAMP_TO_EDGE`), `Texture(faces[6], flip)` (6 files → `GL_TEXTURE_CUBE_MAP`, single mip, `GL_CLAMP_TO_EDGE`, enables `GL_TEXTURE_CUBE_MAP_SEAMLESS`).
 
 ---
 
 ## Ray Marching
 
-### `RayMarchedSurface` *(abstract)* — inherits `ModelBase`
+### `RayMarchedModel` *(concrete)* — inherits `ModelBase`
 | Member | Signature |
 |---|---|
-| `(+,+)` | `m_hMapPath : string` |
-| `#` | `m_HMapTextureID : GLuint` |
-| `(+,!)` | `m_conemapTextureID : GLuint` |
-| `(+,+)` | `m_technique : shared_ptr<IRayMarchingTechnique>` |
-| `(+,+)` | `m_maxSteps : int` |
+| + | `RayMarchedModel(name : string = "unnamed")` |
+| `(+,!)` | `m_conemap : shared_ptr<Texture>` |
+| `(+,!)` | `m_technique : shared_ptr<IRayMarchingTechnique>` |
+| `(+,+)` | `m_maxSteps : int = 64` |
 | `(+,+)` | `m_epsilon : float` |
 | `(+,+)` | `m_lightDir : vec3` |
 | `(+,+)` | `m_normalMult : float` |
 | `(+,+)` | `m_discardFragments : bool` |
 | `(+,+)` | `m_displayNonConverged : bool` |
 | `(+,+)` | `m_showFlags : bool` |
-| `(+,+)` | `m_interpolateTexture : bool` |
 | `(+,+)` | `m_debugConfig : RayMarchDebugConfig` |
-| + | `GetProgramID() : GLuint override` *(returns m_technique->GetProgramID())* |
-| + | `Render(v : IModelRendererVisitor&) : void` |
-| + | `AcceptGUIVisitor(v : IGUIVisitor&) : void` |
-| + | `AcceptRendererVisitor(v : IModelRendererVisitor&) : void` |
+| + | `GetProgramID() : GLuint override` |
+| + | `SetTechnique(t : shared_ptr<IRayMarchingTechnique>) : void` |
+| + | `SetHeightmap(heightmap : shared_ptr<Texture>, gen : ConemapGenerator*) : void` |
+| + | `AddMesh(mesh : shared_ptr<Mesh>) : void` |
+| + | `AcceptGUIVisitor(v : IGUIVisitor&) : void override` |
+| + | `AcceptRendererVisitor(v : IModelRendererVisitor&) : void override` |
+
+**`SetHeightmap()`** runs the compute shader via `gen->Generate(*heightmap)` and assigns the result to `m_conemap`. The heightmap itself is not retained; only the conemap is kept. If `gen` is `nullptr`, logs an error and returns early — `m_conemap` is left unchanged.
+
+### `ConemapGenerator` *(utility)*
+| Member | Signature |
+|---|---|
+| + | `ConemapGenerator(programID : GLuint)` |
+| - | `m_programID : GLuint` |
+| + | `Generate(heightmap : const Texture&) : shared_ptr<Texture>` |
+
+Wraps the conemap compute shader. `Generate()` dispatches the compute shader on the heightmap and returns the resulting conemap as a new `Texture`. Owned by `MyApp`; passed by reference wherever conemap generation is needed.
 
 ### `IRayMarchingTechnique` *(interface)*
 | Member | Signature |
 |---|---|
 | + | `GetProgramID() : GLuint` |
-| + | `SetUniforms(surface : const RayMarchedSurface&) : void` |
+| + | `SetUniforms(surface : const RayMarchedModel&) : void` |
 | + | `GetName() : string` |
 
 **Shader paths** are not part of the interface. They are provided as constructor arguments and registered with `ShaderManager::Load()` in `MyApp::Init()`. `ShaderManager` owns the compiled programs; techniques hold the resulting `GLuint`.
 
-**`SetUniforms()`** is where the two techniques diverge in C++: each uploads its own technique-specific shader uniforms. `RayMarchedSurface::Render()` delegates entirely to the technique:
+**`SetUniforms()`** is where the two techniques diverge in C++: each uploads its own technique-specific shader uniforms. `OpenGLRendererVisitor::Visit(const RayMarchedModel&)` calls them in this order:
 ```
-m_technique->SetUniforms(*this);
-glUseProgram(m_technique->GetProgramID());
-// draw call
+glUseProgram(technique->GetProgramID());
+VisitModelBase(target);               // camera + world transform uniforms
+technique->SetUniforms(target);       // technique-specific uniforms
+// draw call — iterates m_meshes
 ```
 
 ### `LinearSearch` *(concrete)* — realizes `IRayMarchingTechnique`
+
+| Member | Signature |
+|---|---|
+| - | `m_programID : GLuint` |
+| + | `LinearSearch(programID : GLuint)` |
+| + | `GetProgramID() : GLuint override` |
+| + | `SetUniforms(surface : const RayMarchedModel&) : void override` |
+| + | `GetName() : string override` → `"Linear Search"` |
+
+**`SetUniforms()`** binds the conemap to unit 4, then uploads: `maxSteps`, `normalMult`, `lightDir`, `discardFragments`, `displayNonConverged`.
+
 ### `ConeStepMapping` *(concrete)* — realizes `IRayMarchingTechnique`
+
+| Member | Signature |
+|---|---|
+| - | `m_programID : GLuint` |
+| + | `ConeStepMapping(programID : GLuint)` |
+| + | `GetProgramID() : GLuint override` |
+| + | `SetUniforms(surface : const RayMarchedModel&) : void override` |
+| + | `GetName() : string override` → `"Cone Step Mapping"` |
+
+**`SetUniforms()`** binds the conemap to unit 4 (logs error if conemap is null), then uploads the same uniforms as `LinearSearch` plus `epsilon` and `dbg.showSteps`, `dbg.showCones`, `dbg.showEnterExit`, `dbg.showFlags` from `RayMarchDebugConfig`.
 
 Each technique owns its own dedicated shader — no `if/else` branching inside shaders.
 
@@ -407,18 +538,20 @@ Each technique owns its own dedicated shader — no `if/else` branching inside s
 ## Inheritance hierarchy
 
 ```
-IDrawable (interface)
-    └── ModelBase (abstract) ── IGUIVisitable (interface)
-                            └── IModelRendererVisitable (interface)
-            ├── Model (abstract)          [GetProgramID → m_programID]
-            └── RayMarchedSurface (abstract) [GetProgramID → m_technique->GetProgramID()]
+ModelBase (abstract) ── ISceneObject (interface) ── IGUIVisitable (interface)
+                     ── IModelRendererVisitable (interface)
+                     ── IUpdatable (interface)
+    ├── Model (concrete)             [GetProgramID → m_programID]
+    └── RayMarchedModel (concrete)   [GetProgramID → m_technique->GetProgramID()]
 ```
 
-`RayMarchedSurface` inherits directly from `ModelBase`, **not** from `Model` — it has no `Mesh` or `Material`. LSP is preserved.
+`RayMarchedModel` inherits directly from `ModelBase` and owns its own meshes (bármilyen geometria, pl. .obj-ből). A ray marching technique a heightmap alapján displace-eli a felületet renderelés közben.
 
 ---
 
 ## Key data types (`src/Headers/Types.h`)
+
+Részletes diagram: `docs/ClassDiagram_Types.puml`
 
 ```cpp
 struct ShaderStage {
@@ -427,54 +560,40 @@ struct ShaderStage {
 };
 
 struct SUpdateInfo { /* delta time, elapsed time */ };
-struct MeshRenderParams { /* per-draw overrides */ };
-struct ModelBaseParams { /* constructor args for ModelBase */ };
-struct ModelParams      { /* constructor args for Model     */ };
-struct RayMarchedSurfaceParams { /* constructor args for RMS */ };
 ```
 
-### `RayMarchDebugUniforms` — GPU-uploadable (std430 compatible)
+### `RayMarchDebugConfig` — CPU-oldali debug konfiguráció (Phase 11+)
 
-Member order guarantees zero-padding when mirrored as a GLSL struct in std430 layout.
-
-```cpp
-struct RayMarchDebugUniforms {
-    GLuint    showDebug;      // offset  0  (bool → GLuint: GLSL uint = 4 bytes)
-    GLuint    showSteps;      // offset  4
-    GLuint    showCones;      // offset  8
-    GLuint    showEnterExit;  // offset 12
-    glm::vec3 debugRayStart;  // offset 16  (vec3 base_align=16 in std430 ✓)
-    GLuint    showRay;        // offset 28  (fills vec3 slot to 32 — no padding needed)
-    glm::vec3 debugRayDir;    // offset 32  (vec3 base_align=16 ✓)
-    GLuint    showHitPoint;   // offset 44  (fills vec3 slot to 48 — no padding needed)
-    // sizeof = 48 bytes, zero wasted memory
-};
-```
-
-Corresponding GLSL struct (`RayMarchDebug_uniforms.glsl`):
-```glsl
-struct RayMarchDebugUniforms {
-    uint  showDebug;      // offset  0
-    uint  showSteps;      // offset  4
-    uint  showCones;      // offset  8
-    uint  showEnterExit;  // offset 12
-    vec3  debugRayStart;  // offset 16
-    uint  showRay;        // offset 28
-    vec3  debugRayDir;    // offset 32
-    uint  showHitPoint;   // offset 44
-};
-```
-
-### `RayMarchDebugConfig` — full C++ debug state
+Nincs std430 layout-kényszer — kizárólag CPU-oldali. A GPU a debug SSBO-kból olvassa a konfigurációt (nem uniform struct-ból).
 
 ```cpp
 struct RayMarchDebugConfig {
-    RayMarchDebugUniforms uniforms;  // uploadable prefix
-    GLuint debugSSBO   = 0;          // GL buffer handle, not uploaded as data
-    GLuint pointsSSBO  = 0;          // GL buffer handle, not uploaded as data
+    bool showDebug     = false;
+    bool showSteps     = false;
+    bool showEnterExit = false;
+    bool showCones     = false;
+    bool showRay       = false;
+    bool showHitPoint  = false;
+    int  primitiveID   = -1;
+    int  technique     = 0;   // OpenGLRendererVisitor frissíti GetTechniqueID()-vel
 };
-// Upload: glNamedBufferSubData(ubo, 0, sizeof(uniforms), &m_debugConfig.uniforms);
 ```
+
+### `RayMarchDebugState` — globális debug állapot
+
+MyApp tulajdona (értékszerű tag). `OpenGLRendererVisitor` nem tulajdonló mutatón éri el.
+
+```cpp
+struct RayMarchDebugState {
+    GLuint debugVisualSSBO    = 0;   // binding 0 — lépés-pozíciók + CPU config
+    GLuint debugNumericalSSBO = 0;   // binding 1 — numerikus trace-adatok
+    Camera debugCamera;
+    RayMarchDebugConfig config;
+    const RayMarchedModel* target = nullptr;
+};
+```
+
+A debug SSBO-k részletes elrendezése: `docs/SSBO_Debug_Layout.md`. Diagram: `docs/diagrams/ClassDiagram_Debug.puml`.
 
 ---
 
@@ -491,7 +610,7 @@ struct RayMarchDebugConfig {
 | Forward declarations | In headers; full `#include` only in `.cpp` |
 | GPU sync | `glFenceSync()` before resource-modifying Commands |
 | Comments | English only |
-| Ownership | `unique_ptr` = exclusive owner; `shared_ptr` = shared (scene objects, techniques); raw `*` = non-owning observer (SceneManager→MyApp pointers, Command targets already covered by shared_ptr) |
+| Ownership | `unique_ptr` = exclusive owner; `shared_ptr` = shared (scene objects, techniques, command targets); raw `*` = non-owning observer only when lifetime is structurally guaranteed (e.g. value member of `MyApp`) or intentionally nullable |
 | GL lifecycle | Objects needing GL context use RAII (constructor/destructor); `MyApp` holds them as `unique_ptr`, creates in `Init()` |
 
 ---
@@ -501,10 +620,5 @@ struct RayMarchDebugConfig {
 | Issue | Location | Notes |
 |---|---|---|
 | `Transform` parent-child incomplete | `Transform::SetParent()` | No child registry, no dangling pointer protection |
-| `Material.h` uses raw `GLuint` | `src/Headers/Material/Material.h` | Design requires `shared_ptr<Texture>` — must migrate |
-| `Texture.h/.cpp` empty | `src/Headers/Texture/` | Blocks Material migration |
-| `IDrawable.h` missing `Update()` | `src/Interfaces/IDrawable.h` | Corrected version in `temp/Round1/IDrawable.h` |
-| `CMakeLists.txt` wrong path | `target_include_directories` | `src/Interface` → `src/Interfaces` |
-| `ShaderStage` not in `Types.h` | `src/Headers/Types.h` | Add per `temp/Round1/Types_ShaderStage_addition.txt` |
-| `IRayMarchingTechnique` Round1 file has `GetShaderPaths()` | `temp/Round1/IRayMarchingTechnique.h` | Remove — not part of final interface |
-| `ICommandQueue` missing from Round1 | `temp/Round1/` | New interface to add before CommandQueue implementation |
+| `Frag_Model.frag` fényszámítás nélküli | `src/Shaders/Models/Frag_Model.frag` | Csak `materialData` diffúz+emisszió színét adja ki, nem hívja a `Light` modul `LightCalculate()`-jét — egyenletes, árnyalás nélküli megjelenítés. Szándékosan elhalasztva: egyelőre nincs fényforrás-kezelés (C++ oldali `Light`/`LightManager` és a hozzá tartozó SSBO feltöltés sincs megírva). Pótlandó, amint a fényforrás-rendszer elkészül. |
+| `RayMarchedModel` kiemelés hiányzik | `OpenGLRendererVisitor::Visit(const RayMarchedModel&)` | A `Visit(const Model&)`-ban megvalósított wireframe overlay kiemelés analóg kiterjesztése `RayMarchedModel`-re elmaradt. Pótlandó. A `RayMarchedModel`-nek is szüksége lesz `m_selectedProgramID` + `GetSelectedProgramID()`/`SetSelectedProgram()` tagokra. |

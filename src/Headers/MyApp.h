@@ -1,125 +1,131 @@
 #pragma once
 
-#include <vector>
-#include <string>
+#include <map>
 #include <memory>
+#include <string>
+#include <vector>
 
-// GLM
 #include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/transform.hpp>
-
-// GLEW
 #include <GL/glew.h>
-
-// SDL
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_opengl.h>
 
-// Utils
-#include "../Utils/Camera.h"
-#include "../Utils/CameraManipulator.h"
-#include "../Utils/GLUtils.hpp"
+#include "Interfaces/IGraphicsApp.h"
+#include "Headers/Command/CommandQueue.h"
+#include "Headers/Manager/SceneManager.h"
+#include "Headers/Manager/ShaderManager.h"
+#include "Headers/Manager/MaterialManager.h"
+#include "Headers/Manager/TextureManager.h"
+#include "Headers/GUIVisitor/ImGuiVisitor.h"
+#include "Headers/Debug/RayMarchDebugState.h"
+#include "Utils/Camera.h"
+#include "Utils/CameraManipulator.h"
 
-// Interface
-#include "../Interfaces/IGraphicsApp.h"
+interface IRayMarchingTechnique;
+class SkyboxRenderer;
+class AxesRenderer;
+class DebugRenderer;
+class OpenGLRendererVisitor;
+class ConemapGenerator;
+class LinearSearch;
+class ConeStepMapping;
+class RayMarchedModel;
+class Model;
+interface ISceneObject;
 
-#include "Model/Model.h"
-#include "Model/RayMarchedSurface.h"
-
-class MyApp : public IGraphicsApp
-{
+class MyApp : public IGraphicsApp {
 public:
-	MyApp();
-	~MyApp();
+    MyApp();
+    ~MyApp() override;
 
-	bool Init();
-	void Clean();
+    bool Init()                                    override;
+    void Update(const SUpdateInfo&)                override;
+    void Render()                                  override;
+    void RenderGUI()                               override;
+    void Clean()                                   override;
 
-	void Update(const SUpdateInfo&);
-	void Render();
-	void RenderGUI();
-
-	void KeyboardDown(const SDL_KeyboardEvent&);
-	void KeyboardUp(const SDL_KeyboardEvent&);
-	void MouseMove(const SDL_MouseMotionEvent&);
-	void MouseDown(const SDL_MouseButtonEvent&);
-	void MouseUp(const SDL_MouseButtonEvent&);
-	void MouseWheel(const SDL_MouseWheelEvent&);
-	void Resize(int, int);
-	void OtherEvent(const SDL_Event&);
+    void KeyboardDown(const SDL_KeyboardEvent&)    override;
+    void KeyboardUp  (const SDL_KeyboardEvent&)    override;
+    void MouseMove   (const SDL_MouseMotionEvent&) override;
+    void MouseDown   (const SDL_MouseButtonEvent&) override;
+    void MouseUp     (const SDL_MouseButtonEvent&) override;
+    void MouseWheel  (const SDL_MouseWheelEvent&)  override;
+    void Resize      (int w, int h)                override;
+    void OtherEvent  (const SDL_Event&)            override;
 
 protected:
-	void SetupDebugCallback();
+    void SetupDebugCallback();
+    void InitDebugSSBOs();
+    void CleanupDebugSSBOs();
+    void RenderDebugPanel();
+    void ExportDebugLog();
+    void UpdateTechniquePrograms();
 
-	// Variables
-	float m_ElapsedTimeInSec = 0.0f;
-	int m_width = 640, m_height = 480;
-	std::unique_ptr<RayMarchedSurface> m_model;
+    std::shared_ptr<RayMarchedModel> CreateDefaultRayMarchedModel(const std::string& name);
+    std::shared_ptr<Model>           CreateModelFromOBJ(const std::string& path);
 
-	// Camera
-	Camera m_camera;
-	CameraManipulator m_cameraManipulator;
+    // Managers — GL-context-independent value members
+    CommandQueue    m_commandQueue;
+    SceneManager    m_sceneManager;
+    ShaderManager   m_shaderManager;
+    MaterialManager m_materialManager;
+    TextureManager  m_textureManager;
 
-	// Shader variables
-	GLuint m_programModelID = 0;		// Program rendering models
-	GLuint m_programRaymarchID = 0;		// Program showing ray-marched surfaces
-	GLuint m_programAxesID = 0;			// Program showing X,Y,Z directions
-	GLuint m_programSkyboxID = 0;		// Skybox shaders
-	GLuint m_programConemapID = 0;		// Conemap generation
+    // RAII GL objects — constructed in Init() after GL context is ready
+    std::unique_ptr<SkyboxRenderer>        m_skyboxRenderer;
+    std::unique_ptr<AxesRenderer>          m_axesRenderer;
+    std::unique_ptr<OpenGLRendererVisitor> m_rendererVisitor;
+    std::unique_ptr<ConemapGenerator>      m_conemapGenerator;
+    std::unique_ptr<DebugRenderer>         m_debugRenderer;
 
-	// Shader initialization and termination
-	void InitShaders();
-	void CleanShaders();
-	void InitSkyboxShader();
-	void CleanSkyboxShader();
-	void InitAxesShader();
-	void CleanAxesShader();
+    std::map<std::string, std::shared_ptr<IRayMarchingTechnique>> m_techniques;
 
-	// Geometry variables
-	OGLObject m_SkyboxGPU = {};
+    // Raw (non-owning) pointers into m_techniques for direct program swapping
+    LinearSearch*    m_lsTech  = nullptr;
+    ConeStepMapping* m_csmTech = nullptr;
 
-	// Geometry initialization and termination
-	void InitGeometry();
-	void CleanGeometry();
-	void InitSkyboxGeometry();
-	void CleanSkyboxGeometry();
+    // GL-independent visitor — reference binds to m_commandQueue (declared above)
+    ImGuiVisitor m_imguiVisitor{ m_commandQueue };
 
-	// Textures
-	GLuint m_modelTextureID = 0;
-	GLuint m_skyboxTextureID = 0;
+    Camera            m_camera;
+    CameraManipulator m_cameraManipulator;
 
-	// Texture initialization
-	void InitTexture();
-	void CleanTexture();
-	void InitSkyboxTexture();
-	void CleanSkyboxTexture();
+    RayMarchDebugState m_debugState;
 
-	// rendering methods
-	void RenderAxes();
-	void RenderSkybox();
+    glm::ivec2 m_windowSize  { 640, 480 };
+    float      m_elapsedTime = 0.f;
 
-	// ImGui state variables
-	bool m_showAxes = true;
+    // GUI state
+    bool m_showAxes           = true;
+    int  m_selectedIndex      = -1;
+    int  m_activeHeightmapIdx = 0;
+    bool m_objLoadFailed      = false;
 
-	int m_activeHeightMap = 0;
-	std::vector<std::string> m_heightMaps{
-		"Assets/HMaps/heightmap_dot.png",
-		"Assets/HMaps/spikes.png",
-		"Assets/HMaps/hemisphere.png",
-		"Assets/HMaps/cone.jpg",
-		"Assets/HMaps/heightmap-terrain.png",
-		"Assets/HMaps/heightmap-terrain2.png",
-		"Assets/HMaps/heightmap-river.png",
-		"Assets/HMaps/heightmap-pyramid.jpg",
-		"Assets/HMaps/heightmap-geometries.png",
-		"Assets/HMaps/Earth-heightmap-small.png",
-		"Assets/HMaps/desert-heightmap.jpg"
-	};
+    // Global light direction (applied to all RayMarchedModels)
+    glm::vec3 m_lightDir = glm::vec3(0.0f, 5.0f, 0.0f);
 
-	int m_activeTechnique = 1;
-	std::vector<std::string> m_rayMarchingTechniques{
-		"Linear search",
-		"Cone step mapping"
-	};
+    // Skybox path input buffer (initialized to default folder in Init)
+    char m_skyboxPathBuf[256] = {};
+
+    // .obj path input buffer for Add .obj Model
+    char m_objPathBuf[512] = {};
+
+    // Conemap sampling permutation state
+    bool m_interpHeight = true;   // true = bilinear height (default)
+    bool m_interpCone   = false;  // true = bilinear cone tangent
+    bool m_conservative = false;  // true = conservative conemap generation
+
+    const std::vector<std::string> m_heightMaps{
+        "Assets/HMaps/heightmap_dot.png",
+        "Assets/HMaps/spikes.png",
+        "Assets/HMaps/hemisphere.png",
+        "Assets/HMaps/cone.jpg",
+        "Assets/HMaps/heightmap-terrain.png",
+        "Assets/HMaps/heightmap-terrain2.png",
+        "Assets/HMaps/heightmap-river.png",
+        "Assets/HMaps/heightmap-pyramid.jpg",
+        "Assets/HMaps/heightmap-geometries.png",
+        "Assets/HMaps/Earth-heightmap-small.png",
+        "Assets/HMaps/desert-heightmap.jpg",
+    };
 };

@@ -1,11 +1,11 @@
 #version 430 core
 
-// VBO-bÛl Èrkezı v·ltozÛk
+// VBO-b√≥l √©rkez≈ë v√°ltoz√≥k
 layout (location = 0 ) in vec3 vs_in_pos;
 layout (location = 1 ) in vec3 vs_in_norm;
-layout (location = 3 ) in vec2 vs_in_tex;
+layout (location = 2 ) in vec2 vs_in_tex;
 
-// a pipeline-ban tov·bb adandÛ ÈrtÈkek
+// a pipeline-ban tov√°bb adand√≥ √©rt√©kek
 out vec3 vs_out_pos;
 out vec2 vs_out_tex;
 out vec3 vs_out_norm;

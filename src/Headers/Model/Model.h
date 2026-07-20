@@ -1,66 +1,36 @@
 #pragma once
 
 #include <memory>
+#include <vector>
+#include <GL/glew.h>
 
 #include "ModelBase.h"
-#include "../Types.h"
-#include "../Material/Material.h"
-#include "../Model/Mesh.h"
-#include "../../Utils/GLUtils.hpp"
+#include "Headers/Model/Mesh.h"
 
 class Model : public ModelBase {
-protected:
-	std::vector<std::shared_ptr<Material>> m_materials;
-	std::vector<std::unique_ptr<Mesh>> m_meshes;
-	bool m_wireframe = false;
-	std::string m_objPath;
-
 public:
-	char m_objPathBuffer[256] = "";
+    explicit Model(std::string name = "unnamed model");
 
-	Model(const ModelParams& params);
-	~Model();
+    GLuint GetProgramID()         const override { return m_programID; }
+    void   SetProgram(GLuint id)               { m_programID = id; }
 
-	// IDrawable methods
-	virtual void Render(const RenderParams& p) override;
+    GLuint GetSelectedProgramID() const          { return m_selectedProgramID; }
+    void   SetSelectedProgram(GLuint id)         { m_selectedProgramID = id; }
 
-	inline void AddMaterial(std::shared_ptr<Material> material) {
-		m_materials.push_back(std::move(material));
-	}
-	inline std::shared_ptr<Material> GetMaterial(int id) const {
-		return m_materials[id];
-	}
-	inline void SetMaterial(std::shared_ptr<Material> material) {
-		m_materials.clear();
-		m_materials.push_back(material);
+    bool IsWireframe()        const { return m_wireframe; }
+    void SetWireframe(bool wf)      { m_wireframe = wf; }
 
-		for (auto& m : m_meshes) {
-			m->SetMaterial(material);
-		}
-	}
+    void AddMesh(std::shared_ptr<Mesh> mesh) { m_meshes.push_back(std::move(mesh)); }
+    const std::vector<std::shared_ptr<Mesh>>& GetMeshes() const { return m_meshes; }
 
-	inline void AddMesh(std::unique_ptr<Mesh> mesh) {
-		m_meshes.push_back(std::move(mesh));
-	}
-	inline void SetWireFrame(bool wireframe) {
-		m_wireframe = wireframe;
-	}
-	inline bool GetWireFrame() const {
-		return m_wireframe;
-	}
+    void AcceptGUIVisitor(IGUIVisitor& v)              override;
+    void AcceptRendererVisitor(IModelRendererVisitor& v) override;
 
-	inline void SetObjPath(const char* path) {
-		strcpy_s(m_objPathBuffer, path);
-		SetObjPath();
-	}
-	virtual void SetObjPath();
+protected:
+    GLuint m_programID         = 0;
+    GLuint m_selectedProgramID = 0;
+    bool   m_wireframe         = false;
 
-	inline void CleanGeometry() {
-		m_meshes.clear();
-		m_materials.clear();
-	}
-
-	inline void CleanMaterials() {
-		m_materials.clear();
-	}
+private:
+    std::vector<std::shared_ptr<Mesh>> m_meshes;
 };

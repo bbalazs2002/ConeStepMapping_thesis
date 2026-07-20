@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <string>
 #include <vector>
 
 #include <GL/glew.h>
@@ -153,6 +154,12 @@ struct OGLObject
 
 GLuint AttachShader( const GLuint programID, GLenum shaderType, const std::filesystem::path& _fileName );
 GLuint AttachShaderCode( const GLuint programID, GLenum shaderType, std::string_view shaderCode );
+
+// Reads file, preprocesses #includes, injects "#define NAME" lines after #version, then compiles.
+GLuint AttachShaderWithDefines( const GLuint programID, GLenum shaderType,
+                                const std::filesystem::path& fileName,
+                                const std::vector<std::string>& defines );
+
 void LinkProgram( const GLuint programID, bool OwnShaders = true );
 
 

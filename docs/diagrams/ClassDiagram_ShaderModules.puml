@@ -1,0 +1,91 @@
+@startuml ClassDiagram_ShaderModules
+skinparam defaultFontName Monospaced
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageBackgroundColor #f9f9f9
+skinparam packageBorderColor #aaaaaa
+skinparam packageFontColor #666666
+skinparam packageFontStyle bold
+skinparam class {
+  BackgroundColor<<module>>  #d5e8d4
+  BorderColor<<module>>      #82b366
+  BackgroundColor<<gizmo>>   #fff2cc
+  BorderColor<<gizmo>>       #d6b656
+  FontStyle<<gizmo>>         italic
+}
+
+package "src/Shaders/Modules" {
+
+  class Camera <<module>> {
+    Camera_uniforms.glsl
+    + CameraUniforms : { viewProj, at, up, eye }
+    + cameraData : CameraUniforms
+    --
+    Camera.glsl
+    + CameraViewProj(pos : vec4) : vec4
+  }
+
+  class Color <<module>> {
+    Color_uniforms.glsl
+    + ColorUniforms : { color }
+    + colorData : ColorUniforms
+    --
+    Color.glsl
+    + Color() : vec4
+  }
+
+  class Material <<module>> {
+    Material_uniforms.glsl
+    + MaterialUniforms : { diffuseColorTex, specularColorTex, ambientColorEmissionTex, shininess, hasNormalTex }
+    + materialDiffuseTex / materialSpecularTex / materialEmissionTex / materialNormalTex : sampler2D
+    + materialData : MaterialUniforms
+    --
+    Material.glsl
+    + MaterialPrepare(texCoord : vec2) : float[13]
+  }
+
+  class Light <<module>> {
+    Light_uniforms.glsl
+    + Light : { La_const, Ld_linear, Ls_quadratic, direction, position, flags_angle_plane }
+    + LightUniforms : { lightCount }
+    + lightSources[] : Light  (SSBO, binding = LIGHT_LIGHTS_SSBO)
+    + lightData : LightUniforms
+    --
+    Light.glsl
+    + LightCalculateContribution(params : LightCalculateContributionParams) : vec3
+    + LightCalculate(params : LightCalculateParams) : vec3
+  }
+
+  class "Light gizmos" as LightGizmo <<gizmo>> {
+    Vert_DirectionSelection.vert
+    Vert_PointSelection.vert
+    Vert_SpotSelection.vert
+    Frag_LightSelection.frag
+    --
+    debug/editor visualization of
+    light sources; not part of the
+    runtime lighting pipeline
+  }
+
+  class Math <<module>> {
+    Math.glsl (no uniforms file)
+    --
+    + binomialCoeff(n : int, k : int) : float
+    + ipow(base : float, exponent : int) : float
+  }
+
+  class Transform <<module>> {
+    Transform_uniforms.glsl
+    + TransformUniforms : { world }
+    + transformData : TransformUniforms
+    --
+    Transform.glsl
+    + Transform(pos : vec4) : vec4
+  }
+}
+
+Material ..> Light : float[13] layout contract\n(MaterialPrepare -> LightCalculate)
+Light ..> LightGizmo : lightSources[lightID]
+Camera ..> LightGizmo : CameraViewProj
+
+@enduml

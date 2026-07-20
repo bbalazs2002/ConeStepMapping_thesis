@@ -1,0 +1,86 @@
+@startuml ClassDiagram_Visitors
+skinparam defaultFontName Monospaced
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageBackgroundColor #f9f9f9
+skinparam packageBorderColor #aaaaaa
+skinparam packageFontColor #666666
+skinparam packageFontStyle bold
+skinparam class {
+  BackgroundColor<<interface>> #dae8fc
+  BorderColor<<interface>>     #6c8ebf
+  FontStyle<<interface>>       italic
+  BackgroundColor<<abstract>>  #e1d5e7
+  BorderColor<<abstract>>      #9673a6
+  FontStyle<<abstract>>        italic
+  BackgroundColor<<concrete>>  #fff2cc
+  BorderColor<<concrete>>      #d6b656
+  BackgroundColor<<manager>>   #d5e8d4
+  BorderColor<<manager>>       #82b366
+  BackgroundColor<<utility>>   #f5f5f5
+  BorderColor<<utility>>       #666666
+  FontColor<<utility>>         #333333
+}
+hide <<utility>> stereotype
+
+package "GUI Visitor" {
+  interface IGUIVisitor <<interface>> {
+    + Visit(in target : Model&) : void
+    + Visit(in target : RayMarchedModel&) : void
+  }
+  interface IGUIVisitable <<interface>> {
+    + AcceptGUIVisitor(in v : IGUIVisitor&) : void
+  }
+  class ImGuiVisitor <<concrete>> {
+    - m_commandQueue : ICommandQueue&
+    --
+    + ImGuiVisitor(in queue : ICommandQueue&)
+    + Visit(in target : Model&) : void
+    + Visit(in target : RayMarchedModel&) : void
+    - VisitModelBase(in target : ModelBase&) : void
+  }
+}
+
+package "Renderer Visitor" {
+  interface IModelRendererVisitor <<interface>> {
+    + Visit(in target : const Model&) : void
+    + Visit(in target : const RayMarchedModel&) : void
+    + SetSelected(in selected : const ISceneObject*) : void
+  }
+  interface IModelRendererVisitable <<interface>> {
+    + AcceptRendererVisitor(in v : IModelRendererVisitor&) : void
+  }
+  class OpenGLRendererVisitor <<manager>> {
+    - m_camera : const ICamera&
+    - m_selected : const ISceneObject* = nullptr
+    --
+    + OpenGLRendererVisitor(in cam : const ICamera&)
+    + ~OpenGLRendererVisitor() = default
+    + SetSelected(in selected : const ModelBase*) : void
+    + Visit(in target : const Model&) : void
+    + Visit(in target : const RayMarchedModel&) : void
+    - VisitModelBase(in target : const ModelBase&) : void
+  }
+}
+
+abstract class ModelBase <<abstract>> {
+}
+class Model <<concrete>> {
+}
+class RayMarchedModel <<concrete>> {
+}
+interface ISceneObject <<interface>> {
+}
+interface ICommandQueue <<interface>> {
+}
+interface ICamera <<interface>> {
+}
+
+ImGuiVisitor ..|> IGUIVisitor
+OpenGLRendererVisitor ..|> IModelRendererVisitor
+ModelBase ..|> ISceneObject
+ISceneObject ..|> IGUIVisitable
+ModelBase ..|> IModelRendererVisitable
+ImGuiVisitor ..> ICommandQueue
+OpenGLRendererVisitor ..> ICamera
+@enduml

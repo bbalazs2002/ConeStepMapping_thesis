@@ -21,7 +21,7 @@ public:
         const glm::quat& rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
         const glm::vec3& scale = glm::vec3(1.0f));
 
-    // ── Getters / Setters (inline) ────────────────────────────────────────────
+    // -- Getters / Setters (inline) --------------------------------------------
 
     inline const glm::vec3& GetLocation() const { return m_location; }
     inline void SetLocation(const glm::vec3& location) {
@@ -55,7 +55,7 @@ public:
 
     inline bool IsDirty() const { return m_dirty; }
 
-    // ── Matrix computation ────────────────────────────────────────────────────
+    // -- Matrix computation ----------------------------------------------------
 
     // Returns the local transformation matrix.
     // Recomputes and caches only when dirty, otherwise returns the cached value.
