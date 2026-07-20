@@ -1,0 +1,66 @@
+@startuml ClassDiagram_Types
+skinparam defaultFontName Monospaced
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageBackgroundColor #f9f9f9
+skinparam packageBorderColor #aaaaaa
+skinparam packageFontColor #666666
+skinparam packageFontStyle bold
+skinparam class {
+  BackgroundColor<<struct>> #f0f4e8
+  BorderColor<<struct>>     #7a9a4a
+  FontColor<<struct>>       #333333
+  BackgroundColor<<gpu>>    #fdebd0
+  BorderColor<<gpu>>        #ca6f1e
+  FontColor<<gpu>>          #333333
+}
+
+package "src/Headers/Types.h" {
+
+  class ShaderStage <<struct>> {
+    + type : GLenum
+    + path : string
+    ..
+    GL_VERTEX_SHADER
+    GL_FRAGMENT_SHADER
+    GL_GEOMETRY_SHADER
+    GL_COMPUTE_SHADER
+  }
+
+  class SUpdateInfo <<struct>> {
+    + ElapsedTimeInSec : float = 0.0f
+    + DeltaTimeInSec : float = 0.0f
+  }
+
+  class RayMarchDebugConfig <<struct>> {
+    ' Phase 11 — nincs std430 layout-kényszer
+    --
+    + showDebug     : bool = false
+    + showSteps     : bool = false
+    + showEnterExit : bool = false
+    + showCones     : bool = false
+    + showRay       : bool = false
+    + showHitPoint  : bool = false
+    + primitiveID   : int  = -1
+    + technique     : int  = 0
+    ' renderer frissíti GetTechniqueID()-vel
+  }
+
+  class RayMarchDebugState <<struct>> {
+    + debugVisualSSBO    : GLuint = 0
+    + debugNumericalSSBO : GLuint = 0
+    + debugCamera        : Camera
+    + config             : RayMarchDebugConfig
+    + target : const RayMarchedModel* = nullptr
+  }
+
+  note bottom of RayMarchDebugState
+    Tulajdonos: MyApp (értékszerű tag).
+    OpenGLRendererVisitor nem tulajdonló
+    mutatón (RayMarchDebugState*) keresztül ér el.
+    Részletes diagram: ClassDiagram_Debug.puml
+  end note
+}
+
+RayMarchDebugState *-- RayMarchDebugConfig
+@enduml

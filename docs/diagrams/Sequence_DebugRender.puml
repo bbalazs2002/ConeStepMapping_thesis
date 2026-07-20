@@ -1,0 +1,169 @@
+@startuml Sequence_DebugRender
+skinparam defaultFontName Monospaced
+skinparam shadowing false
+hide stereotype
+skinparam sequenceArrowThickness 1.5
+skinparam participant {
+  BackgroundColor<<blue>>   #dae8fc
+  BorderColor<<blue>>       #6c8ebf
+  BackgroundColor<<yellow>> #fff2cc
+  BorderColor<<yellow>>     #d6b656
+  BackgroundColor<<green>>  #d5e8d4
+  BorderColor<<green>>      #82b366
+  BackgroundColor<<grey>>   #f5f5f5
+  BorderColor<<grey>>       #666666
+  FontColor<<grey>>         #333333
+}
+
+' ── Résztvevők ───────────────────────────────────────────────────────────────
+
+participant "MyApp" as app <<blue>>
+participant "OpenGLRendererVisitor" as rv <<green>>
+participant "Geom_RM.geom\n(GPU – GS)" as gs <<grey>>
+database    "debugVisualSSBO\n(binding 0)" as vis <<grey>>
+database    "debugNumericalSSBO\n(binding 1)" as num <<grey>>
+participant "DebugRenderer" as dr <<green>>
+participant "Vert_Debug*.vert\n(GPU – VS)" as dvs <<grey>>
+
+' ── Előfeltétel ─────────────────────────────────────────────────────────────
+
+note over app, num
+  Előfeltétel: showDebug == true
+  Az SSBO-k már létrejöttek az Init()-ben (MyApp::InitDebugSSBOs).
+  Szinkronizáció: nincs glMemoryBarrier — egy frame késés (Phase 13).
+  A GS az előző frame-ben írt adatokat a DebugRenderer a következő frame-ben olvassa.
+end note
+
+' ── 1. Jelenet renderelése ────────────────────────────────────────────────────
+
+app -> rv : Visit(RayMarchedModel)
+activate rv
+
+rv -> vis : glBindBufferBase(GL_SSBO, 0, debugVisualSSBO)
+rv -> num : glBindBufferBase(GL_SSBO, 1, debugNumericalSSBO)
+
+rv -> vis : glNamedBufferSubData\nslot[5]: (showDebug, showSteps, showEnterExit, showCones)\nslot[6]: (showRay, showHitPoint, primitiveID, techniqueID)\nslot[7]: debugCamera.eye\nslot[8]: debugCamera.at
+rv -> num : glNamedBufferSubData\nslot[1]: debugCamera.eye\nslot[2]: debugCamera.at
+
+rv -> gs : glDrawArrays(...)  [draw call]
+activate gs
+
+note right of gs
+  GS: olvassa a config-ot
+  debugVisual[5].x == showDebug
+  debugVisual[6].z == primitiveID
+end note
+
+gs -> num : indirectSteps @ byte  0 ← { stepCount, 1,         0, 0 }
+gs -> num : indirectCones @ byte 16 ← { 3,         stepCount, 0, 0 }
+
+gs -> vis : debugVisual[0] ← vec4(stepCount, 0, 0, 0)
+gs -> vis : debugVisual[1..4] ← inverse(M) oszlopai
+gs -> vis : debugVisual[9+i] ← vec4(uᵢ, 1.0)\n  (lépés pozíciók textúra-térben,\n   DBG_WRITE_STEP via i = 0..stepCount-1)
+
+gs -> num : debugNumerical[0]    ← vec4(stepCount, flags, 0, 0)
+gs -> num : debugNumerical[3..6] ← M (scene→tex) oszlopai
+gs -> num : debugNumerical[7]    ← TexEye
+gs -> num : debugNumerical[8..11]← T (scene→unit prism) oszlopai
+gs -> num : debugNumerical[12]   ← T_eye
+gs -> num : debugNumerical[13]   ← TexEnter
+gs -> num : debugNumerical[14]   ← TexExit
+gs -> num : debugNumerical[15]   ← TexDir
+gs -> num : debugNumerical[16]   ← hit UV (w=1) or vec4(0)
+gs -> num : debugNumerical[17+i*2]   ← vec4(tᵢ, t, height, tan)\n  debugNumerical[17+i*2+1] ← vec4(uᵢ, 0)\n  (DBG_WRITE_STEP via i = 0..stepCount-1)
+
+deactivate gs
+
+note right of rv
+  Nincs glMemoryBarrier — Phase 13 döntés.
+  DebugRenderer az előző frame GS-kimenetét
+  olvassa (1 frame látencia, vizuálisan
+  észrevehetetlen álló kamera mellett).
+end note
+
+deactivate rv
+
+' ── 2. Vizuális debug renderelése ────────────────────────────────────────────
+
+app -> dr : Render(state, camera)
+activate dr
+
+dr -> num : glBindBuffer(GL_DRAW_INDIRECT_BUFFER, debugNumericalSSBO)
+note right of dr
+  Az indirect command-ok a buffer elején vannak:
+    byte  0: indirectSteps = {stepCount, 1, 0, 0}
+    byte 16: indirectCones = {3, stepCount, 0, 0}
+  Nincs CPU readback — a GS írta az SSBO-ba.
+end note
+
+dr -> vis : glBindBufferBase(GL_SSBO, 0, debugVisualSSBO)
+dr -> num : glBindBufferBase(GL_SSBO, 1, debugNumericalSSBO)
+
+note over dr
+  GL state mentés:
+  prevDepthTest ← glIsEnabled(GL_DEPTH_TEST)
+  prevPointSize ← GL_POINT_SIZE
+  glDisable(GL_DEPTH_TEST)
+  glBindVertexArray(m_vao)  ' üres VAO
+end note
+
+group showRay [ha cfg.showRay]
+  dr -> dvs : glUseProgram(m_progRay)\nglUniform(u_viewProj)\nglDrawArrays(GL_LINES, 0, 4)
+  activate dvs
+  dvs -> num : olvassa: slot[1]=eye (scene), slot[13]=TexEnter,\nslot[14]=TexExit
+  dvs -> vis : olvassa: slot[1..4]=invM
+  dvs -> dvs : eye→enter és enter→exit\nszegmens clip-térbe transzformálva
+  deactivate dvs
+end
+
+group showEnterExit [ha cfg.showEnterExit]
+  dr -> dvs : glUseProgram(m_progEnterExit)\nglDrawArrays(GL_LINES, 0, 16)
+  activate dvs
+  dvs -> num : olvassa: slot[13]=TexEnter, slot[14]=TexExit
+  dvs -> vis : olvassa: slot[1..4]=invM
+  dvs -> dvs : 2 db kereszt (±U, ±V karok)\ntextúra-tér → scene-tér → clip-tér
+  deactivate dvs
+end
+
+group showSteps [ha cfg.showSteps]
+  dr -> dvs : glUseProgram(m_progSteps)\nglPointSize(8.0)\nglDrawArraysIndirect(GL_POINTS, offset=0)
+  note right : indirectSteps.count = stepCount\n(GS írta, nincs CPU readback)
+  activate dvs
+  dvs -> vis : olvassa: slot[9+gl_VertexID]=step pos (textúra-tér)\nslot[1..4]=invM
+  dvs -> dvs : textúra-tér → scene-tér → clip-tér
+  deactivate dvs
+end
+
+group showCones [ha cfg.showCones]
+  dr -> dvs : glUseProgram(m_progCones)\nglDrawArraysIndirect(GL_LINE_STRIP, offset=16)
+  note right : indirectCones = {count=3, instanceCount=stepCount}\nV-alak: bal szár → apex → jobb szár\nlépésenként 1 instance
+  activate dvs
+  dvs -> num : olvassa: slot[15]=TexDir\nslot[17+i*2]=(ti,t,h,tan)\nslot[17+i*2+1]=(uᵢ,0)
+  dvs -> vis : olvassa: slot[1..4]=invM
+  dvs -> dvs : lépésenként V-alak:\nR=(z−h)/tan, uvDir=normalize(TexDir.xy)\napex=(xy,h) ← bal=(xy−R*uvDir,z) → jobb
+  deactivate dvs
+end
+
+group showHitPoint [ha cfg.showHitPoint]
+  dr -> dvs : glUseProgram(m_progHit)\nglDrawArrays(GL_LINES, 0, 8)
+  activate dvs
+  dvs -> num : olvassa: slot[16].w=wasHit\nslot[16].xy=hitUV\nslot[17+(stepCount-1)*2+1].z=last step z
+  dvs -> vis : olvassa: slot[1..4]=invM
+  dvs -> dvs : ha wasHit: kereszt az\nutolsó lépés pozíciójánál
+  deactivate dvs
+end
+
+note over dr
+  GL state visszaállítás:
+  prevDepthTest ? glEnable : glDisable(GL_DEPTH_TEST)
+  glPointSize(prevPointSize)
+  glBindVertexArray(0)
+end note
+
+deactivate dr
+
+' ── 3. Folytatás ─────────────────────────────────────────────────────────────
+
+app -> app : axesRenderer.Render(camera)  [ha m_showAxes]
+
+@enduml

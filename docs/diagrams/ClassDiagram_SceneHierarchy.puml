@@ -1,0 +1,163 @@
+@startuml ClassDiagram_SceneHierarchy
+skinparam defaultFontName Monospaced
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageBackgroundColor #f9f9f9
+skinparam packageBorderColor #aaaaaa
+skinparam packageFontColor #666666
+skinparam packageFontStyle bold
+skinparam class {
+  BackgroundColor<<interface>> #dae8fc
+  BorderColor<<interface>>     #6c8ebf
+  FontStyle<<interface>>       italic
+  BackgroundColor<<abstract>>  #e1d5e7
+  BorderColor<<abstract>>      #9673a6
+  FontStyle<<abstract>>        italic
+  BackgroundColor<<concrete>>  #fff2cc
+  BorderColor<<concrete>>      #d6b656
+  BackgroundColor<<manager>>   #d5e8d4
+  BorderColor<<manager>>       #82b366
+  BackgroundColor<<utility>>   #f5f5f5
+  BorderColor<<utility>>       #666666
+  FontColor<<utility>>         #333333
+}
+hide <<utility>> stereotype
+
+package "Scene hierarchy" {
+  interface IUpdatable <<interface>> {
+    + Update(in info : SUpdateInfo) : void
+    + ~IUpdatable() = default
+  }
+  abstract class ModelBase <<abstract>> {
+    + ModelBase(in name : string = "unnamed model")
+    --
+    (+,+) m_name : string
+    (+,+) m_show : bool = true
+    (+,+) m_drawMode : int = GL_TRIANGLES
+    (+,#) m_transform : Transform
+    --
+    + GetProgramID() : GLuint  {pure virtual}
+    + GetName() : const string& override
+    + Update(in info : SUpdateInfo) : void
+    + GetTransform() : Transform&
+    + AcceptGUIVisitor(in v : IGUIVisitor&) : void  {pure virtual}
+    + AcceptRendererVisitor(in v : IModelRendererVisitor&) : void  {pure virtual}
+    .. inherited from enable_shared_from_this ..
+    + shared_from_this() : shared_ptr<ModelBase>
+  }
+  class Transform <<utility>> {
+    (+,+) m_location : vec3
+    (+,+) m_rotation : quat
+    (+,+) m_scale : vec3
+    (+,+) m_parent : Transform*
+    --
+    + GetMatrix() : const mat4&
+    + GetWorldMatrix() : mat4
+    + SetLocation(in loc : vec3) : void
+    + SetRotation(in rot : quat) : void
+    + SetScale(in scale : vec3) : void
+    + SetParent(in parent : Transform*) : void
+  }
+  class Model <<concrete>> {
+    + Model(in name : string = "unnamed")
+    --
+    (+,+) m_programID : GLuint = 0
+    (+,+) m_selectedProgramID : GLuint = 0
+    (+,+) m_wireframe : bool = false
+    --
+    + GetProgramID() : GLuint override
+    + SetProgram(in id : GLuint) : void
+    + GetSelectedProgramID() : GLuint
+    + SetSelectedProgram(in id : GLuint) : void
+    + SetWireFrame(in wf : bool) : void
+    + AddMesh(in mesh : shared_ptr<Mesh>) : void
+    + AcceptGUIVisitor(in v : IGUIVisitor&) : void override
+    + AcceptRendererVisitor(in v : IModelRendererVisitor&) : void override
+  }
+  class Mesh <<utility>> {
+    - m_GPU : OGLObject
+    (+,+) m_material : shared_ptr<Material>
+    (+,+) m_drawMode : int = GL_TRIANGLES
+    --
+    + Build(in mesh : MeshObject) : void
+    + Render() : void
+    + GetVAO() : GLuint
+    + GetVertexCount() : GLsizei
+  }
+  class Material <<utility>> {
+    (+,+) m_name : string
+    (+,+) m_diffuseColor : vec3
+    (+,+) m_specularColor : vec3
+    (+,+) m_ambientColor : vec3
+    (+,+) m_shininess : float
+    (+,+) m_diffuseTex : shared_ptr<Texture>
+    (+,+) m_specularTex : shared_ptr<Texture>
+    (+,+) m_emissionTex : shared_ptr<Texture>
+    (+,+) m_normalTex : shared_ptr<Texture>
+    {static} - s_lastTextureTargets : GLuint[4]
+    {static} - s_hasUploadedData : bool = false
+    --
+    {static} + UploadMaterialToShader(in prog : GLuint, in mat : shared_ptr<Material>, in targets : GLuint[4]) : void
+    {static} + UploadMaterialToShader(in prog : GLuint, in mat : shared_ptr<Material>) : void
+    {static} + ClearMaterialFromShader() : void
+    + operator==(in other : const Material&) : bool
+    {static} + Hash(in mat : const Material&) : size_t
+  }
+  class Texture <<utility>> {
+    (+,!) m_id : GLuint
+    (+,!) m_type : GLenum
+    --
+    + GetID() : GLuint
+    + IsValid() : bool
+    + GetType() : GLenum
+  }
+  class RayMarchedModel <<concrete>> {
+    + RayMarchedModel(in name : string = "unnamed")
+    --
+    (+,!) m_conemap : shared_ptr<Texture>
+    (+,!) m_technique : shared_ptr<IRayMarchingTechnique>
+    (+,+) m_maxSteps : int = 64
+    (+,+) m_epsilon : float
+    (+,+) m_lightDir : vec3
+    (+,+) m_normalMult : float
+    (+,+) m_discardFragments : bool
+    (+,+) m_displayNonConverged : bool
+    (+,+) m_showFlags : bool
+    (+,+) m_debugConfig : RayMarchDebugConfig
+    --
+    + GetProgramID() : GLuint override
+    + SetTechnique(in t : shared_ptr<IRayMarchingTechnique>) : void
+    + SetHeightmap(in heightmap : shared_ptr<Texture>, in gen : ConemapGenerator*) : void
+    + AddMesh(in mesh : shared_ptr<Mesh>) : void
+    + AcceptGUIVisitor(in v : IGUIVisitor&) : void override
+    + AcceptRendererVisitor(in v : IModelRendererVisitor&) : void override
+  }
+}
+
+interface ISceneObject <<interface>> {
+  + GetName() : const string&
+  + ~ISceneObject() = default
+}
+interface IGUIVisitable <<interface>> {
+}
+interface IModelRendererVisitable <<interface>> {
+}
+class SceneManager <<manager>> {
+}
+interface IRayMarchingTechnique <<interface>> {
+}
+
+ModelBase ..|> ISceneObject
+ModelBase ..|> IUpdatable
+ModelBase ..|> IModelRendererVisitable
+ISceneObject ..|> IGUIVisitable
+Model --|> ModelBase
+RayMarchedModel --|> ModelBase
+ModelBase *-- Transform
+Model *-- "1..*" Mesh
+RayMarchedModel *-- "1..*" Mesh
+Mesh o-- Material
+Material o-- "0..4" Texture
+SceneManager o-- "0..*" ISceneObject
+RayMarchedModel o-- IRayMarchingTechnique
+@enduml

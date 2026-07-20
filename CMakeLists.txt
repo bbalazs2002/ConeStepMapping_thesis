@@ -1,14 +1,13 @@
 cmake_minimum_required(VERSION 3.20)
 project(CSM_thesis)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)              # volt: 17
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)   # IntelliSense compile_commands.json
 
-# 1. Find all .cpp, .hpp and .h files in the directory
+# 1. Find all .cpp files under src/
 file(GLOB_RECURSE SOURCES
-    "src/*.cpp" 
-    "src/*.h"
-    "src/*.hpp"
+    "src/*.cpp"
 )
 
 # 2. Look for packages (using the correct Case-Sensitive names for vcpkg)
@@ -31,11 +30,19 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     IMGUI_HAS_DOCK                                          # Enable ImGui docking panels
 )
 
-# 4. Link libraries (using the specific vcpkg targets)
+# 4. Include directories
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Headers
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Interfaces
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Utils
+)
+
+# 5. Link libraries (using the specific vcpkg targets)
 target_link_libraries(${PROJECT_NAME} PRIVATE 
     SDL3::SDL3 
     SDL3_image::SDL3_image
-    GLEW::GLEW        # Most likely target name in vcpkg
+    GLEW::GLEW
     glm::glm
     imgui::imgui
     tinyobjloader::tinyobjloader

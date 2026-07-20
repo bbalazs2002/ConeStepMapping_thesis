@@ -1,0 +1,157 @@
+@startuml ClassDiagram_Commands
+skinparam defaultFontName Monospaced
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageBackgroundColor #f9f9f9
+skinparam packageBorderColor #aaaaaa
+skinparam packageFontColor #666666
+skinparam packageFontStyle bold
+skinparam class {
+  BackgroundColor<<interface>> #dae8fc
+  BorderColor<<interface>>     #6c8ebf
+  FontStyle<<interface>>       italic
+  BackgroundColor<<abstract>>  #e1d5e7
+  BorderColor<<abstract>>      #9673a6
+  FontStyle<<abstract>>        italic
+  BackgroundColor<<concrete>>  #fff2cc
+  BorderColor<<concrete>>      #d6b656
+  BackgroundColor<<manager>>   #d5e8d4
+  BorderColor<<manager>>       #82b366
+  BackgroundColor<<utility>>   #f5f5f5
+  BorderColor<<utility>>       #666666
+  FontColor<<utility>>         #333333
+}
+hide <<utility>> stereotype
+
+package "Command system" {
+  interface ICommandQueue <<interface>> {
+    + Push(in cmd : unique_ptr<ICommand>) : void
+  }
+  interface ICommand <<interface>> {
+    + Execute() : void
+  }
+  class CommandQueue <<manager>> {
+    - m_queue : vector<unique_ptr<ICommand>>
+    --
+    + Push(in cmd : unique_ptr<ICommand>) : void
+    + Execute() : void
+    + Clear() : void
+  }
+  class DeleteObjectCommand <<concrete>> {
+    - m_sceneManager : SceneManager&
+    - m_target : shared_ptr<ISceneObject>
+    --
+    + Execute() : void
+  }
+  class SetHeightmapCommand <<concrete>> {
+    - m_surface : shared_ptr<RayMarchedModel>
+    - m_textureManager : TextureManager&
+    - m_path : string
+    - m_generator : ConemapGenerator*
+    --
+    + Execute() : void
+  }
+  class SetTechniqueCommand <<concrete>> {
+    - m_surface : shared_ptr<RayMarchedModel>
+    - m_technique : shared_ptr<IRayMarchingTechnique>
+    --
+    + Execute() : void
+  }
+  class SetLocationCommand <<concrete>> {
+    - m_target : shared_ptr<ModelBase>
+    - m_location : vec3
+    --
+    + Execute() : void
+  }
+  class SetRotationCommand <<concrete>> {
+    - m_target : shared_ptr<ModelBase>
+    - m_rotation : quat
+    --
+    + Execute() : void
+  }
+  class SetScaleCommand <<concrete>> {
+    - m_target : shared_ptr<ModelBase>
+    - m_scale : vec3
+    --
+    + Execute() : void
+  }
+  class SetMaxStepsCommand <<concrete>> {
+    - m_surface : shared_ptr<RayMarchedModel>
+    - m_maxSteps : int
+    --
+    + Execute() : void
+  }
+  class SetEpsilonCommand <<concrete>> {
+    - m_surface : shared_ptr<RayMarchedModel>
+    - m_epsilon : float
+    --
+    + Execute() : void
+  }
+  class SetMaterialCommand <<concrete>> {
+    - m_mesh : shared_ptr<Mesh>
+    - m_material : shared_ptr<Material>
+    --
+    + Execute() : void
+  }
+  class SetSelectedCommand <<concrete>> {
+    - m_sceneManager : SceneManager&
+    - m_target : shared_ptr<ISceneObject>
+    --
+    + Execute() : void
+  }
+}
+
+class MyApp <<concrete>> {
+}
+class ImGuiVisitor <<concrete>> {
+}
+class RayMarchedModel <<concrete>> {
+}
+class ModelBase <<abstract>> {
+}
+class ConemapGenerator <<utility>> {
+}
+interface IRayMarchingTechnique <<interface>> {
+}
+class SceneManager <<manager>> {
+}
+class TextureManager <<manager>> {
+}
+interface ISceneObject <<interface>> {
+}
+class Mesh <<utility>> {
+}
+class Material <<utility>> {
+}
+
+CommandQueue ..|> ICommandQueue
+DeleteObjectCommand ..|> ICommand
+SetHeightmapCommand ..|> ICommand
+SetTechniqueCommand ..|> ICommand
+SetLocationCommand ..|> ICommand
+SetRotationCommand ..|> ICommand
+SetScaleCommand ..|> ICommand
+SetMaxStepsCommand ..|> ICommand
+SetEpsilonCommand ..|> ICommand
+SetMaterialCommand ..|> ICommand
+CommandQueue o-- "0..*" ICommand
+MyApp *-- CommandQueue
+ImGuiVisitor ..> ICommandQueue
+DeleteObjectCommand ..> SceneManager
+DeleteObjectCommand o-- ISceneObject
+SetHeightmapCommand o-- RayMarchedModel
+SetHeightmapCommand ..> TextureManager
+SetHeightmapCommand ..> ConemapGenerator
+SetTechniqueCommand o-- RayMarchedModel
+SetTechniqueCommand o-- IRayMarchingTechnique
+SetLocationCommand o-- ModelBase
+SetRotationCommand o-- ModelBase
+SetScaleCommand o-- ModelBase
+SetMaxStepsCommand o-- RayMarchedModel
+SetEpsilonCommand o-- RayMarchedModel
+SetMaterialCommand o-- Mesh
+SetMaterialCommand o-- Material
+SetSelectedCommand ..|> ICommand
+SetSelectedCommand ..> SceneManager
+SetSelectedCommand o-- ISceneObject
+@enduml

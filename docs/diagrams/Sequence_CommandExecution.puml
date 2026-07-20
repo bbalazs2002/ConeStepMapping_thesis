@@ -1,0 +1,57 @@
+@startuml Sequence_CommandExecution
+skinparam defaultFontName Monospaced
+skinparam shadowing false
+hide stereotype
+skinparam sequenceArrowThickness 1.5
+skinparam participant {
+  BackgroundColor<<blue>>   #dae8fc
+  BorderColor<<blue>>       #6c8ebf
+  BackgroundColor<<yellow>> #fff2cc
+  BorderColor<<yellow>>     #d6b656
+  BackgroundColor<<green>>  #d5e8d4
+  BorderColor<<green>>      #82b366
+  BackgroundColor<<grey>>   #f5f5f5
+  BorderColor<<grey>>       #666666
+  FontColor<<grey>>         #333333
+}
+skinparam actor {
+  BackgroundColor<<grey>> #f5f5f5
+  BorderColor<<grey>>     #666666
+  FontColor<<grey>>       #333333
+}
+
+actor "User\n(ImGui)" as user <<grey>>
+participant "ImGuiVisitor" as iv <<blue>>
+participant "CommandQueue" as cq <<green>>
+participant "MyApp::Update()" as app <<blue>>
+participant "RayMarchedModel" as rms <<yellow>>
+
+== Phase 1: RenderGUI() ==
+
+user -> iv : clicks technique selector
+iv -> iv : make_unique<SetTechniqueCommand>(surface, technique)
+iv -> cq : Push(cmd)  [via ICommandQueue*]
+cq --> iv
+
+== Phase 2: next MyApp::Update() ==
+
+app -> cq : commandQueue.Execute()
+
+loop for each cmd in m_queue
+  cq -> rms : cmd.Execute()  →  SetTechniqueCommand::Execute()
+  rms -> rms : surface.SetTechnique(m_technique)
+  note right
+    SetTechniqueCommand::Execute():
+      m_surface.SetTechnique(m_technique)
+      Never direct assignment  [OCP]
+  end note
+  rms --> cq
+end
+
+note over cq
+  unique_ptr<ICommand> destroyed
+  automatically after loop
+end note
+
+cq --> app
+@enduml

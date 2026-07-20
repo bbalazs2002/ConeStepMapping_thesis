@@ -1,0 +1,100 @@
+@startuml ClassDiagram_RayMarching
+skinparam defaultFontName Monospaced
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageBackgroundColor #f9f9f9
+skinparam packageBorderColor #aaaaaa
+skinparam packageFontColor #666666
+skinparam packageFontStyle bold
+skinparam class {
+  BackgroundColor<<interface>> #dae8fc
+  BorderColor<<interface>>     #6c8ebf
+  FontStyle<<interface>>       italic
+  BackgroundColor<<abstract>>  #e1d5e7
+  BorderColor<<abstract>>      #9673a6
+  FontStyle<<abstract>>        italic
+  BackgroundColor<<concrete>>  #fff2cc
+  BorderColor<<concrete>>      #d6b656
+  BackgroundColor<<manager>>   #d5e8d4
+  BorderColor<<manager>>       #82b366
+  BackgroundColor<<utility>>   #f5f5f5
+  BorderColor<<utility>>       #666666
+  FontColor<<utility>>         #333333
+}
+hide <<utility>> stereotype
+
+package "Ray Marching" {
+  interface IRayMarchingTechnique <<interface>> {
+    + GetProgramID() : GLuint
+    + SetUniforms(in surface : const RayMarchedModel&) : void
+    + GetName() : string
+    + GetTechniqueID() : int
+  }
+  class LinearSearch <<concrete>> {
+    (+,!) m_programID : GLuint
+    --
+    + LinearSearch(in programID : GLuint)
+    + GetProgramID() : GLuint override
+    + SetUniforms(in surface : const RayMarchedModel&) : void override
+    + GetName() : string override
+  }
+  class ConeStepMapping <<concrete>> {
+    (+,!) m_programID : GLuint
+    --
+    + ConeStepMapping(in programID : GLuint)
+    + GetProgramID() : GLuint override
+    + SetUniforms(in surface : const RayMarchedModel&) : void override
+    + GetName() : string override
+  }
+  class ConemapGenerator <<utility>> {
+    - m_programID : GLuint
+    --
+    + ConemapGenerator(in programID : GLuint)
+    + Generate(in heightmap : const Texture&) : shared_ptr<Texture>
+  }
+  class RayMarchedModel <<concrete>> {
+    + RayMarchedModel(in name : string = "unnamed")
+    --
+    (+,!) m_conemap : shared_ptr<Texture>
+    (+,!) m_technique : shared_ptr<IRayMarchingTechnique>
+    (+,+) m_maxSteps : int = 64
+    (+,+) m_epsilon : float
+    (+,+) m_lightDir : vec3
+    (+,+) m_normalMult : float
+    (+,+) m_discardFragments : bool
+    (+,+) m_displayNonConverged : bool
+    (+,+) m_showFlags : bool
+    (+,+) m_debugConfig : RayMarchDebugConfig
+    --
+    + GetProgramID() : GLuint override
+    + SetTechnique(in t : shared_ptr<IRayMarchingTechnique>) : void
+    + SetHeightmap(in heightmap : shared_ptr<Texture>, in gen : ConemapGenerator*) : void
+    + AddMesh(in mesh : shared_ptr<Mesh>) : void
+    + AcceptGUIVisitor(in v : IGUIVisitor&) : void override
+    + AcceptRendererVisitor(in v : IModelRendererVisitor&) : void override
+  }
+}
+
+class MyApp <<concrete>> {
+}
+abstract class ModelBase <<abstract>> {
+}
+class ShaderManager <<manager>> {
+}
+class Mesh <<utility>> {
+}
+class Texture <<utility>> {
+}
+
+LinearSearch ..|> IRayMarchingTechnique
+ConeStepMapping ..|> IRayMarchingTechnique
+RayMarchedModel --|> ModelBase
+RayMarchedModel o-- IRayMarchingTechnique : m_technique
+RayMarchedModel *-- "1..*" Mesh
+RayMarchedModel o-- "0..1" Texture : conemap
+MyApp o-- "0..*" IRayMarchingTechnique : m_techniques
+MyApp *-- ConemapGenerator
+ShaderManager ..> LinearSearch
+ShaderManager ..> ConeStepMapping
+ConemapGenerator ..> Texture : <<creates>>
+@enduml

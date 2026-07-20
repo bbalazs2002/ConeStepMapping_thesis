@@ -24,6 +24,14 @@ ProgramBuilder& ProgramBuilder::ShaderStage( const GLenum shaderType, const std:
     return *this;
 }
 
+ProgramBuilder& ProgramBuilder::ShaderStageWithDefines(const GLenum shaderType,
+                                                       const std::filesystem::path& filename,
+                                                       const std::vector<std::string>& defines)
+{
+    AttachShaderWithDefines(programID, shaderType, filename, defines);
+    return *this;
+}
+
 void ProgramBuilder::Link()
 {
     LinkProgram( programID, true );

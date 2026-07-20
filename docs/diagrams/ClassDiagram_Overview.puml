@@ -1,0 +1,183 @@
+@startuml ClassDiagram_Overview
+skinparam defaultFontName Monospaced
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageBackgroundColor #f9f9f9
+skinparam packageBorderColor #aaaaaa
+skinparam packageFontColor #666666
+skinparam packageFontStyle bold
+skinparam class {
+  BackgroundColor<<interface>> #dae8fc
+  BorderColor<<interface>>     #6c8ebf
+  FontStyle<<interface>>       italic
+  BackgroundColor<<abstract>>  #e1d5e7
+  BorderColor<<abstract>>      #9673a6
+  FontStyle<<abstract>>        italic
+  BackgroundColor<<concrete>>  #fff2cc
+  BorderColor<<concrete>>      #d6b656
+  BackgroundColor<<manager>>   #d5e8d4
+  BorderColor<<manager>>       #82b366
+  BackgroundColor<<utility>>   #f5f5f5
+  BorderColor<<utility>>       #666666
+  FontColor<<utility>>         #333333
+}
+hide <<utility>> stereotype
+
+package "Application core" {
+  interface IGraphicsApp <<interface>> {
+  }
+  class MyApp <<concrete>> {
+  }
+}
+
+package "Command system" {
+  interface ICommandQueue <<interface>> {
+  }
+  interface ICommand <<interface>> {
+  }
+  class CommandQueue <<manager>> {
+  }
+  class SetHeightmapCommand <<concrete>> {
+  }
+  class SetTechniqueCommand <<concrete>> {
+  }
+  class DeleteObjectCommand <<concrete>> {
+  }
+}
+
+package "Managers" {
+  class ShaderManager <<manager>> {
+  }
+  class SceneManager <<manager>> {
+  }
+  class MaterialManager <<manager>> {
+  }
+  class TextureManager <<manager>> {
+  }
+  class SkyboxRenderer <<manager>> {
+  }
+  class AxesRenderer <<manager>> {
+  }
+}
+
+package "GUI Visitor" {
+  interface IGUIVisitor <<interface>> {
+  }
+  interface IGUIVisitable <<interface>> {
+  }
+  interface ISceneObject <<interface>> {
+  }
+  class ImGuiVisitor <<concrete>> {
+  }
+}
+
+package "Renderer Visitor" {
+  interface IModelRendererVisitor <<interface>> {
+  }
+  interface IModelRendererVisitable <<interface>> {
+  }
+  class OpenGLRendererVisitor <<manager>> {
+  }
+}
+
+package "Scene hierarchy" {
+  interface IUpdatable <<interface>> {
+  }
+  abstract class ModelBase <<abstract>> {
+  }
+  class Transform <<utility>> {
+  }
+  class Model <<concrete>> {
+  }
+  class Mesh <<utility>> {
+  }
+  class Material <<utility>> {
+  }
+  class Texture <<utility>> {
+  }
+}
+
+package "Ray Marching" {
+  class RayMarchedModel <<concrete>> {
+  }
+  interface IRayMarchingTechnique <<interface>> {
+  }
+  class LinearSearch <<concrete>> {
+  }
+  class ConeStepMapping <<concrete>> {
+  }
+  class ConemapGenerator <<utility>> {
+  }
+}
+
+package "Debug" {
+  class DebugRenderer <<manager>> {
+  }
+}
+
+package "Utils" {
+  interface ICamera <<interface>> {
+  }
+  class Camera <<concrete>> {
+  }
+  class CameraManipulator <<utility>> {
+  }
+  class ProgramBuilder <<utility>> {
+  }
+  class ModelLoader <<utility>> {
+  }
+  class GLUtils <<utility>> {
+  }
+}
+
+' --- Realizations
+MyApp ..|> IGraphicsApp
+CommandQueue ..|> ICommandQueue
+Camera ..|> ICamera
+ImGuiVisitor ..|> IGUIVisitor
+OpenGLRendererVisitor ..|> IModelRendererVisitor
+ModelBase ..|> ISceneObject
+ModelBase ..|> IUpdatable
+ModelBase ..|> IModelRendererVisitable
+ISceneObject ..|> IGUIVisitable
+SetHeightmapCommand ..|> ICommand
+SetTechniqueCommand ..|> ICommand
+DeleteObjectCommand ..|> ICommand
+LinearSearch ..|> IRayMarchingTechnique
+ConeStepMapping ..|> IRayMarchingTechnique
+
+' --- Inheritance
+Model --|> ModelBase
+RayMarchedModel --|> ModelBase
+
+' --- Composition (MyApp owns)
+MyApp *-- CommandQueue
+MyApp *-- SceneManager
+MyApp *-- ShaderManager
+MyApp *-- MaterialManager
+MyApp *-- TextureManager
+MyApp *-- Camera
+MyApp *-- ImGuiVisitor
+MyApp *-- SkyboxRenderer
+MyApp *-- AxesRenderer
+MyApp *-- OpenGLRendererVisitor
+MyApp *-- ConemapGenerator
+MyApp *-- DebugRenderer
+
+' --- Aggregation
+SceneManager o-- "0..*" ISceneObject
+CommandQueue o-- "0..*" ICommand
+MyApp o-- "0..*" IRayMarchingTechnique : m_techniques
+RayMarchedModel *-- "1..*" Mesh : meshes
+RayMarchedModel o-- IRayMarchingTechnique
+RayMarchedModel o-- "0..1" Texture : conemap
+Model *-- "1..*" Mesh
+Mesh o-- Material
+Material o-- "0..4" Texture
+
+' --- Dependencies
+MaterialManager ..> Material
+TextureManager ..> Texture
+ImGuiVisitor ..> ICommandQueue
+ConemapGenerator ..> Texture : <<creates>>
+@enduml

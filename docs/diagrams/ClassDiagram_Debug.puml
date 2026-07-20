@@ -1,0 +1,135 @@
+@startuml ClassDiagram_Debug
+skinparam defaultFontName Monospaced
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageBackgroundColor #f9f9f9
+skinparam packageBorderColor #aaaaaa
+skinparam packageFontColor #666666
+skinparam packageFontStyle bold
+skinparam class {
+  BackgroundColor<<interface>> #dae8fc
+  BorderColor<<interface>>     #6c8ebf
+  FontStyle<<interface>>       italic
+  BackgroundColor<<concrete>>  #fff2cc
+  BorderColor<<concrete>>      #d6b656
+  BackgroundColor<<manager>>   #d5e8d4
+  BorderColor<<manager>>       #82b366
+  BackgroundColor<<struct>>    #ffe6cc
+  BorderColor<<struct>>        #d79b00
+  BackgroundColor<<utility>>   #f5f5f5
+  BorderColor<<utility>>       #666666
+  FontColor<<utility>>         #333333
+}
+hide <<utility>> stereotype
+
+' ── Debug State ───────────────────────────────────────────────────────────────
+
+package "Headers/Debug" {
+
+  class RayMarchDebugConfig <<struct>> {
+    + showDebug     : bool = false
+    + showSteps     : bool = false
+    + showEnterExit : bool = false
+    + showCones     : bool = false
+    + showRay       : bool = false
+    + showHitPoint  : bool = false
+    + primitiveID   : int  = -1
+    + technique     : int  = 0
+    ' renderer frissíti GetTechniqueID()-vel
+  }
+
+  class RayMarchDebugState <<struct>> {
+    + debugCamera        : Camera
+    + debugVisualSSBO    : GLuint   ' binding 0: lépés-pozíciók + CPU config
+    + debugNumericalSSBO : GLuint   ' binding 1: numerikus trace-adatok
+    + config             : RayMarchDebugConfig
+  }
+
+  note right of RayMarchDebugState
+    A két GLuint handle az egyetlen
+    kapcsolat a CPU és a GPU SSBO-k
+    között.  A tényleges adatcsere
+    kizárólag OpenGL API-n keresztül
+    történik.
+  end note
+}
+
+' ── Debug Renderer ────────────────────────────────────────────────────────────
+
+package "Headers/Renderer" {
+
+  class DebugRenderer <<manager>> {
+    - m_progRay       : GLuint
+    - m_progEnterExit : GLuint
+    - m_progSteps     : GLuint
+    - m_progCones     : GLuint
+    - m_progHit       : GLuint
+    - m_vao           : GLuint
+    --
+    + DebugRenderer(progRay, progEE, progSteps,\n  progCones, progHit : GLuint)
+    + ~DebugRenderer()
+    + Render(in state : const RayMarchDebugState&,\n  in cam : const ICamera&) : void
+  }
+
+  note right of DebugRenderer
+    GPU shader-ek (Shaders/Debug/):
+      Vert_DebugRay.vert
+      Vert_DebugEnterExit.vert
+      Vert_DebugSteps.vert
+      Vert_DebugCones.vert
+      Vert_DebugHit.vert
+      Frag_Debug.frag  (közös)
+
+    Minden VS deklarálja mindkét SSBO-t
+    (binding 0 + 1) és gl_VertexID-val
+    indexeli — nincs CPU-oldali pozíció-
+    adat feltöltés.
+
+    Steps + Cones: glDrawArraysIndirect
+    (indirectSteps/indirectCones a
+    debugNumericalSSBO elejéről, GS írja).
+    Nincs CPU readback a lépésszámról.
+  end note
+}
+
+' ── Érintett osztályok (részleges) ───────────────────────────────────────────
+
+class MyApp <<concrete>> {
+  - m_debugState    : RayMarchDebugState
+  - m_debugRenderer : unique_ptr<DebugRenderer>
+  - m_rendererVisitor : unique_ptr<OpenGLRendererVisitor>
+  --
+  + InitDebugSSBOs()    : void
+  + CleanupDebugSSBOs() : void
+  + RenderDebugPanel()  : void
+}
+
+class OpenGLRendererVisitor <<manager>> {
+  - m_debugState : RayMarchDebugState*
+  --
+  + SetDebugState(in s : RayMarchDebugState*) : void
+  + Visit(in target : const RayMarchedModel&) : void
+}
+
+note bottom of OpenGLRendererVisitor
+  Visit(RayMarchedModel) feladata:
+  1. glBindBufferBase (binding 0, 1)
+  2. CPU config feltöltés (slots 5-8 / 1-2)
+  3. draw call  →  GS ír SSBO-ba
+  (nincs glMemoryBarrier — egy frame késés,
+   Phase 13 döntés: indirect draw teszi fölöslegessé)
+end note
+
+' ── Kapcsolatok ───────────────────────────────────────────────────────────────
+
+MyApp *-down- RayMarchDebugState      : owns (by value)
+MyApp *-down- DebugRenderer           : owns (unique_ptr)
+MyApp -right-> OpenGLRendererVisitor  : owns (unique_ptr)
+
+RayMarchDebugState *-- RayMarchDebugConfig : contains
+
+OpenGLRendererVisitor -up-> RayMarchDebugState : "m_debugState\n(non-owning ptr,\nset by MyApp)"
+
+DebugRenderer ..> RayMarchDebugState : "reads\ndebugVisualSSBO +\ndebugNumericalSSBO\nhandles from"
+
+@enduml

@@ -12,7 +12,17 @@ float getTan(float fx, vec2 xuv, vec2 nxny) {
 	vec2 yuv = nxny / vec2(width - 1, height - 1);
 	float fy = texture(inputImage, yuv).r;
 
-	return max(0., length(xuv - yuv) / (fy - fx));
+	float dist = length(xuv - yuv);
+
+#ifdef CONSERVATIVE
+	// Subtract half-texel-diagonal so the cone remains safe for any ray position
+	// within the current texel, not only at the texel center.
+	// half-texel-diagonal = sqrt(2) / (2 * max(width-1, height-1))
+	float half_diag = sqrt(2.0) / (2.0 * max(float(width - 1), float(height - 1)));
+	dist = max(0.0, dist - half_diag);
+#endif
+
+	return max(0., dist / (fy - fx));
 }
 
 void main() {
@@ -20,7 +30,7 @@ void main() {
 	/* FLAT CONEMAP
 	for (int i = 0; i < 5; ++i) {
 		for (int j = 0; j < 5; ++j) {
-			imageStore(outputImage, ivec2(i, j), vec4(0, 1., 0, 1.));		
+			imageStore(outputImage, ivec2(i, j), vec4(0, 1., 0, 1.));
 		}
 	}
 	return;
@@ -99,7 +109,7 @@ void main() {
 		}
 
 		float tn = -1.;
-		
+
 		int nx = 0;
 		int ny = 0;
 
@@ -134,29 +144,6 @@ void main() {
 		}
 	}
 
-	// Naive
-	/*
-	int nx, ny;
-	float tn;
-
-	for (int i = 0; i < width; ++i) {
-		for (int j = 0; j < height; ++j) {
-			if (i == x && j == y) {
-				continue;
-			}
-
-			nx = i;
-			ny = j;
-			tn = getTan(fx, xuv, vec2(nx, ny));
-			if (tn > 0) {
-				minTan = min(minTan, tn);
-			}
-
-		}
-	}
-	*/
-
 	imageStore(outputImage, ivec2(gl_GlobalInvocationID), vec4(fx, minTan, 0, 1.));
-	// imageStore(outputImage, ivec2(gl_GlobalInvocationID), vec4(fx, .5, 0, 1.));
-    
+
 }

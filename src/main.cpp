@@ -40,7 +40,7 @@ int main(int argc, char* args[]) {
     // --- 1. Initialize SDL ---
     SDL_SetLogPriority(SDL_LOG_CATEGORY_ERROR, SDL_LOG_PRIORITY_ERROR);
 
-    if (SDL_Init(SDL_INIT_VIDEO) == -1) {
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "[SDL Init] Failed: %s", SDL_GetError());
         return 1;
     }
