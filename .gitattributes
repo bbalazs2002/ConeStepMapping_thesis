@@ -5,3 +5,8 @@
 *.jpeg filter=lfs diff=lfs merge=lfs -text
 *.webp filter=lfs diff=lfs merge=lfs -text
 *.tiff filter=lfs diff=lfs merge=lfs -text
+# Test assets are small text/binary fixtures, not large media files
+tests/**/*.obj filter= diff= merge= text
+tests/**/*.mtl filter= diff= merge= text
+tests/**/*.bmp filter= diff= merge= text
+tests/**/*.png filter= diff= merge= text
