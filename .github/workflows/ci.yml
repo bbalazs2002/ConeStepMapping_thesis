@@ -50,8 +50,10 @@ jobs:
             -DBUILD_TESTS=ON `
             -A x64
 
+      # Only build the test target — the main executable needs a display
+      # and is unnecessary on this runner.
       - name: Build
-        run: cmake --build build --config Release --parallel
+        run: cmake --build build --config Release --target tests_no_gl --parallel
 
       - name: Run No-GL Tests
         run: ctest --test-dir build -L NoGL -C Release --output-on-failure

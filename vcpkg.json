@@ -8,7 +8,7 @@
     "tinyobjloader",
     {
       "name": "imgui",
-      "features": ["docking-experimental"]
+      "features": ["docking-experimental", "sdl3-binding", "opengl3-binding"]
     },
     "sdl3",
     "sdl3-image"
