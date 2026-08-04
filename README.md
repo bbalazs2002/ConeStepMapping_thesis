@@ -1,95 +1,187 @@
-# SDL3-OpenGL-Base
+# Cone Step Mapping — Thesis Application
 
-A lightweight, object-oriented starter template for high-performance graphical applications. This boilerplate handles the tedious setup of SDL3 and OpenGL, allowing you to jump straight into creative coding within a structured environment.
+An interactive 3D rendering application developed as a BSc thesis project at ELTE (Eötvös Loránd University). The application implements and compares **Cone Step Mapping** against **Linear Search** ray marching for parallax occlusion mapping on heightmap-driven surfaces.
+
+---
+
+## What it does
+
+- Loads heightmap textures and renders displaced surfaces via ray marching in real time
+- Supports two ray marching techniques selectable at runtime: **Linear Search** and **Cone Step Mapping**
+- Generates conemaps on the GPU from heightmaps for accelerated ray traversal
+- Loads and renders arbitrary 3D OBJ models with full MTL material and texture support
+- Provides an ImGui-based GUI for scene management, technique parameters, and debug visualization
 
 ---
 
 ## Key Features
 
-- **Modern SDL3 Integration:** Leveraging the latest SDL3 features for window management and event handling.  
-- **OpenGL 4.6 Ready:** Pre-configured graphics context with a robust debug logger.  
-- **OOP Architecture:** Clean separation of concerns. `main.cpp` manages the lifecycle, while `MyApp` encapsulates your application logic (`Update`, `Render`, `Resize`, etc.).
-- **Asset Management:** Includes a ready-to-use image loading utility (STB-style via SDL_image) with support for PNG, JPG, and more.  
-- **3D Model Loading:** Integrated tinyobjloader support for loading `.obj` files with full `.mtl` material handling, enabling rendering of complex 3D models.  
-- **Vcpkg Compatible:** Optimized for easy dependency management.
+- **Cone Step Mapping** — GPU-accelerated ray marching using precomputed cone data for fewer steps per fragment
+- **Linear Search** — reference technique for direct comparison and performance benchmarking
+- **Conemap generation** — on-the-fly conemap computation from loaded heightmaps
+- **Scene management** — add, remove, and select `RayMarchedModel` and `Model` objects at runtime
+- **Material & texture cache** — `MaterialManager` and `TextureManager` with `weak_ptr`-based garbage collection
+- **Modular shader system** — GLSL modules included at compile time (Camera, Transform, Light, Color, etc.)
+- **Debug visualization** — dedicated shaders for ray paths, cone geometry, step counts, hit points, and enter/exit depth
+- **Command queue** — deferred OpenGL resource commands executed before each render pass, avoiding mid-frame state mutations
+- **Shader hot-reload** — Ctrl+F5 recompiles and relinks all shader programs without restarting
+- **Visitor pattern rendering** — `OpenGLRendererVisitor` and `ImGuiVisitor` decouple scene traversal from rendering logic
 
 ---
 
 ## Tech Stack
 
-- **Windowing / Input:** SDL3  
-- **Graphics API:** OpenGL 4.6  
-- **Image Loading:** SDL3_image  
-- **Model Loading:** tinyobjloader  
-- **Mathematics:** GLM (OpenGL Mathematics)  
-- **UI:** Dear ImGui (Optional / Integrated)  
-- **Package Manager:** vcpkg
+| Category | Library / Tool |
+|---|---|
+| Windowing & input | SDL3 |
+| Graphics API | OpenGL 4.5 Core |
+| Extension loading | GLEW |
+| Mathematics | GLM |
+| UI | Dear ImGui (docking branch) |
+| Model loading | tinyobjloader |
+| Package manager | vcpkg (manifest mode) |
+| Test framework | Google Test |
+| CI | GitHub Actions |
 
 ---
 
 ## Architecture
 
-The project is structured to separate low-level initialization from high-level application logic, while maintaining a clean and scalable directory layout:
+### Library split
 
-### Core Structure
+All source files except `main.cpp` are compiled into a static library `CSM_lib`. Both the main executable and the test binaries link against it. This avoids duplicate compilation and lets tests reach any internal class without extra boilerplate.
 
-- **`main.cpp`:** Initializes SDL3, creates the OpenGL 4.6 context, and manages the main event loop.  
-- **`MyApp`:** Encapsulates application-specific logic with `Update()`, `Render()`, `Resize()`, etc. methods.  
-
-### Project Layout
-
-- **`Assets/`:** Contains static resources such as textures and 3D models (`.obj`, `.mtl`).  
-
-- **`src/`:** Main source directory  
-  - **`Headers/`:** C++ header files. Most components are header-only for simplicity and compile-time optimization.  
-  - **`Interfaces/`:** Abstract interfaces defining core contracts and promoting decoupled design.  
-  - **`Shaders/`:** GLSL shader programs used in the OpenGL rendering pipeline.  
-  - **`Sources/`:** Implementation files (`.cpp`) for non-header-only components.  
-  - **`Utils/`:** Utility modules, including:
-    - Texture and shader loading helpers  
-    - Camera system (`Camera`, `CameraManipulator`)  
-    - Logging system (`Log`) for debug and runtime diagnostics  
-
-### Utilities
-
-- **Asset Loading:** UTF-8 compliant texture loading and `.obj` model loading with full material (`.mtl`) support.  
-- **Rendering Support:** Predefined helpers for shader compilation and OpenGL resource management.
-
-### Shaders
-
-The project includes a modular shader system designed for reuse and clarity:
-
-- **`Shaders/`:** Contains all GLSL programs used in the rendering pipeline.  
-
-- **`Shaders/Modules/`:** Reusable GLSL modules shared across multiple shaders (e.g., common functions, material utilities).  
-  - Each module is documented separately. See: **[Shader Modules README](./src/Shaders/Modules/GLSL_modules_readme.md)**  
-
-- **Built-in Shaders:**
-  - **Model Shader:** A simple built-in shader for rendering 3D models with basic material support.
-  - **Skybox Shader:** Simple environment rendering for background and scene context.  
-  - **Axes Shader:** Renders orientation axes at the screen center, useful for spatial reference and debugging.
-
----
-
-## Dependencies
-
-This project uses vcpkg to manage its libraries. To ensure all features (like PNG and JPEG support) work correctly, you need the following packages:
-
-### Required Packages
-
-- **SDL3:** Core framework for windowing and input.  
-- **SDL3_image:** Extension for loading various image formats.  
-- **GLEW:** OpenGL Extension Wrangler for modern GL function loading.  
-- **GLM:** Mathematics library for graphics (vectors, matrices).  
-- **ImGui:** Immediate mode UI for debugging and tools.  
-- **tinyobjloader:** Lightweight OBJ loader with MTL material support.
-
----
-
-## Installation
-
-Run the following command in your terminal to install all necessary dependencies with the correct features:
-
-```bash
-vcpkg install sdl3 sdl3-image[png,jpeg,tiff,webp] glew glm imgui[sdl3-binding,opengl3-binding,docking-experimental] tinyobjloader
 ```
+src/main.cpp          → CSM_thesis.exe
+src/**/*.cpp          → CSM_lib.lib  ←  tests_no_gl.exe
+                                     ←  tests_gl.exe
+```
+
+### Core subsystems
+
+| Subsystem | Description |
+|---|---|
+| `MyApp` | Top-level application class; owns all managers and drives the event loop |
+| `SceneManager` | Owns the list of `ISceneObject` instances; dispatches visitor traversal |
+| `ShaderManager` | Loads, compiles, links, and hot-reloads GLSL programs |
+| `TextureManager` | Loads textures via SDL_image; `weak_ptr` cache keyed on `path\|flip` |
+| `MaterialManager` | Creates and caches `Material` objects; GC via `weak_ptr` |
+| `CommandQueue` | Collects deferred `ICommand` objects; executed once per `Update()` tick |
+| `OpenGLRendererVisitor` | Issues all draw calls; visited by each scene object |
+| `ImGuiVisitor` | Builds per-object ImGui panels; pushes commands to the queue |
+| `ConemapGenerator` | Generates conemap textures from heightmaps on the GPU |
+
+### Shader structure
+
+```
+src/Shaders/
+├── Modules/          # Reusable GLSL includes (Camera, Transform, Light, Color, …)
+├── RayMarching/      # Ray march vertex + fragment shaders
+├── Models/           # Standard model shader + selection wireframe overlay
+├── Debug/            # Five debug visualization shaders (rays, cones, steps, …)
+├── Skybox/
+└── Axes/
+```
+
+See [docs/GLSL_modules_readme.md](docs/GLSL_modules_readme.md) for module documentation.
+
+---
+
+## Building
+
+### Prerequisites
+
+- Visual Studio 2022 (MSVC) with C++20
+- CMake ≥ 3.20
+- [vcpkg](https://github.com/microsoft/vcpkg) with `VCPKG_ROOT` set in your environment
+
+### Steps
+
+```powershell
+# 1. Install dependencies (manifest mode — reads vcpkg.json automatically)
+vcpkg install --triplet x64-windows
+
+# 2. Configure
+cmake -B build `
+  -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" `
+  -DCMAKE_BUILD_TYPE=Release `
+  -A x64
+
+# 3. Build
+cmake --build build --config Release --parallel
+
+# 4. Run
+.\build\Release\CSM_thesis.exe
+```
+
+### Building with tests
+
+```powershell
+cmake -B build `
+  -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" `
+  -DCMAKE_BUILD_TYPE=Release `
+  -DBUILD_TESTS=ON `
+  -A x64
+
+cmake --build build --config Release --parallel
+ctest --test-dir build -C Release --output-on-failure
+```
+
+---
+
+## Testing
+
+The test suite is split into two executables based on OpenGL dependency:
+
+| Target | Runner | What it covers |
+|---|---|---|
+| `tests_no_gl` | GitHub-hosted (`windows-latest`) | Transform, CommandQueue, MaterialManager, ModelLoader, SceneManager |
+| `tests_gl` | Self-hosted (`[self-hosted, windows, gl]`) | TextureManager, Mesh build, scene integration with live GL context |
+
+GL tests initialize a hidden 1×1 SDL3 window with an OpenGL 4.5 Core context before running. If the driver reports < 4.5, the suite exits with code 0 (skip, not failure).
+
+Test plan and expected results: [docs/Testing/TestingPlan.md](docs/Testing/TestingPlan.md)
+
+### CI pipeline
+
+Two GitHub Actions jobs run on every push to `main`:
+
+1. **No-GL Tests** — clones and bootstraps vcpkg, installs all dependencies, builds only `tests_no_gl`, runs CTest with label `NoGL`
+2. **GL Tests** — runs on a self-hosted Windows runner with GPU; requires `VCPKG_ROOT` set in the runner environment (`.env` file in the runner directory)
+
+---
+
+## Project layout
+
+```
+.
+├── src/
+│   ├── Headers/          # Class declarations (most components are header-only)
+│   ├── Interfaces/       # Pure abstract interfaces (IGraphicsApp, ICommand, …)
+│   ├── Shaders/          # GLSL programs and reusable modules
+│   ├── Sources/          # .cpp implementation files
+│   ├── Utils/            # ModelLoader, TextureLoader, GLUtils, Log, …
+│   └── main.cpp
+├── tests/
+│   ├── no_gl/            # GTest suite — no OpenGL required
+│   └── gl/               # GTest suite — requires live GL context
+├── docs/
+│   ├── Architecture.md   # Full class inventory and design decisions
+│   ├── Testing/          # Testing plan
+│   └── *.md              # Debug layout, GLSL modules, implementation notes
+├── Assets/               # Heightmaps, 3D models, textures (not committed — gitignored)
+├── CMakeLists.txt
+└── vcpkg.json
+```
+
+---
+
+## Documentation
+
+| Document | Contents |
+|---|---|
+| [docs/Architecture.md](docs/Architecture.md) | Complete class hierarchy, member tables, design invariants |
+| [docs/GLSL_modules_readme.md](docs/GLSL_modules_readme.md) | Shader module API and include conventions |
+| [docs/Debug.md](docs/Debug.md) | Debug visualization system and SSBO layout |
+| [docs/ImplementationDecisions.md](docs/ImplementationDecisions.md) | Key design choices and their rationale |
+| [docs/Testing/TestingPlan.md](docs/Testing/TestingPlan.md) | Black-box, unit, integration, memory, and performance test plan |
