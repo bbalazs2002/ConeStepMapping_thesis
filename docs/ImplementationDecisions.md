@@ -440,6 +440,30 @@ jobb szár: (xy + uvDir·R, z)
 
 ---
 
+## `MyApp` — nyers pointer és explicit életciklus-kezelés (`main.cpp`)
+
+**Hol:** `main.cpp` 31. sor: `IGraphicsApp* app;` globális nyers pointer; 120. sor: `app = new MyApp();`; 230–231. sor: `app->Clean(); delete app;`
+
+**Döntés:** Az alkalmazásobjektum nyers pointerrel (`IGraphicsApp*`) van kezelve, `unique_ptr` helyett.
+
+**Miért:** Az életciklus sorrendje kötött és nem triviális:
+
+1. `_CrtSetDbgFlag` → mem-leak detektálás bekapcsolva (37. sor)
+2. SDL + GL context inicializálás (43–92. sor)
+3. `app = new MyApp()` + `app->Init()` (120–122. sor)
+4. Fő eseményhurok
+5. **`app->Clean()`** — explicit GL erőforrás-felszabadítás (230. sor)
+6. **`delete app`** (231. sor)
+7. ImGui leállítás, `SDL_GL_DestroyContext`, `SDL_DestroyWindow` (235–240. sor)
+
+A `Clean()` OpenGL hívásokat tartalmaz (`glDeleteBuffers`, `glDeleteProgram`, stb.), amelyeknek a GL kontextus megsemmisítése **előtt** kell lefutniuk. Ha `unique_ptr`-t használnánk, az automatikus destruktor a scope elhagyásakor fut — ami a leállítási blokk előtt vagy után következhet be a scope szerkezetétől függően. A `reset()` explicit hívása a leállítás sorrendbe illesztéséhez ugyanolyan „manuális" beavatkozás, mint a raw pointer, de kevésbé olvasható.
+
+**`_CrtDbg` és a `delete` kapcsolata:** A `_CRTDBG_LEAK_CHECK_DF` flag hatására az MSVC runtime a program leállásakor (az összes statikus destruktor után) összesíti a szivárgásokat. Az explicit `delete app` garantálja, hogy a `MyApp` destruktora és a `Clean()` a normális program-flow részeként fut le, nem a `_CrtDumpMemoryLeaks` után — így a riport pontosan a valódi szivárgásokat mutatja, nem az alkalmazás-életciklus végéig szándékosan élő objektumokat.
+
+**Globális változó:** Az `app` globálisan van deklarálva. Ez eredetileg az esemény-callback-ek miatt volt szükséges (ahol nincs hozzáférés a `main` lokális változóihoz); a jelenlegi eseményhurok `main`-en belül fut, így technikailag lokális változó is lehetne. Refaktorálás nem történt, mert a viselkedés azonos.
+
+---
+
 ## `RayMarchedModel` — a heightmap nem tárolt, csak a conemap
 
 **Hol:** `RayMarchedModel::SetHeightmap()` → `ConemapGenerator::Generate()` → `m_conemap`; nincs `m_heightmap` tag

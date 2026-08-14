@@ -1,0 +1,204 @@
+<title>CSM Shader Permutations</title>
+<style>
+:root {
+  --bg:    #f4f5f9;
+  --panel: #e4e6f2;
+  --text:  #1a1f2e;
+  --muted: #5a6178;
+  --ls:    #1e40af;
+  --csm:   #0f766e;
+  --nt:    #ffffff;
+  --eh:    #b45309;
+  --ec:    #b91c1c;
+  --et:    #7a8899;
+  --lbg:   #f4f5f9;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:    #111822;
+    --panel: #1b2435;
+    --text:  #d8dde8;
+    --muted: #7a8899;
+    --ls:    #2563eb;
+    --csm:   #0d9488;
+    --nt:    #ffffff;
+    --eh:    #f59e0b;
+    --ec:    #f87171;
+    --et:    #94a3b8;
+    --lbg:   #111822;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:    #111822;
+  --panel: #1b2435;
+  --text:  #d8dde8;
+  --muted: #7a8899;
+  --ls:    #2563eb;
+  --csm:   #0d9488;
+  --nt:    #ffffff;
+  --eh:    #f59e0b;
+  --ec:    #f87171;
+  --et:    #94a3b8;
+  --lbg:   #111822;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; }
+
+body {
+  padding: 2rem 1rem 2.5rem;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+h1 {
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.wrap {
+  width: 100%;
+  max-width: 800px;
+  overflow-x: auto;
+}
+
+svg { display: block; width: 100%; height: auto; }
+
+.legend {
+  display: flex;
+  gap: .75rem 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  font-size: .73rem;
+  color: var(--muted);
+}
+.li  { display: flex; align-items: center; gap: .4rem; }
+.lb  { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+.ll  { width: 24px; height: 2.5px; border-radius: 2px; flex-shrink: 0; }
+.lld { width: 24px; height: 2px; flex-shrink: 0;
+       background: repeating-linear-gradient(90deg,
+         var(--et) 0, var(--et) 5px, transparent 5px, transparent 8px); }
+</style>
+
+<h1>Ray Marching Shader Permutations</h1>
+
+<div class="wrap">
+<svg viewBox="0 0 760 305" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Graph of six ray-marching shader permutations connected by their compile-time defines">
+<defs>
+<style>
+.gbg  { fill: var(--panel); }
+.glbl { fill: var(--muted); font: 700 7.5px/1 system-ui,sans-serif; letter-spacing:.08em; }
+.nls  { fill: var(--ls); }
+.ncsm { fill: var(--csm); }
+.nn   { fill: var(--nt); font: 700 13.5px/1 ui-monospace,'Cascadia Code',monospace; }
+.nd   { fill: var(--nt); font: 8.5px/1 ui-monospace,'Cascadia Code',monospace; opacity:.62; }
+.eh   { stroke: var(--eh); stroke-width:2.5; fill:none; }
+.ec   { stroke: var(--ec); stroke-width:2.5; fill:none; }
+.et   { stroke: var(--et); stroke-width:2; stroke-dasharray:5 3; fill:none; }
+.lbg  { fill: var(--lbg); }
+.lh   { fill: var(--eh); font: 700 7.5px/1 ui-monospace,monospace; }
+.lc   { fill: var(--ec); font: 700 7.5px/1 ui-monospace,monospace; }
+.lt   { fill: var(--et); font: 700 7.5px/1 system-ui,sans-serif; }
+</style>
+</defs>
+
+<!-- ── Group backgrounds ─────────────────────────────────── -->
+<!-- LS  group: x=19..209, y=73..293 -->
+<rect class="gbg" x="19" y="73" width="190" height="220" rx="13"/>
+<!-- CSM group: x=285..735, y=73..293 -->
+<rect class="gbg" x="285" y="73" width="450" height="220" rx="13"/>
+
+<!-- Group labels -->
+<text class="glbl" x="114" y="62" text-anchor="middle">LINEAR SEARCH</text>
+<text class="glbl" x="510" y="62" text-anchor="middle">CONE STEP MAPPING</text>
+
+<!-- ── Edges (behind nodes) ──────────────────────────────── -->
+
+<!-- INTERP_HEIGHT  (amber, solid)
+     LS:    (114,147)→(114,218)
+     CSM-L: (380,147)→(380,218)
+     CSM-R: (640,147)→(640,218)  -->
+<line class="eh" x1="114" y1="147" x2="114" y2="218"/>
+<line class="eh" x1="380" y1="147" x2="380" y2="218"/>
+<line class="eh" x1="640" y1="147" x2="640" y2="218"/>
+
+<!-- INTERP_CONE  (coral, solid)
+     top:    (465,115)→(555,115)
+     bottom: (465,250)→(555,250)  -->
+<line class="ec" x1="465" y1="115" x2="555" y2="115"/>
+<line class="ec" x1="465" y1="250" x2="555" y2="250"/>
+
+<!-- Technique  (grey, dashed)
+     top:    (199,115)→(295,115)
+     bottom: (199,250)→(295,250)  -->
+<line class="et" x1="199" y1="115" x2="295" y2="115"/>
+<line class="et" x1="199" y1="250" x2="295" y2="250"/>
+
+<!-- ── Nodes ─────────────────────────────────────────────── -->
+
+<!-- ls_HN  (cx=114 cy=115)  no defines -->
+<rect class="nls" x="29" y="83" width="170" height="64" rx="10"/>
+<text class="nn" x="114" y="115" text-anchor="middle" dominant-baseline="central">ls_HN</text>
+
+<!-- ls_HB  (cx=114 cy=250)  INTERP_HEIGHT -->
+<rect class="nls" x="29" y="218" width="170" height="64" rx="10"/>
+<text class="nn" x="114" y="245" text-anchor="middle">ls_HB</text>
+<text class="nd" x="114" y="263" text-anchor="middle">INTERP_HEIGHT</text>
+
+<!-- csm_HN_CN  (cx=380 cy=115)  no defines -->
+<rect class="ncsm" x="295" y="83" width="170" height="64" rx="10"/>
+<text class="nn" x="380" y="115" text-anchor="middle" dominant-baseline="central">csm_HN_CN</text>
+
+<!-- csm_HB_CN  (cx=380 cy=250)  INTERP_HEIGHT -->
+<rect class="ncsm" x="295" y="218" width="170" height="64" rx="10"/>
+<text class="nn" x="380" y="245" text-anchor="middle">csm_HB_CN</text>
+<text class="nd" x="380" y="263" text-anchor="middle">INTERP_HEIGHT</text>
+
+<!-- csm_HN_CB  (cx=640 cy=115)  INTERP_CONE -->
+<rect class="ncsm" x="555" y="83" width="170" height="64" rx="10"/>
+<text class="nn" x="640" y="110" text-anchor="middle">csm_HN_CB</text>
+<text class="nd" x="640" y="128" text-anchor="middle">INTERP_CONE</text>
+
+<!-- csm_HB_CB  (cx=640 cy=250)  INTERP_HEIGHT + INTERP_CONE -->
+<rect class="ncsm" x="555" y="218" width="170" height="64" rx="10"/>
+<text class="nn" x="640" y="239" text-anchor="middle">csm_HB_CB</text>
+<text class="nd" x="640" y="254" text-anchor="middle">INTERP_HEIGHT</text>
+<text class="nd" x="640" y="267" text-anchor="middle">INTERP_CONE</text>
+
+<!-- ── Edge labels (on top of everything) ────────────────── -->
+
+<!-- INTERP_HEIGHT label — rotated, left of LS vertical edge
+     Rotates -90° around (95, 183): appears as vertical text
+     in the gap between the two LS nodes.                    -->
+<g transform="rotate(-90 95 183)">
+  <rect class="lbg" x="57" y="177" width="76" height="12" rx="2"/>
+  <text class="lh" x="95" y="183" text-anchor="middle" dominant-baseline="central">INTERP_HEIGHT</text>
+</g>
+
+<!-- INTERP_CONE label — above top horizontal CONE edge -->
+<rect class="lbg" x="461" y="104" width="90" height="12" rx="2"/>
+<text class="lc" x="506" y="110" text-anchor="middle" dominant-baseline="central">INTERP_CONE</text>
+
+<!-- Technique label — above top horizontal TECHNIQUE edge -->
+<rect class="lbg" x="216" y="104" width="64" height="12" rx="2"/>
+<text class="lt" x="248" y="110" text-anchor="middle" dominant-baseline="central">Technique</text>
+
+</svg>
+</div>
+
+<div class="legend">
+  <div class="li"><div class="lb" style="background:var(--ls)"></div><span>Linear Search (ls_*)</span></div>
+  <div class="li"><div class="lb" style="background:var(--csm)"></div><span>Cone Step Mapping (csm_*)</span></div>
+  <div class="li"><div class="ll" style="background:var(--eh)"></div><span>INTERP_HEIGHT define</span></div>
+  <div class="li"><div class="ll" style="background:var(--ec)"></div><span>INTERP_CONE define</span></div>
+  <div class="li"><div class="lld"></div><span>Technique switch</span></div>
+</div>

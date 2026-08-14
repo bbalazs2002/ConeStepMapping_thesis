@@ -49,6 +49,10 @@ int main(int argc, char* args[]) {
     // --- 2. Configure OpenGL Attributes ---
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
+    int glVersion[2] = { 4, 5 };
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, glVersion[0]);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, glVersion[1]);
+
 #ifdef DEBUG 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 #endif 
@@ -63,7 +67,7 @@ int main(int argc, char* args[]) {
 
     // --- 3. Create Window and Context ---
     SDL_Window* win = SDL_CreateWindow(
-        "SDL3-OpenGL-Base",
+        "Cone Step Mapping Demo",
         800, 600,
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
     );
@@ -88,7 +92,6 @@ int main(int argc, char* args[]) {
     }
 
     // Log OpenGL version info
-    int glVersion[2] = { -1, -1 };
     glGetIntegerv(GL_MAJOR_VERSION, &glVersion[0]);
     glGetIntegerv(GL_MINOR_VERSION, &glVersion[1]);
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Running OpenGL %d.%d", glVersion[0], glVersion[1]);
