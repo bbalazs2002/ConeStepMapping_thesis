@@ -11,6 +11,7 @@
 #include <SDL3/SDL_opengl.h>
 
 #include "Interfaces/IGraphicsApp.h"
+#include "Interfaces/ICommandQueue.h"
 #include "Headers/Command/CommandQueue.h"
 #include "Headers/Manager/SceneManager.h"
 #include "Headers/Manager/ShaderManager.h"
@@ -65,7 +66,7 @@ protected:
     std::shared_ptr<Model>           CreateModelFromOBJ(const std::string& path);
 
     // Managers — GL-context-independent value members
-    CommandQueue    m_commandQueue;
+    std::unique_ptr<ICommandQueue> m_commandQueue{ std::make_unique<CommandQueue>() };
     SceneManager    m_sceneManager;
     ShaderManager   m_shaderManager;
     MaterialManager m_materialManager;
@@ -84,8 +85,8 @@ protected:
     LinearSearch*    m_lsTech  = nullptr;
     ConeStepMapping* m_csmTech = nullptr;
 
-    // GL-independent visitor — reference binds to m_commandQueue (declared above)
-    ImGuiVisitor m_imguiVisitor{ m_commandQueue };
+    // GL-independent visitor — reference binds to *m_commandQueue (declared above)
+    ImGuiVisitor m_imguiVisitor{ *m_commandQueue };
 
     Camera            m_camera;
     CameraManipulator m_cameraManipulator;

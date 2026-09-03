@@ -31,10 +31,11 @@ package "src/Headers/Types.h" {
     + ElapsedTimeInSec : float = 0.0f
     + DeltaTimeInSec : float = 0.0f
   }
+}
+
+package "src/Headers/Debug/RayMarchDebugState.h" {
 
   class RayMarchDebugConfig <<struct>> {
-    ' Phase 11 — nincs std430 layout-kényszer
-    --
     + showDebug     : bool = false
     + showSteps     : bool = false
     + showEnterExit : bool = false
@@ -42,16 +43,13 @@ package "src/Headers/Types.h" {
     + showRay       : bool = false
     + showHitPoint  : bool = false
     + primitiveID   : int  = -1
-    + technique     : int  = 0
-    ' renderer frissíti GetTechniqueID()-vel
   }
 
   class RayMarchDebugState <<struct>> {
+    + debugCamera        : Camera
     + debugVisualSSBO    : GLuint = 0
     + debugNumericalSSBO : GLuint = 0
-    + debugCamera        : Camera
     + config             : RayMarchDebugConfig
-    + target : const RayMarchedModel* = nullptr
   }
 
   note bottom of RayMarchDebugState

@@ -40,26 +40,18 @@ package "Application core" {
     + OtherEvent(in e : SDL_Event) : void
   }
   class MyApp <<concrete>> {
-    # m_commandQueue : CommandQueue
-    # m_sceneManager : SceneManager
-    # m_shaderManager : ShaderManager
-    # m_materialManager : MaterialManager
-    # m_textureManager : TextureManager
-    # m_skyboxRenderer : unique_ptr<SkyboxRenderer>
-    # m_axesRenderer : unique_ptr<AxesRenderer>
-    # m_rendererVisitor : unique_ptr<OpenGLRendererVisitor>
-    # m_conemapGenerator : unique_ptr<ConemapGenerator>
-    # m_debugRenderer : unique_ptr<DebugRenderer>
-    # m_techniques : map<string, shared_ptr<IRayMarchingTechnique>>
-    # m_imguiVisitor : ImGuiVisitor
-    # m_camera : Camera
-    # m_cameraManipulator : CameraManipulator
-    - m_debugState : RayMarchDebugState
-    (+,#) m_windowSize : ivec2
-    (+,!) m_elapsedTime : float
+    - m_lsTech : LinearSearch* = nullptr
+    - m_csmTech : ConeStepMapping* = nullptr
+    # m_windowSize : ivec2
+    # m_elapsedTime : float
     # m_showAxes : bool = true
     # m_selectedIndex : int = -1
-    # m_debugIndex : int = 0
+    # m_activeHeightmapIdx : int = 0
+    # m_objLoadFailed : bool = false
+    # m_lightDir : vec3
+    # m_interpHeight : bool = true
+    # m_interpCone : bool = false
+    # m_conservative : bool = false
     # m_heightMaps : const vector<string>
     --
     + Init() : bool
@@ -68,9 +60,13 @@ package "Application core" {
     + RenderGUI() : void
     + Clean() : void
     # SetupDebugCallback() : void
-    - InitDebugSSBOs() : void
-    - CleanupDebugSSBOs() : void
+    # InitDebugSSBOs() : void
+    # CleanupDebugSSBOs() : void
     # RenderDebugPanel() : void
+    # ExportDebugLog() : void
+    # UpdateTechniquePrograms() : void
+    # CreateDefaultRayMarchedModel(in name : string) : shared_ptr<RayMarchedModel>
+    # CreateModelFromOBJ(in path : string) : shared_ptr<Model>
   }
 }
 
@@ -105,20 +101,21 @@ class RayMarchDebugState <<utility>> {
 interface IRayMarchingTechnique <<interface>> {
 }
 
+
 MyApp ..|> IGraphicsApp
-MyApp *-- CommandQueue
-MyApp *-- SceneManager
-MyApp *-- ShaderManager
-MyApp *-- MaterialManager
-MyApp *-- TextureManager
-MyApp *-- SkyboxRenderer
-MyApp *-- AxesRenderer
-MyApp *-- OpenGLRendererVisitor
-MyApp *-- ConemapGenerator
-MyApp *-- DebugRenderer
-MyApp *-- ImGuiVisitor
-MyApp *-- Camera
-MyApp *-- CameraManipulator
-MyApp *-- RayMarchDebugState
-MyApp o-- "0..*" IRayMarchingTechnique
+MyApp *-- "# m_commandQueue"        CommandQueue
+MyApp *-- "# m_sceneManager"        SceneManager
+MyApp *-- "# m_shaderManager"       ShaderManager
+MyApp *-- "# m_materialManager"     MaterialManager
+MyApp *-- "# m_textureManager"      TextureManager
+MyApp *-- "# m_skyboxRenderer"      SkyboxRenderer
+MyApp *-- "# m_axesRenderer"        AxesRenderer
+MyApp *-- "# m_rendererVisitor"     OpenGLRendererVisitor
+MyApp *-- "# m_conemapGenerator"    ConemapGenerator
+MyApp *-- "# m_debugRenderer"       DebugRenderer
+MyApp *-- "# m_imguiVisitor"        ImGuiVisitor
+MyApp *-- "# m_camera"              Camera
+MyApp *-- "# m_cameraManipulator"   CameraManipulator
+MyApp *-- "# m_debugState"          RayMarchDebugState
+MyApp o-- "# m_techniques\n0..*"    IRayMarchingTechnique
 @enduml

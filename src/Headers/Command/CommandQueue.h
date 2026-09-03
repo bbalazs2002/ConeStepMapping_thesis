@@ -7,8 +7,8 @@
 class CommandQueue : public ICommandQueue {
 public:
     void Push(std::unique_ptr<ICommand> cmd) override;
-    void Execute();
-    void Clear();
+    void Execute() override;
+    void Clear() override;
 
 private:
     std::vector<std::unique_ptr<ICommand>> m_queue;

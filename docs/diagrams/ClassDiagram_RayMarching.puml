@@ -31,45 +31,74 @@ package "Ray Marching" {
     + GetTechniqueID() : int
   }
   class LinearSearch <<concrete>> {
-    (+,!) m_programID : GLuint
+    - m_programID : GLuint
     --
     + LinearSearch(in programID : GLuint)
     + GetProgramID() : GLuint override
+    + SetProgramID(in id : GLuint) : void
     + SetUniforms(in surface : const RayMarchedModel&) : void override
     + GetName() : string override
+    + GetTechniqueID() : int override
   }
   class ConeStepMapping <<concrete>> {
-    (+,!) m_programID : GLuint
+    - m_programID : GLuint
     --
     + ConeStepMapping(in programID : GLuint)
     + GetProgramID() : GLuint override
+    + SetProgramID(in id : GLuint) : void
     + SetUniforms(in surface : const RayMarchedModel&) : void override
     + GetName() : string override
+    + GetTechniqueID() : int override
   }
   class ConemapGenerator <<utility>> {
-    - m_programID : GLuint
+    - m_originalProgramID : GLuint
+    - m_conservativeProgramID : GLuint
+    - m_conservative : bool = false
+    - m_lastConemap : shared_ptr<Texture>
     --
-    + ConemapGenerator(in programID : GLuint)
+    + ConemapGenerator(in originalProgramID : GLuint, in conservativeProgramID : GLuint)
     + Generate(in heightmap : const Texture&) : shared_ptr<Texture>
+    + SetConservative(in c : bool) : void
+    + IsConservative() : bool
+    + GetLastConemapID() : GLuint
   }
   class RayMarchedModel <<concrete>> {
     + RayMarchedModel(in name : string = "unnamed")
     --
-    (+,!) m_conemap : shared_ptr<Texture>
-    (+,!) m_technique : shared_ptr<IRayMarchingTechnique>
-    (+,+) m_maxSteps : int = 64
-    (+,+) m_epsilon : float
-    (+,+) m_lightDir : vec3
-    (+,+) m_normalMult : float
-    (+,+) m_discardFragments : bool
-    (+,+) m_displayNonConverged : bool
-    (+,+) m_showFlags : bool
-    (+,+) m_debugConfig : RayMarchDebugConfig
+    - m_conemap : shared_ptr<Texture>
+    - m_technique : shared_ptr<IRayMarchingTechnique>
+    - m_selectedProgramID : GLuint = 0
+    # m_maxSteps : int = 64
+    # m_epsilon : float = 1.0
+    # m_normalMult : float = 1.0
+    # m_lightDir : vec3
+    # m_discardFragments : bool = true
+    # m_displayNonConverged : bool = false
+    # m_showFlags : bool = false
     --
     + GetProgramID() : GLuint override
+    + GetConemap() : const shared_ptr<Texture>&
+    + GetTechnique() : const shared_ptr<IRayMarchingTechnique>&
+    + GetSelectedProgramID() : GLuint
+    + SetSelectedProgram(in id : GLuint) : void
+    + GetMaxSteps() : int
+    + SetMaxSteps(in v : int) : void
+    + GetEpsilon() : float
+    + SetEpsilon(in v : float) : void
+    + GetNormalMult() : float
+    + SetNormalMult(in v : float) : void
+    + GetLightDir() : vec3
+    + SetLightDir(in v : vec3) : void
+    + GetDiscardFragments() : bool
+    + SetDiscardFragments(in v : bool) : void
+    + GetDisplayNonConverged() : bool
+    + SetDisplayNonConverged(in v : bool) : void
+    + GetShowFlags() : bool
+    + SetShowFlags(in v : bool) : void
     + SetTechnique(in t : shared_ptr<IRayMarchingTechnique>) : void
     + SetHeightmap(in heightmap : shared_ptr<Texture>, in gen : ConemapGenerator*) : void
     + AddMesh(in mesh : shared_ptr<Mesh>) : void
+    + GetMeshes() : const vector<shared_ptr<Mesh>>&
     + AcceptGUIVisitor(in v : IGUIVisitor&) : void override
     + AcceptRendererVisitor(in v : IModelRendererVisitor&) : void override
   }

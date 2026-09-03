@@ -31,13 +31,18 @@ package "Scene hierarchy" {
   abstract class ModelBase <<abstract>> {
     + ModelBase(in name : string = "unnamed model")
     --
-    (+,+) m_name : string
-    (+,+) m_show : bool = true
-    (+,+) m_drawMode : int = GL_TRIANGLES
-    (+,#) m_transform : Transform
+    # m_name : string
+    # m_show : bool = true
+    # m_drawMode : int = GL_TRIANGLES
+    # m_transform : Transform
     --
     + GetProgramID() : GLuint  {pure virtual}
     + GetName() : const string& override
+    + SetName(in n : string) : void
+    + IsShown() : bool
+    + SetShow(in show : bool) : void
+    + GetDrawMode() : int
+    + SetDrawMode(in mode : int) : void
     + Update(in info : SUpdateInfo) : void
     + GetTransform() : Transform&
     + AcceptGUIVisitor(in v : IGUIVisitor&) : void  {pure virtual}
@@ -46,57 +51,86 @@ package "Scene hierarchy" {
     + shared_from_this() : shared_ptr<ModelBase>
   }
   class Transform <<utility>> {
-    (+,+) m_location : vec3
-    (+,+) m_rotation : quat
-    (+,+) m_scale : vec3
-    (+,+) m_parent : Transform*
+    - m_location : vec3
+    - m_rotation : quat
+    - m_scale : vec3
+    - m_parent : Transform* = nullptr
     --
+    + GetLocation() : const vec3&
+    + SetLocation(in loc : vec3) : void
+    + GetRotation() : const quat&
+    + SetRotation(in rot : quat) : void
+    + GetScale() : const vec3&
+    + SetScale(in scale : vec3) : void
+    + GetParent() : Transform*
+    + SetParent(in parent : Transform*) : void
     + GetMatrix() : const mat4&
     + GetWorldMatrix() : mat4
-    + SetLocation(in loc : vec3) : void
-    + SetRotation(in rot : quat) : void
-    + SetScale(in scale : vec3) : void
-    + SetParent(in parent : Transform*) : void
+    + IsDirty() : bool
   }
   class Model <<concrete>> {
     + Model(in name : string = "unnamed")
     --
-    (+,+) m_programID : GLuint = 0
-    (+,+) m_selectedProgramID : GLuint = 0
-    (+,+) m_wireframe : bool = false
+    # m_programID : GLuint = 0
+    # m_selectedProgramID : GLuint = 0
+    # m_wireframe : bool = false
     --
     + GetProgramID() : GLuint override
     + SetProgram(in id : GLuint) : void
     + GetSelectedProgramID() : GLuint
     + SetSelectedProgram(in id : GLuint) : void
-    + SetWireFrame(in wf : bool) : void
+    + IsWireframe() : bool
+    + SetWireframe(in wf : bool) : void
     + AddMesh(in mesh : shared_ptr<Mesh>) : void
+    + GetMeshes() : const vector<shared_ptr<Mesh>>&
     + AcceptGUIVisitor(in v : IGUIVisitor&) : void override
     + AcceptRendererVisitor(in v : IModelRendererVisitor&) : void override
   }
   class Mesh <<utility>> {
     - m_GPU : OGLObject
-    (+,+) m_material : shared_ptr<Material>
-    (+,+) m_drawMode : int = GL_TRIANGLES
+    - m_material : shared_ptr<Material>
+    - m_drawMode : int = GL_TRIANGLES
     --
+    + GetMaterial() : shared_ptr<Material>
+    + SetMaterial(in mat : shared_ptr<Material>) : void
+    + GetDrawMode() : int
+    + SetDrawMode(in mode : int) : void
     + Build(in mesh : MeshObject) : void
     + Render() : void
     + GetVAO() : GLuint
     + GetVertexCount() : GLsizei
   }
   class Material <<utility>> {
-    (+,+) m_name : string
-    (+,+) m_diffuseColor : vec3
-    (+,+) m_specularColor : vec3
-    (+,+) m_ambientColor : vec3
-    (+,+) m_shininess : float
-    (+,+) m_diffuseTex : shared_ptr<Texture>
-    (+,+) m_specularTex : shared_ptr<Texture>
-    (+,+) m_emissionTex : shared_ptr<Texture>
-    (+,+) m_normalTex : shared_ptr<Texture>
+    # m_name : string = "default_material"
+    # m_ambientColor : vec3
+    # m_diffuseColor : vec3
+    # m_specularColor : vec3
+    # m_shininess : float = 32.0
+    # m_diffuseTex : shared_ptr<Texture>
+    # m_specularTex : shared_ptr<Texture>
+    # m_emissionTex : shared_ptr<Texture>
+    # m_normalTex : shared_ptr<Texture>
     {static} - s_lastTextureTargets : GLuint[4]
     {static} - s_hasUploadedData : bool = false
     --
+    + GetName() : const string&
+    + SetName(in name : string) : void
+    + GetAmbientColor() : const vec3&
+    + SetAmbientColor(in c : vec3) : void
+    + GetDiffuseColor() : const vec3&
+    + SetDiffuseColor(in c : vec3) : void
+    + GetSpecularColor() : const vec3&
+    + SetSpecularColor(in c : vec3) : void
+    + GetShininess() : float
+    + SetShininess(in s : float) : void
+    + GetDiffuseTex() : const shared_ptr<Texture>&
+    + SetDiffuseTex(in t : shared_ptr<Texture>) : void
+    + GetSpecularTex() : const shared_ptr<Texture>&
+    + SetSpecularTex(in t : shared_ptr<Texture>) : void
+    + GetEmissionTex() : const shared_ptr<Texture>&
+    + SetEmissionTex(in t : shared_ptr<Texture>) : void
+    + GetNormalTex() : const shared_ptr<Texture>&
+    + SetNormalTex(in t : shared_ptr<Texture>) : void
     {static} + UploadMaterialToShader(in prog : GLuint, in mat : shared_ptr<Material>, in targets : GLuint[4]) : void
     {static} + UploadMaterialToShader(in prog : GLuint, in mat : shared_ptr<Material>) : void
     {static} + ClearMaterialFromShader() : void
@@ -104,8 +138,8 @@ package "Scene hierarchy" {
     {static} + Hash(in mat : const Material&) : size_t
   }
   class Texture <<utility>> {
-    (+,!) m_id : GLuint
-    (+,!) m_type : GLenum
+    - m_id : GLuint = 0
+    - m_type : GLenum = GL_TEXTURE_2D
     --
     + GetID() : GLuint
     + IsValid() : bool
@@ -114,21 +148,40 @@ package "Scene hierarchy" {
   class RayMarchedModel <<concrete>> {
     + RayMarchedModel(in name : string = "unnamed")
     --
-    (+,!) m_conemap : shared_ptr<Texture>
-    (+,!) m_technique : shared_ptr<IRayMarchingTechnique>
-    (+,+) m_maxSteps : int = 64
-    (+,+) m_epsilon : float
-    (+,+) m_lightDir : vec3
-    (+,+) m_normalMult : float
-    (+,+) m_discardFragments : bool
-    (+,+) m_displayNonConverged : bool
-    (+,+) m_showFlags : bool
-    (+,+) m_debugConfig : RayMarchDebugConfig
+    - m_conemap : shared_ptr<Texture>
+    - m_technique : shared_ptr<IRayMarchingTechnique>
+    - m_selectedProgramID : GLuint = 0
+    # m_maxSteps : int = 64
+    # m_epsilon : float = 1.0
+    # m_normalMult : float = 1.0
+    # m_lightDir : vec3
+    # m_discardFragments : bool = true
+    # m_displayNonConverged : bool = false
+    # m_showFlags : bool = false
     --
     + GetProgramID() : GLuint override
+    + GetConemap() : const shared_ptr<Texture>&
+    + GetTechnique() : const shared_ptr<IRayMarchingTechnique>&
+    + GetSelectedProgramID() : GLuint
+    + SetSelectedProgram(in id : GLuint) : void
+    + GetMaxSteps() : int
+    + SetMaxSteps(in v : int) : void
+    + GetEpsilon() : float
+    + SetEpsilon(in v : float) : void
+    + GetNormalMult() : float
+    + SetNormalMult(in v : float) : void
+    + GetLightDir() : vec3
+    + SetLightDir(in v : vec3) : void
+    + GetDiscardFragments() : bool
+    + SetDiscardFragments(in v : bool) : void
+    + GetDisplayNonConverged() : bool
+    + SetDisplayNonConverged(in v : bool) : void
+    + GetShowFlags() : bool
+    + SetShowFlags(in v : bool) : void
     + SetTechnique(in t : shared_ptr<IRayMarchingTechnique>) : void
     + SetHeightmap(in heightmap : shared_ptr<Texture>, in gen : ConemapGenerator*) : void
     + AddMesh(in mesh : shared_ptr<Mesh>) : void
+    + GetMeshes() : const vector<shared_ptr<Mesh>>&
     + AcceptGUIVisitor(in v : IGUIVisitor&) : void override
     + AcceptRendererVisitor(in v : IModelRendererVisitor&) : void override
   }

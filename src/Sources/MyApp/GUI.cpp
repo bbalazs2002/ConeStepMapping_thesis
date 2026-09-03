@@ -124,7 +124,7 @@ void MyApp::RenderGUI()
             bool selected = (i == m_selectedIndex);
             if (ImGui::Selectable(models[i]->GetName().c_str(), selected)) {
                 m_selectedIndex = i;
-                m_commandQueue.Push(std::make_unique<SetSelectedCommand>(m_sceneManager, models[i]));
+                m_commandQueue->Push(std::make_unique<SetSelectedCommand>(m_sceneManager, models[i]));
             }
             ImGui::PopID();
         }
@@ -133,7 +133,7 @@ void MyApp::RenderGUI()
 
         if (ImGui::Button("Deselect", ImVec2(-1, 0))) {
             m_selectedIndex = -1;
-            m_commandQueue.Push(std::make_unique<SetSelectedCommand>(m_sceneManager, nullptr));
+            m_commandQueue->Push(std::make_unique<SetSelectedCommand>(m_sceneManager, nullptr));
         }
 
         ImGui::Spacing();
@@ -141,7 +141,7 @@ void MyApp::RenderGUI()
         // Add buttons
         if (ImGui::Button("Add RayMarched", ImVec2(-1, 0))) {
             int newIdx = static_cast<int>(models.size()) + 1;
-            m_commandQueue.Push(std::make_unique<CreateRMObjectCommand>(
+            m_commandQueue->Push(std::make_unique<CreateRMObjectCommand>(
                 m_sceneManager,
                 CreateDefaultRayMarchedModel("Surface " + std::to_string(newIdx))));
             m_objLoadFailed = false;
@@ -155,7 +155,7 @@ void MyApp::RenderGUI()
             m_objLoadFailed = false;
             auto newModel = CreateModelFromOBJ(std::string(m_objPathBuf));
             if (newModel)
-                m_commandQueue.Push(std::make_unique<CreateObjObjectCommand>(
+                m_commandQueue->Push(std::make_unique<CreateObjObjectCommand>(
                     m_sceneManager, std::move(newModel)));
             else
                 m_objLoadFailed = true;
@@ -168,9 +168,9 @@ void MyApp::RenderGUI()
             ImGui::Spacing();
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.65f, 0.1f, 0.1f, 1.0f));
             if (ImGui::Button("Delete Selected", ImVec2(-1, 0))) {
-                m_commandQueue.Push(std::make_unique<DeleteObjectCommand>(
+                m_commandQueue->Push(std::make_unique<DeleteObjectCommand>(
                     m_sceneManager, models[m_selectedIndex]));
-                m_commandQueue.Push(std::make_unique<SetSelectedCommand>(m_sceneManager, nullptr));
+                m_commandQueue->Push(std::make_unique<SetSelectedCommand>(m_sceneManager, nullptr));
                 m_selectedIndex = -1;
             }
             ImGui::PopStyleColor();
@@ -197,7 +197,7 @@ void MyApp::RenderGUI()
                     for (auto& [key, tech] : m_techniques) {
                         bool sel = (rm->GetTechnique() == tech);
                         if (ImGui::Selectable(tech->GetName().c_str(), sel))
-                            m_commandQueue.Push(std::make_unique<SetTechniqueCommand>(rm, tech));
+                            m_commandQueue->Push(std::make_unique<SetTechniqueCommand>(rm, tech));
                     }
                     ImGui::EndCombo();
                 }
@@ -206,7 +206,7 @@ void MyApp::RenderGUI()
                     for (int i = 0; i < (int)m_heightMaps.size(); ++i) {
                         if (ImGui::Selectable(m_heightMaps[i].c_str(), m_activeHeightmapIdx == i)) {
                             m_activeHeightmapIdx = i;
-                            m_commandQueue.Push(std::make_unique<SetHeightmapCommand>(
+                            m_commandQueue->Push(std::make_unique<SetHeightmapCommand>(
                                 rm, m_textureManager, m_heightMaps[i], m_conemapGenerator.get()
                             ));
                         }
@@ -234,7 +234,7 @@ void MyApp::RenderGUI()
 
                     if (ImGui::Button("Regenerate")) {
                         m_conemapGenerator->SetConservative(m_conservative);
-                        m_commandQueue.Push(std::make_unique<SetHeightmapCommand>(
+                        m_commandQueue->Push(std::make_unique<SetHeightmapCommand>(
                             rm, m_textureManager, m_heightMaps[m_activeHeightmapIdx],
                             m_conemapGenerator.get()));
                     }

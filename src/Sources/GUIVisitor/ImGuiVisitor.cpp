@@ -22,7 +22,10 @@ ImGuiVisitor::ImGuiVisitor(ICommandQueue& queue)
 
 void ImGuiVisitor::VisitModelBase(ModelBase& target)
 {
-    ImGui::Text("Name: %s", target.GetName().c_str());
+    char nameBuf[256];
+    snprintf(nameBuf, sizeof(nameBuf), "%s", target.GetName().c_str());
+    if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf)))
+        target.SetName(nameBuf);
 
     bool show = target.IsShown();
     if (ImGui::Checkbox("Show", &show))

@@ -10,7 +10,7 @@ Tudatos implementációs döntések és az indoklásuk. A szakdolgozat vonatkoz�
 
 **Döntés:** Az anyag diffúz/spekuláris/emissziós színét és a hozzá tartozó textúra OpenGL ID-ját egyetlen `vec4` uniform-ba csomagoljuk (RGB = szín, W = textúra ID). Így egy shader uniform-hívás váltja ki a kettőt.
 
-**Korlát:** A `float` 23-bites mantisszával csak ≈16,7 millióig (2²³) ábrázol egész számot pontosan. Ha az OpenGL driver ennél nagyobb textúra ID-t ad ki, az W komponens értéke pontatlan lesz.
+**Korlát:** A `float` 23-bites mantisszával csak ≈16,7 millióig (2²³) ábrázol egész számot pontosan. Ha az OpenGL driver ennél nagyobb textúra ID-t ad ki, a W komponens értéke pontatlan lesz.
 
 **Miért elfogadható:** OpenGL implementációk jellemzően kis egész számokkal kezdik az ID-kiosztást, és egy alkalmazás élettartama alatt nem szokott 16 millió fölé menni. A projekt hatókörében (egy scene, néhány tucat textúra) ez a határ elérhetetlen.
 
@@ -62,13 +62,13 @@ A move konstruktor és move assignment az ID *tulajdonjogát* adja át:
 
 ---
 
-## Debug vizualizáció — SSBO-alapú konfiguráció, uniform struct nélkül (Phase 11)
+## Debug vizualizáció — SSBO-alapú konfiguráció, uniform struct nélkül
 
 **Hol:** `Types.h`, `RayMarchDebugState.h`, `OpenGLRendererVisitor`, `Geom_RM.geom`
 
-**Korábbi megközelítés (Phase 10 előtt):** A debug flag-ek (`showDebug`, `showSteps`, stb.) és a sugár adatai egy `RayMarchDebugUniforms` C++ structban éltek, amelyet `glUniform*` hívásokkal töltöttek fel a shaderbe. Ez SSBO-UBO layout problémákat és függőségeket okozott: a `SetUniforms()` paraméterként kellett kapja az `ICamera&`-t, ami összekötötte az `IRayMarchingTechnique` interfészt a kamera-hierarchiával.
+**Korábbi megközelítés:** A debug flag-ek (`showDebug`, `showSteps`, stb.) és a sugár adatai egy `RayMarchDebugUniforms` C++ structban éltek, amelyet `glUniform*` hívásokkal töltöttek fel a shaderbe. Ez SSBO-UBO layout problémákat és függőségeket okozott: a `SetUniforms()` paraméterként kellett kapja az `ICamera&`-t, ami összekötötte az `IRayMarchingTechnique` interfészt a kamera-hierarchiával.
 
-**Phase 11 döntése:** Minden debug konfiguráció (flag-ek, primitív ID, téchnique ID, sugár adatok) a `debugVisualSSBO` és `debugNumericalSSBO` SSBO-kba kerül — nincs külön debug uniform struct, nincs `glUniform*` hívás a debug adatokhoz.
+**Megoldás:** Minden debug konfiguráció (flag-ek, primitív ID, technique ID, sugár adatok) a `debugVisualSSBO` és `debugNumericalSSBO` SSBO-kba kerül — nincs külön debug uniform struct, nincs `glUniform*` hívás a debug adatokhoz.
 
 ```
 debugVisualSSBO:
@@ -81,7 +81,7 @@ debugVisualSSBO:
   [9+] vec4(ui, 1) × N  (lépések UV pozíciói)               — GS írja
 ```
 
-**Miért fontos:** Az `IRayMarchingTechnique::SetUniforms()` szignatúrája változatlan marad, az `OpenGLRendererVisitor` a saját `m_debugState*` pointerén keresztül tölti fel az SSBO config slotokat. Nincs kereszt-függőség a téchnique és a kamera között.
+**Miért fontos:** Az `IRayMarchingTechnique::SetUniforms()` szignatúrája változatlan marad, az `OpenGLRendererVisitor` a saját `m_debugState*` pointerén keresztül tölti fel az SSBO config slotokat. Nincs kereszt-függőség a technique és a kamera között.
 
 **A `RayMarchDebugUniforms` struct eltávolításra került** `Types.h`-ból; a flag-ek `bool`-ként élnek `RayMarchDebugConfig`-ban (csak CPU-oldal, nincs std430 alignment-kényszer).
 

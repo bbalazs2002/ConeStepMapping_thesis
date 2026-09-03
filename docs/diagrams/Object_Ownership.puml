@@ -29,6 +29,9 @@ object "<u>debugRenderer</u> : DebugRenderer" as dr <<blue>>
 object "<u>linearSearch</u> : LinearSearch" as ls <<green>>
 object "<u>coneStepMapping</u> : ConeStepMapping" as csm <<green>>
 
+object "m_lsTech : LinearSearch*" as lsraw <<grey>>
+object "m_csmTech : ConeStepMapping*" as csmraw <<grey>>
+
 object "<u>model1</u> : Model" as mod1 <<yellow>>
 object "<u>rayModel1</u> : RayMarchedModel" as rm1 <<yellow>>
 
@@ -54,6 +57,12 @@ app *-- dr
 ' MyApp holds shared_ptr techniques (m_techniques map)
 app o-- ls  : m_techniques
 app o-- csm : m_techniques
+
+' Raw non-owning pointers into m_techniques for direct program swapping
+app *-- lsraw
+app *-- csmraw
+lsraw ..> ls  : points into m_techniques
+csmraw ..> csm : points into m_techniques
 
 ' SceneManager holds shared_ptr scene objects
 sm o-- mod1 : m_sceneObjects
@@ -87,6 +96,6 @@ rv ..> cam : ref& (const ICamera&)
 legend right
   *--  unique_ptr / value member (exclusive owner)
   o--  shared_ptr (shared owner)
-  ..>  ref& or dependency (non-owning)
+  ..>  raw ptr / ref& (non-owning)
 endlegend
 @enduml

@@ -34,8 +34,6 @@ package "Headers/Debug" {
     + showRay       : bool = false
     + showHitPoint  : bool = false
     + primitiveID   : int  = -1
-    + technique     : int  = 0
-    ' renderer frissíti GetTechniqueID()-vel
   }
 
   class RayMarchDebugState <<struct>> {
@@ -64,7 +62,6 @@ package "Headers/Renderer" {
     - m_progSteps     : GLuint
     - m_progCones     : GLuint
     - m_progHit       : GLuint
-    - m_vao           : GLuint
     --
     + DebugRenderer(progRay, progEE, progSteps,\n  progCones, progHit : GLuint)
     + ~DebugRenderer()
@@ -95,13 +92,13 @@ package "Headers/Renderer" {
 ' ── Érintett osztályok (részleges) ───────────────────────────────────────────
 
 class MyApp <<concrete>> {
-  - m_debugState    : RayMarchDebugState
-  - m_debugRenderer : unique_ptr<DebugRenderer>
-  - m_rendererVisitor : unique_ptr<OpenGLRendererVisitor>
+  # m_debugState    : RayMarchDebugState
+  # m_debugRenderer : unique_ptr<DebugRenderer>
+  # m_rendererVisitor : unique_ptr<OpenGLRendererVisitor>
   --
-  + InitDebugSSBOs()    : void
-  + CleanupDebugSSBOs() : void
-  + RenderDebugPanel()  : void
+  # InitDebugSSBOs()    : void
+  # CleanupDebugSSBOs() : void
+  # RenderDebugPanel()  : void
 }
 
 class OpenGLRendererVisitor <<manager>> {

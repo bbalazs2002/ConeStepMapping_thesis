@@ -1,0 +1,147 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" version="29.6.6">
+  <diagram id="nZtQ1sFmpi9LxaRJ77wS" name="Oldal-1">
+    <mxGraphModel dx="1426" dy="875" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0" adaptiveColors="auto">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="grp_cmd" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f9f9f9;strokeColor=#aaaaaa;dashed=1;dashPattern=8 4;arcSize=2;verticalAlign=bottom;fontSize=12;fontStyle=1;fontColor=#666666;align=right;spacingRight=8;spacingBottom=6;" value="Command system" vertex="1">
+          <mxGeometry height="726" width="380" x="60" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ICommandQueue_p" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=3;" value="«interface»&#xa;ICommandQueue" vertex="1">
+          <mxGeometry height="62" width="300" x="100" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="ICommandQueue_o0" parent="ICommandQueue_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ Push(in cmd : unique_ptr&lt;ICommand&gt;) : void" vertex="1">
+          <mxGeometry height="22" width="300" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ICommand_p" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=3;" value="«interface»&#xa;ICommand" vertex="1">
+          <mxGeometry height="62" width="300" x="100" y="182" as="geometry" />
+        </mxCell>
+        <mxCell id="ICommand_o0" parent="ICommand_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ Execute() : void" vertex="1">
+          <mxGeometry height="22" width="300" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="CommandQueue_p" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="CommandQueue" vertex="1">
+          <mxGeometry height="122" width="300" x="100" y="264" as="geometry" />
+        </mxCell>
+        <mxCell id="CommandQueue_a0" parent="CommandQueue_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- m_queue : vector&lt;unique_ptr&lt;ICommand&gt;&gt;" vertex="1">
+          <mxGeometry height="22" width="300" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="CommandQueue_sep" parent="CommandQueue_p" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="300" y="48" as="geometry" />
+        </mxCell>
+        <mxCell id="CommandQueue_o0" parent="CommandQueue_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ Push(in cmd : unique_ptr&lt;ICommand&gt;) : void" vertex="1">
+          <mxGeometry height="22" width="300" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="CommandQueue_o1" parent="CommandQueue_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ Execute() : void" vertex="1">
+          <mxGeometry height="22" width="300" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="CommandQueue_o2" parent="CommandQueue_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ Clear() : void" vertex="1">
+          <mxGeometry height="22" width="300" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="SetHeightmapCommand_p" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="SetHeightmapCommand" vertex="1">
+          <mxGeometry height="100" width="300" x="100" y="406" as="geometry" />
+        </mxCell>
+        <mxCell id="SetHeightmapCommand_a0" parent="SetHeightmapCommand_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- m_surface : RayMarchedSurface*" vertex="1">
+          <mxGeometry height="22" width="300" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="SetHeightmapCommand_a1" parent="SetHeightmapCommand_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- m_path : string" vertex="1">
+          <mxGeometry height="22" width="300" y="48" as="geometry" />
+        </mxCell>
+        <mxCell id="SetHeightmapCommand_sep" parent="SetHeightmapCommand_p" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="300" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="SetHeightmapCommand_o0" parent="SetHeightmapCommand_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ Execute() : void" vertex="1">
+          <mxGeometry height="22" width="300" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="SetTechniqueCommand_p" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="SetTechniqueCommand" vertex="1">
+          <mxGeometry height="100" width="300" x="100" y="526" as="geometry" />
+        </mxCell>
+        <mxCell id="SetTechniqueCommand_a0" parent="SetTechniqueCommand_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- m_surface : RayMarchedSurface*" vertex="1">
+          <mxGeometry height="22" width="300" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="SetTechniqueCommand_a1" parent="SetTechniqueCommand_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- m_technique : shared_ptr&lt;IRayMarchingTechnique&gt;" vertex="1">
+          <mxGeometry height="22" width="300" y="48" as="geometry" />
+        </mxCell>
+        <mxCell id="SetTechniqueCommand_sep" parent="SetTechniqueCommand_p" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="300" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="SetTechniqueCommand_o0" parent="SetTechniqueCommand_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ Execute() : void" vertex="1">
+          <mxGeometry height="22" width="300" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="DeleteObjectCommand_p" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="DeleteObjectCommand" vertex="1">
+          <mxGeometry height="100" width="300" x="100" y="646" as="geometry" />
+        </mxCell>
+        <mxCell id="DeleteObjectCommand_a0" parent="DeleteObjectCommand_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- m_sceneManager : SceneManager*" vertex="1">
+          <mxGeometry height="22" width="300" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="DeleteObjectCommand_a1" parent="DeleteObjectCommand_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- m_target : shared_ptr&lt;IDrawable&gt;" vertex="1">
+          <mxGeometry height="22" width="300" y="48" as="geometry" />
+        </mxCell>
+        <mxCell id="DeleteObjectCommand_sep" parent="DeleteObjectCommand_p" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="300" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="DeleteObjectCommand_o0" parent="DeleteObjectCommand_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ Execute() : void" vertex="1">
+          <mxGeometry height="22" width="300" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="MyApp_p" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="MyApp" vertex="1">
+          <mxGeometry height="26" width="240" x="520" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ImGuiVisitor_p" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="ImGuiVisitor" vertex="1">
+          <mxGeometry height="26" width="240" x="520" y="101" as="geometry" />
+        </mxCell>
+        <mxCell id="RayMarchedSurface_p" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=3;" value="«abstract»&#xa;RayMarchedSurface" vertex="1">
+          <mxGeometry height="40" width="240" x="520" y="142" as="geometry" />
+        </mxCell>
+        <mxCell id="IRayMarchingTechnique_p" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=3;" value="«interface»&#xa;IRayMarchingTechnique" vertex="1">
+          <mxGeometry height="40" width="240" x="520" y="197" as="geometry" />
+        </mxCell>
+        <mxCell id="SceneManager_p" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="SceneManager" vertex="1">
+          <mxGeometry height="26" width="240" x="520" y="252" as="geometry" />
+        </mxCell>
+        <mxCell id="IDrawable_p" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=3;" value="«interface»&#xa;IDrawable" vertex="1">
+          <mxGeometry height="40" width="240" x="520" y="293" as="geometry" />
+        </mxCell>
+        <mxCell id="e001" edge="1" parent="1" source="CommandQueue_p" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=block;endFill=0;startArrow=none;startFill=0;strokeColor=#6c8ebf;" target="ICommandQueue_p" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e002" edge="1" parent="1" source="SetHeightmapCommand_p" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=block;endFill=0;startArrow=none;startFill=0;strokeColor=#6c8ebf;" target="ICommand_p" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e003" edge="1" parent="1" source="SetTechniqueCommand_p" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=block;endFill=0;startArrow=none;startFill=0;strokeColor=#6c8ebf;" target="ICommand_p" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e004" edge="1" parent="1" source="DeleteObjectCommand_p" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=block;endFill=0;startArrow=none;startFill=0;strokeColor=#6c8ebf;" target="ICommand_p" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e005" edge="1" parent="1" source="CommandQueue_p" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=none;endFill=0;startArrow=diamond;startFill=0;startSize=15;strokeColor=#82b366;" target="ICommand_p" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e005_tl" connectable="0" parent="e005" style="resizable=0;html=1;align=left;verticalAlign=bottom;labelBackgroundColor=none;fontSize=11;" value="0..*" vertex="1">
+          <mxGeometry relative="1" x="1" y="10" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e006" edge="1" parent="1" source="MyApp_p" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=none;endFill=0;startArrow=diamond;startFill=1;startSize=15;strokeColor=#d6b656;" target="CommandQueue_p" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e007" edge="1" parent="1" source="ImGuiVisitor_p" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=open;endFill=0;startArrow=none;startFill=0;strokeColor=#666666;" target="ICommandQueue_p" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e008" edge="1" parent="1" source="SetHeightmapCommand_p" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=open;endFill=0;startArrow=none;startFill=0;strokeColor=#666666;" target="RayMarchedSurface_p" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e009" edge="1" parent="1" source="SetTechniqueCommand_p" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=open;endFill=0;startArrow=none;startFill=0;strokeColor=#666666;" target="RayMarchedSurface_p" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e010" edge="1" parent="1" source="SetTechniqueCommand_p" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=none;endFill=0;startArrow=diamond;startFill=0;startSize=15;strokeColor=#9673a6;" target="IRayMarchingTechnique_p" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e011" edge="1" parent="1" source="DeleteObjectCommand_p" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=open;endFill=0;startArrow=none;startFill=0;strokeColor=#666666;" target="SceneManager_p" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e012" edge="1" parent="1" source="DeleteObjectCommand_p" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=none;endFill=0;startArrow=diamond;startFill=0;startSize=15;strokeColor=#9673a6;" target="IDrawable_p" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -16,7 +16,7 @@ MyApp::~MyApp() = default;
 
 void MyApp::Update(const SUpdateInfo& info)
 {
-    m_commandQueue.Execute();
+    m_commandQueue->Execute();
     m_sceneManager.Update(info);
     m_cameraManipulator.Update(info.DeltaTimeInSec);
     m_elapsedTime = info.ElapsedTimeInSec;

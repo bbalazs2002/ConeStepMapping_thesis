@@ -26,6 +26,8 @@ hide <<utility>> stereotype
 package "Command system" {
   interface ICommandQueue <<interface>> {
     + Push(in cmd : unique_ptr<ICommand>) : void
+    + Execute() : void
+    + Clear() : void
   }
   interface ICommand <<interface>> {
     + Execute() : void
@@ -99,6 +101,18 @@ package "Command system" {
     --
     + Execute() : void
   }
+  class CreateObjObjectCommand <<concrete>> {
+    - m_sceneManager : SceneManager&
+    - m_model : shared_ptr<Model>
+    --
+    + Execute() : void
+  }
+  class CreateRMObjectCommand <<concrete>> {
+    - m_sceneManager : SceneManager&
+    - m_model : shared_ptr<RayMarchedModel>
+    --
+    + Execute() : void
+  }
 }
 
 class MyApp <<concrete>> {
@@ -123,6 +137,8 @@ class Mesh <<utility>> {
 }
 class Material <<utility>> {
 }
+class Model <<concrete>> {
+}
 
 CommandQueue ..|> ICommandQueue
 DeleteObjectCommand ..|> ICommand
@@ -135,7 +151,7 @@ SetMaxStepsCommand ..|> ICommand
 SetEpsilonCommand ..|> ICommand
 SetMaterialCommand ..|> ICommand
 CommandQueue o-- "0..*" ICommand
-MyApp *-- CommandQueue
+MyApp *-- ICommandQueue
 ImGuiVisitor ..> ICommandQueue
 DeleteObjectCommand ..> SceneManager
 DeleteObjectCommand o-- ISceneObject
@@ -154,4 +170,10 @@ SetMaterialCommand o-- Material
 SetSelectedCommand ..|> ICommand
 SetSelectedCommand ..> SceneManager
 SetSelectedCommand o-- ISceneObject
+CreateObjObjectCommand ..|> ICommand
+CreateObjObjectCommand ..> SceneManager
+CreateObjObjectCommand o-- Model
+CreateRMObjectCommand ..|> ICommand
+CreateRMObjectCommand ..> SceneManager
+CreateRMObjectCommand o-- RayMarchedModel
 @enduml

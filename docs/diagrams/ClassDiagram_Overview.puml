@@ -43,6 +43,10 @@ package "Command system" {
   }
   class DeleteObjectCommand <<concrete>> {
   }
+  class CreateObjObjectCommand <<concrete>> {
+  }
+  class CreateRMObjectCommand <<concrete>> {
+  }
 }
 
 package "Managers" {
@@ -113,6 +117,8 @@ package "Ray Marching" {
 package "Debug" {
   class DebugRenderer <<manager>> {
   }
+  class RayMarchDebugState <<utility>> {
+  }
 }
 
 package "Utils" {
@@ -143,6 +149,8 @@ ISceneObject ..|> IGUIVisitable
 SetHeightmapCommand ..|> ICommand
 SetTechniqueCommand ..|> ICommand
 DeleteObjectCommand ..|> ICommand
+CreateObjObjectCommand ..|> ICommand
+CreateRMObjectCommand ..|> ICommand
 LinearSearch ..|> IRayMarchingTechnique
 ConeStepMapping ..|> IRayMarchingTechnique
 
@@ -163,6 +171,8 @@ MyApp *-- AxesRenderer
 MyApp *-- OpenGLRendererVisitor
 MyApp *-- ConemapGenerator
 MyApp *-- DebugRenderer
+MyApp *-- CameraManipulator
+MyApp *-- RayMarchDebugState
 
 ' --- Aggregation
 SceneManager o-- "0..*" ISceneObject
@@ -180,4 +190,5 @@ MaterialManager ..> Material
 TextureManager ..> Texture
 ImGuiVisitor ..> ICommandQueue
 ConemapGenerator ..> Texture : <<creates>>
+OpenGLRendererVisitor ..> RayMarchDebugState
 @enduml

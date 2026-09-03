@@ -9,7 +9,7 @@ class ImGuiVisitor : public IGUIVisitor {
 public:
     explicit ImGuiVisitor(ICommandQueue& queue);
 
-    void Visit(Model& target)          override;
+    void Visit(Model& target)           override;
     void Visit(RayMarchedModel& target) override;
 
 private:

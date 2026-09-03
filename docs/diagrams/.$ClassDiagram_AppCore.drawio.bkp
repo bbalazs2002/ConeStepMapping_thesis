@@ -1,0 +1,276 @@
+<mxGraphModel dx="1800" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="grp_app" value="Application core" style="swimlane;startSize=20;fillColor=#f9f9f9;strokeColor=#aaaaaa;fontColor=#666666;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="40" y="40" width="440" height="1060" as="geometry"/>
+    </mxCell>
+    <mxCell id="iga_p" value="&lt;&lt;interface&gt;&gt;&#xa;IGraphicsApp" style="swimlane;fontStyle=3;startSize=40;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="grp_app">
+      <mxGeometry x="40" y="60" width="360" height="326" as="geometry"/>
+    </mxCell>
+    <mxCell id="iga_m0" value="+ Init() : bool" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="iga_p">
+      <mxGeometry y="40" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="iga_m1" value="+ Update(in info : SUpdateInfo) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="iga_p">
+      <mxGeometry y="62" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="iga_m2" value="+ Render() : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="iga_p">
+      <mxGeometry y="84" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="iga_m3" value="+ RenderGUI() : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="iga_p">
+      <mxGeometry y="106" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="iga_m4" value="+ Clean() : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="iga_p">
+      <mxGeometry y="128" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="iga_m5" value="+ KeyboardDown(in e : SDL_KeyboardEvent) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="iga_p">
+      <mxGeometry y="150" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="iga_m6" value="+ KeyboardUp(in e : SDL_KeyboardEvent) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="iga_p">
+      <mxGeometry y="172" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="iga_m7" value="+ MouseMove(in e : SDL_MouseMotionEvent) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="iga_p">
+      <mxGeometry y="194" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="iga_m8" value="+ MouseDown(in e : SDL_MouseButtonEvent) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="iga_p">
+      <mxGeometry y="216" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="iga_m9" value="+ MouseUp(in e : SDL_MouseButtonEvent) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="iga_p">
+      <mxGeometry y="238" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="iga_m10" value="+ MouseWheel(in e : SDL_MouseWheelEvent) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="iga_p">
+      <mxGeometry y="260" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="iga_m11" value="+ Resize(in w : int, in h : int) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="iga_p">
+      <mxGeometry y="282" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="iga_m12" value="+ OtherEvent(in e : SDL_Event) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="iga_p">
+      <mxGeometry y="304" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_p" value="MyApp" style="swimlane;fontStyle=1;startSize=26;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="grp_app">
+      <mxGeometry x="40" y="406" width="360" height="606" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_a0" value="- m_lsTech : LinearSearch* = nullptr" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="26" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_a1" value="- m_csmTech : ConeStepMapping* = nullptr" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="48" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_a2" value="# m_windowSize : ivec2" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="70" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_a3" value="# m_elapsedTime : float" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="92" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_a4" value="# m_showAxes : bool = true" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="114" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_a5" value="# m_selectedIndex : int = -1" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="136" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_a6" value="# m_activeHeightmapIdx : int = 0" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="158" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_a7" value="# m_objLoadFailed : bool = false" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="180" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_a8" value="# m_lightDir : vec3" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="202" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_a9" value="# m_interpHeight : bool = true" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="224" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_a10" value="# m_interpCone : bool = false" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="246" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_a11" value="# m_conservative : bool = false" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="268" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_a12" value="# m_heightMaps : const vector&lt;string&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="290" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_sep" value="" style="line;strokeColor=inherit;fillColor=none;" vertex="1" parent="app_p">
+      <mxGeometry y="312" width="360" height="8" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_m0" value="+ Init() : bool" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="320" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_m1" value="+ Update(in info : SUpdateInfo) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="342" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_m2" value="+ Render() : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="364" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_m3" value="+ RenderGUI() : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="386" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_m4" value="+ Clean() : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="408" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_m5" value="# SetupDebugCallback() : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="430" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_m6" value="# InitDebugSSBOs() : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="452" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_m7" value="# CleanupDebugSSBOs() : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="474" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_m8" value="# RenderDebugPanel() : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="496" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_m9" value="# ExportDebugLog() : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="518" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_m10" value="# UpdateTechniquePrograms() : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="540" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_m11" value="# CreateDefaultRayMarchedModel(in name : string) : shared_ptr&lt;RayMarchedModel&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="562" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_m12" value="# CreateModelFromOBJ(in path : string) : shared_ptr&lt;Model&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="app_p">
+      <mxGeometry y="584" width="360" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="cq_p" value="CommandQueue" style="swimlane;fontStyle=1;startSize=26;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="560" y="40" width="240" height="26" as="geometry"/>
+    </mxCell>
+    <mxCell id="sm_p" value="SceneManager" style="swimlane;fontStyle=1;startSize=26;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="560" y="81" width="240" height="26" as="geometry"/>
+    </mxCell>
+    <mxCell id="shm_p" value="ShaderManager" style="swimlane;fontStyle=1;startSize=26;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="560" y="122" width="240" height="26" as="geometry"/>
+    </mxCell>
+    <mxCell id="mm_p" value="MaterialManager" style="swimlane;fontStyle=1;startSize=26;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="560" y="163" width="240" height="26" as="geometry"/>
+    </mxCell>
+    <mxCell id="tm_p" value="TextureManager" style="swimlane;fontStyle=1;startSize=26;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="560" y="204" width="240" height="26" as="geometry"/>
+    </mxCell>
+    <mxCell id="sky_p" value="SkyboxRenderer" style="swimlane;fontStyle=1;startSize=26;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="560" y="245" width="240" height="26" as="geometry"/>
+    </mxCell>
+    <mxCell id="ax_p" value="AxesRenderer" style="swimlane;fontStyle=1;startSize=26;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="560" y="286" width="240" height="26" as="geometry"/>
+    </mxCell>
+    <mxCell id="rv_p" value="OpenGLRendererVisitor" style="swimlane;fontStyle=1;startSize=26;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="560" y="327" width="240" height="26" as="geometry"/>
+    </mxCell>
+    <mxCell id="dr_p" value="DebugRenderer" style="swimlane;fontStyle=1;startSize=26;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="560" y="368" width="240" height="26" as="geometry"/>
+    </mxCell>
+    <mxCell id="cgen_p" value="ConemapGenerator" style="swimlane;fontStyle=1;startSize=26;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
+      <mxGeometry x="560" y="409" width="240" height="26" as="geometry"/>
+    </mxCell>
+    <mxCell id="iv_p" value="ImGuiVisitor" style="swimlane;fontStyle=1;startSize=26;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+      <mxGeometry x="560" y="450" width="240" height="26" as="geometry"/>
+    </mxCell>
+    <mxCell id="cam_p" value="Camera" style="swimlane;fontStyle=1;startSize=26;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+      <mxGeometry x="560" y="491" width="240" height="26" as="geometry"/>
+    </mxCell>
+    <mxCell id="cman_p" value="CameraManipulator" style="swimlane;fontStyle=1;startSize=26;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
+      <mxGeometry x="560" y="532" width="240" height="26" as="geometry"/>
+    </mxCell>
+    <mxCell id="rds_p" value="RayMarchDebugState" style="swimlane;fontStyle=1;startSize=26;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
+      <mxGeometry x="560" y="573" width="240" height="26" as="geometry"/>
+    </mxCell>
+    <mxCell id="irm_p" value="&lt;&lt;interface&gt;&gt;&#xa;IRayMarchingTechnique" style="swimlane;fontStyle=3;startSize=40;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="560" y="614" width="240" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="e001" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=block;endFill=0;startArrow=none;startFill=0;strokeColor=#6c8ebf;" edge="1" source="app_p" target="iga_p" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e002" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=none;endFill=0;startArrow=diamond;startFill=1;startSize=15;strokeColor=#d6b656;" edge="1" source="app_p" target="cq_p" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e002_lbl" value="# m_commandQueue" style="resizable=0;html=1;align=left;verticalAlign=bottom;labelBackgroundColor=none;fontSize=11;" connectable="0" vertex="1" parent="e002">
+      <mxGeometry x="1" y="-15" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e003" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=none;endFill=0;startArrow=diamond;startFill=1;startSize=15;strokeColor=#d6b656;" edge="1" source="app_p" target="sm_p" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e003_lbl" value="# m_sceneManager" style="resizable=0;html=1;align=left;verticalAlign=bottom;labelBackgroundColor=none;fontSize=11;" connectable="0" vertex="1" parent="e003">
+      <mxGeometry x="1" y="-15" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e004" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=none;endFill=0;startArrow=diamond;startFill=1;startSize=15;strokeColor=#d6b656;" edge="1" source="app_p" target="shm_p" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e004_lbl" value="# m_shaderManager" style="resizable=0;html=1;align=left;verticalAlign=bottom;labelBackgroundColor=none;fontSize=11;" connectable="0" vertex="1" parent="e004">
+      <mxGeometry x="1" y="-15" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e005" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=none;endFill=0;startArrow=diamond;startFill=1;startSize=15;strokeColor=#d6b656;" edge="1" source="app_p" target="mm_p" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e005_lbl" value="# m_materialManager" style="resizable=0;html=1;align=left;verticalAlign=bottom;labelBackgroundColor=none;fontSize=11;" connectable="0" vertex="1" parent="e005">
+      <mxGeometry x="1" y="-15" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e006" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=none;endFill=0;startArrow=diamond;startFill=1;startSize=15;strokeColor=#d6b656;" edge="1" source="app_p" target="tm_p" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e006_lbl" value="# m_textureManager" style="resizable=0;html=1;align=left;verticalAlign=bottom;labelBackgroundColor=none;fontSize=11;" connectable="0" vertex="1" parent="e006">
+      <mxGeometry x="1" y="-15" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e007" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=none;endFill=0;startArrow=diamond;startFill=1;startSize=15;strokeColor=#d6b656;" edge="1" source="app_p" target="sky_p" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e007_lbl" value="# m_skyboxRenderer" style="resizable=0;html=1;align=left;verticalAlign=bottom;labelBackgroundColor=none;fontSize=11;" connectable="0" vertex="1" parent="e007">
+      <mxGeometry x="1" y="-15" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e008" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=none;endFill=0;startArrow=diamond;startFill=1;startSize=15;strokeColor=#d6b656;" edge="1" source="app_p" target="ax_p" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e008_lbl" value="# m_axesRenderer" style="resizable=0;html=1;align=left;verticalAlign=bottom;labelBackgroundColor=none;fontSize=11;" connectable="0" vertex="1" parent="e008">
+      <mxGeometry x="1" y="-15" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e009" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=none;endFill=0;startArrow=diamond;startFill=1;startSize=15;strokeColor=#d6b656;" edge="1" source="app_p" target="rv_p" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e009_lbl" value="# m_rendererVisitor" style="resizable=0;html=1;align=left;verticalAlign=bottom;labelBackgroundColor=none;fontSize=11;" connectable="0" vertex="1" parent="e009">
+      <mxGeometry x="1" y="-15" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e010" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=none;endFill=0;startArrow=diamond;startFill=1;startSize=15;strokeColor=#d6b656;" edge="1" source="app_p" target="dr_p" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e010_lbl" value="# m_debugRenderer" style="resizable=0;html=1;align=left;verticalAlign=bottom;labelBackgroundColor=none;fontSize=11;" connectable="0" vertex="1" parent="e010">
+      <mxGeometry x="1" y="-15" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e011" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=none;endFill=0;startArrow=diamond;startFill=1;startSize=15;strokeColor=#d6b656;" edge="1" source="app_p" target="cgen_p" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e011_lbl" value="# m_conemapGenerator" style="resizable=0;html=1;align=left;verticalAlign=bottom;labelBackgroundColor=none;fontSize=11;" connectable="0" vertex="1" parent="e011">
+      <mxGeometry x="1" y="-15" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e012" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=none;endFill=0;startArrow=diamond;startFill=1;startSize=15;strokeColor=#d6b656;" edge="1" source="app_p" target="iv_p" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e012_lbl" value="# m_imguiVisitor" style="resizable=0;html=1;align=left;verticalAlign=bottom;labelBackgroundColor=none;fontSize=11;" connectable="0" vertex="1" parent="e012">
+      <mxGeometry x="1" y="-15" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e013" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=none;endFill=0;startArrow=diamond;startFill=1;startSize=15;strokeColor=#d6b656;" edge="1" source="app_p" target="cam_p" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e013_lbl" value="# m_camera" style="resizable=0;html=1;align=left;verticalAlign=bottom;labelBackgroundColor=none;fontSize=11;" connectable="0" vertex="1" parent="e013">
+      <mxGeometry x="1" y="-15" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e014" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=none;endFill=0;startArrow=diamond;startFill=1;startSize=15;strokeColor=#d6b656;" edge="1" source="app_p" target="cman_p" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e014_lbl" value="# m_cameraManipulator" style="resizable=0;html=1;align=left;verticalAlign=bottom;labelBackgroundColor=none;fontSize=11;" connectable="0" vertex="1" parent="e014">
+      <mxGeometry x="1" y="-15" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e015" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=none;endFill=0;startArrow=diamond;startFill=1;startSize=15;strokeColor=#d6b656;" edge="1" source="app_p" target="rds_p" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e015_lbl" value="# m_debugState" style="resizable=0;html=1;align=left;verticalAlign=bottom;labelBackgroundColor=none;fontSize=11;" connectable="0" vertex="1" parent="e015">
+      <mxGeometry x="1" y="-15" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e016" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=none;endFill=0;startArrow=diamond;startFill=0;startSize=15;strokeColor=#d6b656;" edge="1" source="app_p" target="irm_p" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e016_lbl" value="# m_techniques" style="resizable=0;html=1;align=left;verticalAlign=bottom;labelBackgroundColor=none;fontSize=11;" connectable="0" vertex="1" parent="e016">
+      <mxGeometry x="1" y="-15" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e016_mult" value="0..*" style="resizable=0;html=1;align=left;verticalAlign=top;labelBackgroundColor=none;fontSize=11;" connectable="0" vertex="1" parent="e016">
+      <mxGeometry x="1" y="5" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+    </mxCell>
+  </root>
+</mxGraphModel>

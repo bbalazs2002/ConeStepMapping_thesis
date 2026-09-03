@@ -53,10 +53,12 @@ package "Renderer Visitor" {
   class OpenGLRendererVisitor <<manager>> {
     - m_camera : const ICamera&
     - m_selected : const ISceneObject* = nullptr
+    - m_debugState : RayMarchDebugState* = nullptr
     --
     + OpenGLRendererVisitor(in cam : const ICamera&)
     + ~OpenGLRendererVisitor() = default
-    + SetSelected(in selected : const ModelBase*) : void
+    + SetSelected(in selected : const ISceneObject*) : void
+    + SetDebugState(in state : RayMarchDebugState*) : void
     + Visit(in target : const Model&) : void
     + Visit(in target : const RayMarchedModel&) : void
     - VisitModelBase(in target : const ModelBase&) : void
@@ -75,6 +77,8 @@ interface ICommandQueue <<interface>> {
 }
 interface ICamera <<interface>> {
 }
+class RayMarchDebugState <<utility>> {
+}
 
 ImGuiVisitor ..|> IGUIVisitor
 OpenGLRendererVisitor ..|> IModelRendererVisitor
@@ -83,4 +87,5 @@ ISceneObject ..|> IGUIVisitable
 ModelBase ..|> IModelRendererVisitable
 ImGuiVisitor ..> ICommandQueue
 OpenGLRendererVisitor ..> ICamera
+OpenGLRendererVisitor ..> RayMarchDebugState : m_debugState\n(non-owning)
 @enduml

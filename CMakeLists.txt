@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.21)
 project(CSM_thesis)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -49,7 +49,18 @@ target_link_libraries(CSM_lib PUBLIC
 add_executable(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
 target_link_libraries(${PROJECT_NAME} PRIVATE CSM_lib)
 
-# 5. Optional test targets
+# 5. Copy all runtime DLLs next to the executable after each build (Windows).
+#    Ensures the correct vcpkg-built DLLs
+if(WIN32)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_RUNTIME_DLLS:${PROJECT_NAME}>
+            $<TARGET_FILE_DIR:${PROJECT_NAME}>
+        COMMAND_EXPAND_LISTS
+    )
+endif()
+
+# 6. Optional test targets
 option(BUILD_TESTS "Build unit and integration tests" OFF)
 if(BUILD_TESTS)
     enable_testing()

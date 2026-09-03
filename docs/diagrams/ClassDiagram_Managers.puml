@@ -25,16 +25,17 @@ hide <<utility>> stereotype
 
 package "Managers" {
   class ShaderManager <<manager>> {
-    - m_programs : map<string, GLuint>
+    - m_programs : map<string, ProgramEntry>
     --
     + Load(in name : string, in stages : vector<ShaderStage>) : GLuint
+    + Load(in name : string, in stages : vector<ShaderStage>, in defines : vector<string>) : GLuint
     + Get(in name : string) : GLuint
     + ReloadAll() : void
     + DeleteAll() : void
   }
   class SceneManager <<manager>> {
     - m_updatables : vector<shared_ptr<IUpdatable>>
-    (+,!) m_sceneObjects : vector<shared_ptr<ISceneObject>>
+    - m_sceneObjects : vector<shared_ptr<ISceneObject>>
     - m_rendererVisitables : vector<shared_ptr<IModelRendererVisitable>>
     - m_selected : const ISceneObject* = nullptr
     --
