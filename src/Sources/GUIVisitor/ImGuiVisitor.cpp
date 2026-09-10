@@ -7,6 +7,8 @@
 #include "Headers/Command/SetRotationCommand.h"
 #include "Headers/Command/SetScaleCommand.h"
 #include "Headers/Command/SetMaxStepsCommand.h"
+#include "Headers/Command/SetNormalMultCommand.h"
+#include "Headers/Command/SetLightDirCommand.h"
 
 #include <imgui.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -67,7 +69,7 @@ void ImGuiVisitor::Visit(RayMarchedModel& target)
     ImGui::PushID(&target);
     VisitModelBase(target);
 
-    if (ImGui::TreeNode("Ray Marching")) {
+    if (ImGui::TreeNodeEx("Ray Marching", ImGuiTreeNodeFlags_DefaultOpen)) {
         auto ptr = std::dynamic_pointer_cast<RayMarchedModel>(target.shared_from_this());
 
         int maxSteps = target.GetMaxSteps();
@@ -76,7 +78,7 @@ void ImGuiVisitor::Visit(RayMarchedModel& target)
 
         float normalMult = target.GetNormalMult();
         if (ImGui::DragFloat("Normal Mult", &normalMult, 0.01f, 0.0f, 10.0f))
-            target.SetNormalMult(normalMult);
+            m_commandQueue.Push(std::make_unique<SetNormalMultCommand>(ptr, normalMult));
 
         bool discard = target.GetDiscardFragments();
         if (ImGui::Checkbox("Discard Fragments", &discard))

@@ -1,6 +1,6 @@
 #version 430 core
 
-// debugVisualSSBO    (binding 0): slot[1..4] = invM (tex→scene)
+// debugVisualSSBO    (binding 0): slot[1..4] = invM (tex->scene)
 // debugNumericalSSBO (binding 1): slot[1] = eye (scene), slot[13] = TexEnter, slot[14] = TexExit
 
 layout(std430, binding = 0) buffer DebugVisualSSBO { vec4 debugVisual[]; };

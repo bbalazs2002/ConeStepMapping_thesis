@@ -5,12 +5,12 @@
 
 class RayMarchedModel;
 
-class SetEpsilonCommand : public ICommand {
+class SetNormalMultCommand : public ICommand {
 public:
-    SetEpsilonCommand(std::shared_ptr<RayMarchedModel> surface, float epsilon);
+    SetNormalMultCommand(std::shared_ptr<RayMarchedModel> surface, float normalMult);
     void Execute() override;
 
 private:
     std::shared_ptr<RayMarchedModel> m_surface;
-    float                            m_epsilon;
+    float                            m_normalMult;
 };

@@ -20,4 +20,9 @@ struct RayMarchDebugState {
     GLuint debugNumericalSSBO = 0;  // binding 1: numerical trace data
 
     RayMarchDebugConfig config;
+
+    // Set whenever config or debugCamera changes via the GUI; cleared once the
+    // header has been re-uploaded to the SSBOs. Starts true so the first frame
+    // with showDebug enabled always writes a fresh header.
+    bool dirty = true;
 };

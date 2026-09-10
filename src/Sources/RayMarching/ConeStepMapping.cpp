@@ -29,7 +29,6 @@ void ConeStepMapping::SetUniforms(const RayMarchedModel& surface) const
     }
 
     glUniform1i (glGetUniformLocation(m_programID, "maxSteps"),            surface.GetMaxSteps());
-    glUniform1f (glGetUniformLocation(m_programID, "epsilon"),             surface.GetEpsilon());
     glUniform1f (glGetUniformLocation(m_programID, "normalMult"),          surface.GetNormalMult());
     glUniform1i (glGetUniformLocation(m_programID, "discardFragments"),    surface.GetDiscardFragments()    ? 1 : 0);
     glUniform1i (glGetUniformLocation(m_programID, "displayNonConverged"), surface.GetDisplayNonConverged() ? 1 : 0);

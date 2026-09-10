@@ -87,6 +87,20 @@ debugVisualSSBO:
 
 ---
 
+## Debug SSBO fejléc — dirty flag a felesleges frame-enkénti írás ellen (Phase 20)
+
+**Hol:** `RayMarchDebugState::dirty`; `OpenGLRendererVisitor::Visit(const RayMarchedModel&)`; `MyApp::RenderDebugPanel()` (`GUI.cpp`)
+
+**Probléma:** Az `OpenGLRendererVisitor::Visit(const RayMarchedModel&)` minden egyes rajzolt `RayMarchedModel`-nél feltétel nélkül újraírta a debug SSBO-k fejlécét (config flag-ek + debug kamera pozíciója) -- akkor is, ha a felhasználó egyetlen debug beállítást sem módosított az előző frame óta, és akkor is, ha több `RayMarchedModel` volt a jelenetben (ilyenkor ugyanaz a jelenet-szinten globális fejléc többször íródott egyazon frame-ben).
+
+**Döntés:** A `RayMarchDebugState` kapott egy `dirty` flag-et, alapértéke `true`. A `RenderDebugPanel()`-ben minden olyan ImGui hívás, amely a `config`-ot vagy a `debugCamera`-t módosítja (checkbox-ok, a `Primitive ID` drag mező, a "Sync to main camera" gomb, az `Eye`/`At` drag mezők), a visszatérési értéke alapján `true`-ra állítja a flag-et. Az `OpenGLRendererVisitor` csak akkor futtatja a két `glNamedBufferSubData` hívást, ha `dirty == true`, utána nullázza a flag-et.
+
+**Melléktermék:** Mivel a flag az első sikeres írás után ugyanazon a frame-en belül `false`-ra vált, több `RayMarchedModel` esetén is csak egyszer íródik a fejléc, nem objektumonként -- ez korábban sem volt szándékos, csak a feltétel nélküli írás rejtett mellékhatása.
+
+**Miért nem a Command rendszeren keresztül:** A Command minta ebben a projektben a scene objektumok mutációinak a frame elejére időzítésére szolgál, hogy elkerülje a törlés miatti dangling pointert (ld. "Command célpontok -- shared\_ptr a raw pointer helyett" döntés). A debug állapot ezzel szemben `MyApp` egész életciklusán át élő, sosem törlődő adat -- nincs itt időzítési vagy dangling probléma, amit a Command megoldana. A debug kamera mozgatása is diszkrét ImGui-eseményekre épül (nincs folyamatos, WASD-alapú frame-enkénti update), így a dirty flag közvetlen beállítása a GUI kódban egyszerűbb, és pontosan annyi írást eredményez, mint egy Command-alapú megoldás -- extra queue-indirekció nélkül.
+
+---
+
 ## SetHeightmap — conemap generálás SetHeightmapCommand-ból
 
 **Hol:** `SetHeightmapCommand::Execute()` → `m_surface->SetHeightmap(texture, m_generator)`

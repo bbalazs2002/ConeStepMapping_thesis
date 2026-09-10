@@ -14,6 +14,7 @@
 #include "Headers/Command/DeleteObjectCommand.h"
 #include "Headers/Command/SetTechniqueCommand.h"
 #include "Headers/Command/SetHeightmapCommand.h"
+#include "Headers/Command/SetLightDirCommand.h"
 
 void MyApp::RenderGUI()
 {
@@ -79,12 +80,8 @@ void MyApp::RenderGUI()
         ImGui::Separator();
         ImGui::SeparatorText("Lighting");
 
-        if (ImGui::DragFloat3("Light Dir", glm::value_ptr(m_lightDir), 0.01f)) {
-            for (const auto& obj : m_sceneManager.GetSceneObjects()) {
-                auto rm = std::dynamic_pointer_cast<RayMarchedModel>(obj);
-                if (rm) rm->SetLightDir(m_lightDir);
-            }
-        }
+        if (ImGui::DragFloat3("Light Dir", glm::value_ptr(m_lightDir), 0.01f))
+            m_commandQueue->Push(std::make_unique<SetLightDirCommand>(m_sceneManager, m_lightDir));
 
         // -- Skybox -----------------------------------------------------------
         ImGui::Separator();
@@ -277,27 +274,37 @@ void MyApp::RenderDebugPanel()
             auto& cam = m_debugState.debugCamera;
 
             ImGui::SeparatorText("Toggles");
-            ImGui::Checkbox("Enable debug",    &cfg.showDebug);
+            if (ImGui::Checkbox("Enable debug", &cfg.showDebug))
+                m_debugState.dirty = true;
             if (cfg.showDebug) {
-                ImGui::Checkbox("Show steps",      &cfg.showSteps);
-                ImGui::Checkbox("Show enter/exit", &cfg.showEnterExit);
-                ImGui::Checkbox("Show cones",      &cfg.showCones);
-                ImGui::Checkbox("Show ray",        &cfg.showRay);
-                ImGui::Checkbox("Show hit point",  &cfg.showHitPoint);
+
+                if (ImGui::Checkbox("Show steps",      &cfg.showSteps))     m_debugState.dirty = true;
+                if (ImGui::Checkbox("Show enter/exit", &cfg.showEnterExit)) m_debugState.dirty = true;
+                if (ImGui::Checkbox("Show cones",      &cfg.showCones))     m_debugState.dirty = true;
+                if (ImGui::Checkbox("Show ray",        &cfg.showRay))       m_debugState.dirty = true;
+                if (ImGui::Checkbox("Show hit point",  &cfg.showHitPoint))  m_debugState.dirty = true;
 
                 ImGui::SeparatorText("Primitive");
-                ImGui::DragInt("Primitive ID", &cfg.primitiveID, 1.0f, -1, 65535,
-                    cfg.primitiveID < 0 ? "disabled (all)" : "%d");
+
+                if (ImGui::DragInt("Primitive ID", &cfg.primitiveID, 1.0f, -1, 65535,
+                        cfg.primitiveID < 0 ? "disabled (all)" : "%d"))
+                    m_debugState.dirty = true;
 
                 ImGui::SeparatorText("Debug camera");
-                if (ImGui::Button("Sync to main camera"))
+                if (ImGui::Button("Sync to main camera")) {
                     cam.SetView(m_camera.GetEye(), m_camera.GetAt(), glm::vec3(0.f, 1.f, 0.f));
+                    m_debugState.dirty = true;
+                }
                 glm::vec3 eye = cam.GetEye();
                 glm::vec3 at  = cam.GetAt();
-                if (ImGui::DragFloat3("Eye##dbg", glm::value_ptr(eye), 0.1f))
+                if (ImGui::DragFloat3("Eye##dbg", glm::value_ptr(eye), 0.1f)) {
                     cam.SetView(eye, at, glm::vec3(0.f, 1.f, 0.f));
-                if (ImGui::DragFloat3("At##dbg",  glm::value_ptr(at),  0.1f))
+                    m_debugState.dirty = true;
+                }
+                if (ImGui::DragFloat3("At##dbg",  glm::value_ptr(at),  0.1f)) {
                     cam.SetView(eye, at, glm::vec3(0.f, 1.f, 0.f));
+                    m_debugState.dirty = true;
+                }
             }
 
             ImGui::EndTabItem();
@@ -308,8 +315,6 @@ void MyApp::RenderDebugPanel()
             if (!m_debugState.config.showDebug) {
                 ImGui::TextDisabled("Enable debug in Settings to record values.");
             } else {
-                // The SSBO starts with 2 x uvec4 (32 bytes) for indirect commands,
-                // so the debugNumerical[] flexible array byte offset = 32.
                 const GLintptr kNumericalOffset = 2 * static_cast<GLintptr>(sizeof(glm::uvec4));
 
                 glm::vec4 hdr[23];
@@ -320,7 +325,6 @@ void MyApp::RenderDebugPanel()
                 int  flags     = static_cast<int>(hdr[0].y + 0.5f);
                 bool wasHit    = hdr[16].w > 0.5f;
 
-                // -- Summary ---------------------------------------------------
                 ImGui::Text("Steps: %d", stepCount);
                 ImGui::SameLine(0.f, 24.f);
                 if (wasHit)
@@ -337,7 +341,6 @@ void MyApp::RenderDebugPanel()
                         (flags & 4) ? " converged"    : "");
                 }
 
-                // -- Ray in texture space --------------------------------------
                 if (ImGui::CollapsingHeader("Ray (texture space)")) {
                     ImGui::Text("Eye:   (%.4f, %.4f, %.4f)", hdr[7].x,  hdr[7].y,  hdr[7].z);
                     ImGui::Text("Enter: (%.4f, %.4f, %.4f)", hdr[13].x, hdr[13].y, hdr[13].z);
@@ -345,7 +348,6 @@ void MyApp::RenderDebugPanel()
                     ImGui::Text("Dir:   (%.4f, %.4f, %.4f)", hdr[15].x, hdr[15].y, hdr[15].z);
                 }
 
-                // -- Matrix display helper -------------------------------------
                 auto showMatrix4x4 = [](const char* label,
                                         const glm::vec4& c0, const glm::vec4& c1,
                                         const glm::vec4& c2, const glm::vec4& c3)
@@ -363,7 +365,6 @@ void MyApp::RenderDebugPanel()
                 showMatrix4x4("T  (scene --> unit prism space)",
                     hdr[8], hdr[9], hdr[10], hdr[11]);
 
-                // -- Primitive vertices ----------------------------------------
                 if (ImGui::CollapsingHeader("Primitive vertices (scene space)")) {
                     ImGui::Text("v0: (%.4f, %.4f, %.4f)  UV: (%.4f, %.4f)",
                         hdr[17].x, hdr[17].y, hdr[17].z, hdr[20].x, hdr[20].y);
@@ -373,7 +374,6 @@ void MyApp::RenderDebugPanel()
                         hdr[19].x, hdr[19].y, hdr[19].z, hdr[22].x, hdr[22].y);
                 }
 
-                // -- Steps table -----------------------------------------------
                 if (stepCount > 0) {
                     char stepsLabel[32];
                     snprintf(stepsLabel, sizeof(stepsLabel), "Steps (%d)###Steps", stepCount);

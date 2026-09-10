@@ -114,45 +114,52 @@ void OpenGLRendererVisitor::Visit(const RayMarchedModel& target)
     GLboolean prevCullFace = glIsEnabled(GL_CULL_FACE);
     glDisable(GL_CULL_FACE);
 
-    // -- Bind debug SSBOs and write CPU config before draw --------------------
+    // -- Bind debug SSBOs; re-upload CPU header only if it changed since the ---
+    // -- last write (m_debugState->dirty). The header is shared by every       -
+    // -- RayMarchedModel in the scene, so one write per frame is enough even   -
+    // -- when the flag stays dirty across multiple Visit() calls.             -
     if (m_debugState && m_debugState->config.showDebug) {
-        const auto& cfg = m_debugState->config;
-        const auto& cam = m_debugState->debugCamera;
-
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_debugState->debugVisualSSBO);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_debugState->debugNumericalSSBO);
 
-        // Config slots [5] and [6] of debugVisualSSBO (unchanged layout)
-        glm::vec4 slots[4];
-        slots[0] = glm::vec4(
-            cfg.showDebug     ? 1.0f : 0.0f,
-            cfg.showSteps     ? 1.0f : 0.0f,
-            cfg.showEnterExit ? 1.0f : 0.0f,
-            cfg.showCones     ? 1.0f : 0.0f
-        );
-        slots[1] = glm::vec4(
-            cfg.showRay      ? 1.0f : 0.0f,
-            cfg.showHitPoint ? 1.0f : 0.0f,
-            static_cast<float>(cfg.primitiveID),
-            static_cast<float>(technique->GetTechniqueID())
-        );
-        glm::vec3 eye = cam.GetEye();
-        glm::vec3 at  = cam.GetAt();
-        slots[2] = glm::vec4(eye, 1.0f);
-        slots[3] = glm::vec4(at,  1.0f);
-        glNamedBufferSubData(m_debugState->debugVisualSSBO,
-            5 * sizeof(glm::vec4), 4 * sizeof(glm::vec4), slots);
+        if (m_debugState->dirty) {
+            const auto& cfg = m_debugState->config;
+            const auto& cam = m_debugState->debugCamera;
 
-        // Camera eye/at --> debugNumerical[1] and [2]
-        // The SSBO starts with 2 x uvec4 (32 bytes) for the indirect commands,
-        // so debugNumerical[1] byte offset = 32 + 1x16 = 48.
-        glm::vec4 camSlots[2] = {
-            glm::vec4(eye, 1.0f),
-            glm::vec4(at,  0.0f)
-        };
-        glNamedBufferSubData(m_debugState->debugNumericalSSBO,
-            2 * sizeof(glm::uvec4) + 1 * sizeof(glm::vec4),   // offset 48
-            2 * sizeof(glm::vec4), camSlots);
+            // Config slots [5] and [6] of debugVisualSSBO (unchanged layout)
+            glm::vec4 slots[4];
+            slots[0] = glm::vec4(
+                cfg.showDebug     ? 1.0f : 0.0f,
+                cfg.showSteps     ? 1.0f : 0.0f,
+                cfg.showEnterExit ? 1.0f : 0.0f,
+                cfg.showCones     ? 1.0f : 0.0f
+            );
+            slots[1] = glm::vec4(
+                cfg.showRay      ? 1.0f : 0.0f,
+                cfg.showHitPoint ? 1.0f : 0.0f,
+                static_cast<float>(cfg.primitiveID),
+                static_cast<float>(technique->GetTechniqueID())
+            );
+            glm::vec3 eye = cam.GetEye();
+            glm::vec3 at  = cam.GetAt();
+            slots[2] = glm::vec4(eye, 1.0f);
+            slots[3] = glm::vec4(at,  1.0f);
+            glNamedBufferSubData(m_debugState->debugVisualSSBO,
+                5 * sizeof(glm::vec4), 4 * sizeof(glm::vec4), slots);
+
+            // Camera eye/at --> debugNumerical[1] and [2]
+            // The SSBO starts with 2 x uvec4 (32 bytes) for the indirect commands,
+            // so debugNumerical[1] byte offset = 32 + 1x16 = 48.
+            glm::vec4 camSlots[2] = {
+                glm::vec4(eye, 1.0f),
+                glm::vec4(at,  0.0f)
+            };
+            glNamedBufferSubData(m_debugState->debugNumericalSSBO,
+                2 * sizeof(glm::uvec4) + 1 * sizeof(glm::vec4),   // offset 48
+                2 * sizeof(glm::vec4), camSlots);
+
+            m_debugState->dirty = false;
+        }
     }
 
     glUseProgram(prog);

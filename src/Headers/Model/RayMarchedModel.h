@@ -38,9 +38,6 @@ public:
     int       GetMaxSteps()             const { return m_maxSteps; }
     void      SetMaxSteps(int v)              { m_maxSteps = v; }
 
-    float     GetEpsilon()              const { return m_epsilon; }
-    void      SetEpsilon(float v)             { m_epsilon = v; }
-
     float     GetNormalMult()           const { return m_normalMult; }
     void      SetNormalMult(float v)          { m_normalMult = v; }
 
@@ -61,7 +58,6 @@ public:
 
 protected:
     int       m_maxSteps            = 64;
-    float     m_epsilon             = 1.0f;
     float     m_normalMult          = 1.0f;
     glm::vec3 m_lightDir            = glm::vec3(0.0f, 5.0f, 0.0f);
     bool      m_discardFragments    = true;

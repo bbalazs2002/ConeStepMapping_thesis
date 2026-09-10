@@ -1,49 +1,137 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1"
-  tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1"
-  pageWidth="2000" pageHeight="900" math="0" shadow="0">
-  <root>
-    <mxCell id="0"/>
-    <mxCell id="1" parent="0"/>
-<mxCell id="grp_gui" value="GUI Visitor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f9f9f9;strokeColor=#aaaaaa;dashed=1;dashPattern=8 4;arcSize=2;verticalAlign=bottom;fontSize=12;fontStyle=1;fontColor=#666666;align=right;spacingRight=8;spacingBottom=6;" vertex="1" parent="1"><mxGeometry x="60" y="60" width="380" height="388" as="geometry"/></mxCell>
-<mxCell id="IGUIVisitor_p" value="«interface»&#10;IGUIVisitor" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=3;" vertex="1" parent="1"><mxGeometry x="100" y="100" width="300" height="84" as="geometry"/></mxCell>
-<mxCell id="IGUIVisitor_o0" value="+ Visit(in target : Model&amp;) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="IGUIVisitor_p"><mxGeometry y="40" width="300" height="22" as="geometry"/></mxCell>
-<mxCell id="IGUIVisitor_o1" value="+ Visit(in target : RayMarchedSurface&amp;) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="IGUIVisitor_p"><mxGeometry y="62" width="300" height="22" as="geometry"/></mxCell>
-<mxCell id="IGUIVisitable_p" value="«interface»&#10;IGUIVisitable" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=3;" vertex="1" parent="1"><mxGeometry x="100" y="204" width="300" height="62" as="geometry"/></mxCell>
-<mxCell id="IGUIVisitable_o0" value="+ AcceptGUIVisitor(in v : IGUIVisitor&amp;) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="IGUIVisitable_p"><mxGeometry y="40" width="300" height="22" as="geometry"/></mxCell>
-<mxCell id="ImGuiVisitor_p" value="ImGuiVisitor" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1"><mxGeometry x="100" y="286" width="300" height="122" as="geometry"/></mxCell>
-<mxCell id="ImGuiVisitor_a0" value="- m_commandQueue : ICommandQueue*" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="ImGuiVisitor_p"><mxGeometry y="26" width="300" height="22" as="geometry"/></mxCell>
-<mxCell id="ImGuiVisitor_sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="ImGuiVisitor_p"><mxGeometry y="48" width="300" height="8" as="geometry"/></mxCell>
-<mxCell id="ImGuiVisitor_o0" value="+ Visit(in target : Model&amp;) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="ImGuiVisitor_p"><mxGeometry y="56" width="300" height="22" as="geometry"/></mxCell>
-<mxCell id="ImGuiVisitor_o1" value="+ Visit(in target : RayMarchedSurface&amp;) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="ImGuiVisitor_p"><mxGeometry y="78" width="300" height="22" as="geometry"/></mxCell>
-<mxCell id="ImGuiVisitor_o2" value="- VisitModelBase(in target : ModelBase&amp;) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="ImGuiVisitor_p"><mxGeometry y="100" width="300" height="22" as="geometry"/></mxCell>
-<mxCell id="grp_ren" value="Renderer Visitor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f9f9f9;strokeColor=#aaaaaa;dashed=1;dashPattern=8 4;arcSize=2;verticalAlign=bottom;fontSize=12;fontStyle=1;fontColor=#666666;align=right;spacingRight=8;spacingBottom=6;" vertex="1" parent="1"><mxGeometry x="520" y="60" width="380" height="454" as="geometry"/></mxCell>
-<mxCell id="IModelRendererVisitor_p" value="«interface»&#10;IModelRendererVisitor" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=3;" vertex="1" parent="1"><mxGeometry x="560" y="100" width="300" height="84" as="geometry"/></mxCell>
-<mxCell id="IModelRendererVisitor_o0" value="+ Visit(in target : const Model&amp;) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="IModelRendererVisitor_p"><mxGeometry y="40" width="300" height="22" as="geometry"/></mxCell>
-<mxCell id="IModelRendererVisitor_o1" value="+ Visit(in target : const RayMarchedSurface&amp;) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="IModelRendererVisitor_p"><mxGeometry y="62" width="300" height="22" as="geometry"/></mxCell>
-<mxCell id="IModelRendererVisitable_p" value="«interface»&#10;IModelRendererVisitable" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=3;" vertex="1" parent="1"><mxGeometry x="560" y="204" width="300" height="62" as="geometry"/></mxCell>
-<mxCell id="IModelRendererVisitable_o0" value="+ AcceptRendererVisitor(in v : IModelRendererVisitor&amp;) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="IModelRendererVisitable_p"><mxGeometry y="40" width="300" height="22" as="geometry"/></mxCell>
-<mxCell id="OpenGLRendererVisitor_p" value="OpenGLRendererVisitor" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="560" y="286" width="300" height="188" as="geometry"/></mxCell>
-<mxCell id="OpenGLRendererVisitor_a0" value="- m_programID : GLuint" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="OpenGLRendererVisitor_p"><mxGeometry y="26" width="300" height="22" as="geometry"/></mxCell>
-<mxCell id="OpenGLRendererVisitor_a1" value="- m_camera : const ICamera*" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="OpenGLRendererVisitor_p"><mxGeometry y="48" width="300" height="22" as="geometry"/></mxCell>
-<mxCell id="OpenGLRendererVisitor_sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="OpenGLRendererVisitor_p"><mxGeometry y="70" width="300" height="8" as="geometry"/></mxCell>
-<mxCell id="OpenGLRendererVisitor_o0" value="+ OpenGLRendererVisitor(in sm : ShaderManager&amp;, in cam : const ICamera&amp;)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="OpenGLRendererVisitor_p"><mxGeometry y="78" width="300" height="22" as="geometry"/></mxCell>
-<mxCell id="OpenGLRendererVisitor_o1" value="+ ~OpenGLRendererVisitor()" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="OpenGLRendererVisitor_p"><mxGeometry y="100" width="300" height="22" as="geometry"/></mxCell>
-<mxCell id="OpenGLRendererVisitor_o2" value="+ Visit(in target : const Model&amp;) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="OpenGLRendererVisitor_p"><mxGeometry y="122" width="300" height="22" as="geometry"/></mxCell>
-<mxCell id="OpenGLRendererVisitor_o3" value="+ Visit(in target : const RayMarchedSurface&amp;) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="OpenGLRendererVisitor_p"><mxGeometry y="144" width="300" height="22" as="geometry"/></mxCell>
-<mxCell id="OpenGLRendererVisitor_o4" value="- VisitModelBase(in target : const ModelBase&amp;) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="OpenGLRendererVisitor_p"><mxGeometry y="166" width="300" height="22" as="geometry"/></mxCell>
-<mxCell id="ModelBase_p" value="«abstract»&#10;ModelBase" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=3;" vertex="1" parent="1"><mxGeometry x="980" y="60" width="240" height="40" as="geometry"/></mxCell>
-<mxCell id="Model_p" value="«abstract»&#10;Model" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=3;" vertex="1" parent="1"><mxGeometry x="980" y="115" width="240" height="40" as="geometry"/></mxCell>
-<mxCell id="RayMarchedSurface_p" value="«abstract»&#10;RayMarchedSurface" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=3;" vertex="1" parent="1"><mxGeometry x="980" y="170" width="240" height="40" as="geometry"/></mxCell>
-<mxCell id="ICommandQueue_p" value="«interface»&#10;ICommandQueue" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=3;" vertex="1" parent="1"><mxGeometry x="980" y="225" width="240" height="40" as="geometry"/></mxCell>
-<mxCell id="ICamera_p" value="«interface»&#10;ICamera" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=3;" vertex="1" parent="1"><mxGeometry x="980" y="280" width="240" height="40" as="geometry"/></mxCell>
-<mxCell id="ShaderManager_p" value="ShaderManager" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="980" y="335" width="240" height="26" as="geometry"/></mxCell>
-<mxCell id="e001" value="" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=block;endFill=0;startArrow=none;startFill=0;strokeColor=#6c8ebf;" edge="1" source="ImGuiVisitor_p" target="IGUIVisitor_p" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
-<mxCell id="e002" value="" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=block;endFill=0;startArrow=none;startFill=0;strokeColor=#6c8ebf;" edge="1" source="OpenGLRendererVisitor_p" target="IModelRendererVisitor_p" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
-<mxCell id="e003" value="" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=block;endFill=0;startArrow=none;startFill=0;strokeColor=#6c8ebf;" edge="1" source="ModelBase_p" target="IGUIVisitable_p" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
-<mxCell id="e004" value="" style="edgeStyle=orthogonalEdgeStyle;dashed=0;endArrow=block;endFill=0;startArrow=none;startFill=0;strokeColor=#6c8ebf;" edge="1" source="ModelBase_p" target="IModelRendererVisitable_p" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
-<mxCell id="e005" value="" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=open;endFill=0;startArrow=none;startFill=0;strokeColor=#666666;" edge="1" source="ImGuiVisitor_p" target="ICommandQueue_p" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
-<mxCell id="e006" value="" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=open;endFill=0;startArrow=none;startFill=0;strokeColor=#666666;" edge="1" source="OpenGLRendererVisitor_p" target="ICamera_p" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
-<mxCell id="e007" value="" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=open;endFill=0;startArrow=none;startFill=0;strokeColor=#666666;" edge="1" source="OpenGLRendererVisitor_p" target="ShaderManager_p" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
-  </root>
-</mxGraphModel>
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" version="29.6.6">
+  <diagram id="visitors_diagram" name="Oldal-1">
+    <mxGraphModel dx="1188" dy="729" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0" adaptiveColors="auto">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="gui_pkg" parent="1" style="swimlane;startSize=20;fontStyle=1;fillColor=#f9f9f9;strokeColor=#aaaaaa;fontColor=#666666;" value="GUI Visitor" vertex="1">
+          <mxGeometry height="330" width="320" x="280" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="igv_p" parent="gui_pkg" style="swimlane;fontStyle=3;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="«interface»&#xa;IGUIVisitor" vertex="1">
+          <mxGeometry height="84" width="300" x="10" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="igv_o0" parent="igv_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ Visit(in target : Model&amp;) : void" vertex="1">
+          <mxGeometry height="22" width="300" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="igv_o1" parent="igv_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ Visit(in target : RayMarchedModel&amp;) : void" vertex="1">
+          <mxGeometry height="22" width="300" y="62" as="geometry" />
+        </mxCell>
+        <mxCell id="imguiv_p" parent="gui_pkg" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="ImGuiVisitor" vertex="1">
+          <mxGeometry height="100" width="300" x="10" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="imguiv_a0" parent="imguiv_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- m_commandQueue : ICommandQueue&amp;" vertex="1">
+          <mxGeometry height="22" width="300" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="imguiv_sep" parent="imguiv_p" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="300" y="48" as="geometry" />
+        </mxCell>
+        <mxCell id="imguiv_o0" parent="imguiv_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ ImGuiVisitor(in queue : ICommandQueue&amp;)" vertex="1">
+          <mxGeometry height="22" width="300" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="imguiv_o3" parent="imguiv_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- VisitModelBase(in target : ModelBase&amp;) : void" vertex="1">
+          <mxGeometry height="22" width="300" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="igvable_p" parent="gui_pkg" style="swimlane;fontStyle=3;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="«interface»&#xa;IGUIVisitable" vertex="1">
+          <mxGeometry height="62" width="300" x="10" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="igvable_o0" parent="igvable_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ AcceptGUIVisitor(in v : IGUIVisitor&amp;) : void" vertex="1">
+          <mxGeometry height="22" width="300" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="e_imguiv_igv" edge="1" parent="gui_pkg" source="imguiv_p" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=light-dark(#6C8EBF,#5C79A3);exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.988;entryDx=0;entryDy=0;entryPerimeter=0;" target="igv_o1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ren_pkg" parent="1" style="swimlane;startSize=20;fontStyle=1;fillColor=#f9f9f9;strokeColor=#aaaaaa;fontColor=#666666;" value="Renderer Visitor" vertex="1">
+          <mxGeometry height="380" width="400" x="620" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="imrv_p" parent="ren_pkg" style="swimlane;fontStyle=3;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="«interface»&#xa;IModelRendererVisitor" vertex="1">
+          <mxGeometry height="106" width="380" x="10" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="imrv_o0" parent="imrv_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ Visit(in target : const Model&amp;) : void" vertex="1">
+          <mxGeometry height="22" width="380" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="imrv_o1" parent="imrv_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ Visit(in target : const RayMarchedModel&amp;) : void" vertex="1">
+          <mxGeometry height="22" width="380" y="62" as="geometry" />
+        </mxCell>
+        <mxCell id="imrv_o2" parent="imrv_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ SetSelected(in selected : const ISceneObject*) : void" vertex="1">
+          <mxGeometry height="22" width="380" y="84" as="geometry" />
+        </mxCell>
+        <mxCell id="oglrv_p" parent="ren_pkg" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="OpenGLRendererVisitor" vertex="1">
+          <mxGeometry height="144" width="380" x="10" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="oglrv_a0" parent="oglrv_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- m_camera : const ICamera&amp;" vertex="1">
+          <mxGeometry height="22" width="380" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="oglrv_a1" parent="oglrv_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- m_selected : const ISceneObject* = nullptr" vertex="1">
+          <mxGeometry height="22" width="380" y="48" as="geometry" />
+        </mxCell>
+        <mxCell id="oglrv_a2" parent="oglrv_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- m_debugState : RayMarchDebugState* = nullptr" vertex="1">
+          <mxGeometry height="22" width="380" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="oglrv_sep" parent="oglrv_p" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="380" y="92" as="geometry" />
+        </mxCell>
+        <mxCell id="oglrv_o0" parent="oglrv_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ OpenGLRendererVisitor(in cam : const ICamera&amp;)" vertex="1">
+          <mxGeometry height="22" width="380" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="oglrv_o2" parent="oglrv_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ SetDebugState(in state : RayMarchDebugState*) : void" vertex="1">
+          <mxGeometry height="22" width="380" y="122" as="geometry" />
+        </mxCell>
+        <mxCell id="imrvable_p" parent="ren_pkg" style="swimlane;fontStyle=3;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="«interface»&#xa;IModelRendererVisitable" vertex="1">
+          <mxGeometry height="62" width="380" x="10" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="imrvable_o0" parent="imrvable_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ AcceptRendererVisitor(in v : IModelRendererVisitor&amp;) : void" vertex="1">
+          <mxGeometry height="22" width="380" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="e_oglrv_imrv" edge="1" parent="ren_pkg" source="oglrv_p" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=light-dark(#6C8EBF,#5C79A3);exitX=0.5;exitY=0;exitDx=0;exitDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="200" y="137" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ModelBase_p" parent="1" style="swimlane;fontStyle=3;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="ModelBase" vertex="1">
+          <mxGeometry height="26" width="220" x="330" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="Model_p" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Model" vertex="1">
+          <mxGeometry height="26" width="220" x="520" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="RMModel_p" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="RayMarchedModel" vertex="1">
+          <mxGeometry height="26" width="220" x="280" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="ISceneObj_p" parent="1" style="swimlane;fontStyle=3;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="«interface»&#xa;ISceneObject" vertex="1">
+          <mxGeometry height="40" width="220" x="330" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="e_mb_iscobj" edge="1" parent="1" source="ModelBase_p" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=light-dark(#6C8EBF,#5C79A3);exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="ISceneObj_p">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_model_mb" edge="1" parent="1" source="Model_p" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=light-dark(#9673A6,#7A5A8A);exitX=0.5;exitY=0;exitDx=0;exitDy=0;" target="ModelBase_p">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="630" y="490" />
+              <mxPoint x="440" y="490" />
+            </Array>
+            <mxPoint x="630" y="590" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_rmmodel_mb" edge="1" parent="1" source="RMModel_p" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=light-dark(#9673A6,#7A5A8A);exitX=0.5;exitY=0;exitDx=0;exitDy=0;" target="ModelBase_p">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="390" y="490" />
+              <mxPoint x="440" y="490" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_iscobj_igvable" edge="1" parent="1" source="ISceneObj_p" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=light-dark(#6C8EBF,#5C79A3);entryX=0.5;entryY=1.011;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" target="igvable_o0">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_mb_imrvable" edge="1" parent="1" source="ModelBase_p" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=light-dark(#6C8EBF,#5C79A3);" target="imrvable_p">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="820" y="460" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
