@@ -68,14 +68,6 @@ void MyApp::RenderGUI()
         ImGui::Text("Resolution: %dx%d", m_windowSize.x, m_windowSize.y);
         ImGui::Checkbox("Show axes", &m_showAxes);
 
-        ImGui::Separator();
-        ImGui::BeginDisabled(!m_debugState.config.showDebug);
-        if (ImGui::Button("Export debug log"))
-            ExportDebugLog();
-        ImGui::EndDisabled();
-        if (!m_debugState.config.showDebug)
-            ImGui::TextDisabled("Enable debug to export");
-
         // -- Light direction ---------------------------------------------------
         ImGui::Separator();
         ImGui::SeparatorText("Lighting");
@@ -315,6 +307,10 @@ void MyApp::RenderDebugPanel()
             if (!m_debugState.config.showDebug) {
                 ImGui::TextDisabled("Enable debug in Settings to record values.");
             } else {
+                if (ImGui::Button("Export debug log"))
+                    ExportDebugLog();
+                ImGui::Separator();
+
                 const GLintptr kNumericalOffset = 2 * static_cast<GLintptr>(sizeof(glm::uvec4));
 
                 glm::vec4 hdr[23];

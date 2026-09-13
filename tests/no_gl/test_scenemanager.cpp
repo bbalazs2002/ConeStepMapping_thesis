@@ -8,6 +8,9 @@
 #include "Headers/Model/RayMarchedModel.h"
 #include "Headers/Model/Model.h"
 #include "Interfaces/ISceneObject.h"
+#include "Interfaces/IGUIVisitor.h"
+#include "Interfaces/IModelRendererVisitor.h"
+#include "Headers/Types.h"
 
 // Helper: create a RayMarchedModel with no meshes, no GL resources
 static std::shared_ptr<RayMarchedModel> MakeRM(const std::string& name) {
@@ -133,4 +136,97 @@ TEST(SceneManager_Commands, SetSelectedCommandUpdatesSelection) {
     q.Push(std::make_unique<SetSelectedCommand>(mgr, obj));
     q.Execute();
     EXPECT_EQ(mgr.GetSelected(), obj.get());
+}
+
+// -----------------------------------------------------------------------------
+// Update / Render / RenderGUI dispatch — no test previously called these three
+// loops, so AcceptGUIVisitor/AcceptRendererVisitor on Model and RayMarchedModel,
+// and SceneManager::Update/Render/RenderGUI themselves, were entirely uncovered.
+// Fakes below count Visit() calls instead of touching real GL/ImGui state.
+// -----------------------------------------------------------------------------
+
+namespace {
+
+class CountingGUIVisitor : public IGUIVisitor {
+public:
+    int modelVisits = 0, rmVisits = 0;
+    void Visit(Model& /*target*/)          override { ++modelVisits; }
+    void Visit(RayMarchedModel& /*target*/) override { ++rmVisits; }
+};
+
+class CountingRendererVisitor : public IModelRendererVisitor {
+public:
+    int modelVisits = 0, rmVisits = 0;
+    const ISceneObject* lastSelected = nullptr;
+    void Visit(const Model& /*target*/)          override { ++modelVisits; }
+    void Visit(const RayMarchedModel& /*target*/) override { ++rmVisits; }
+    void SetSelected(const ISceneObject* selected) override { lastSelected = selected; }
+};
+
+} // namespace
+
+TEST(SceneManager, RenderGUIVisitsEveryObject) {
+    SceneManager mgr;
+    mgr.Add(MakeRM("rm1"));
+    mgr.Add(MakeModel("m1"));
+    mgr.Add(MakeRM("rm2"));
+
+    CountingGUIVisitor visitor;
+    mgr.RenderGUI(visitor);
+
+    EXPECT_EQ(visitor.rmVisits, 2);
+    EXPECT_EQ(visitor.modelVisits, 1);
+}
+
+TEST(SceneManager, RenderVisitsOnlyRendererVisitablesAndPropagatesSelection) {
+    SceneManager mgr;
+    auto rm = MakeRM("rm1");
+    mgr.Add(rm);
+    mgr.Add(MakeModel("m1"));
+    mgr.SetSelected(rm.get());
+
+    CountingRendererVisitor visitor;
+    mgr.Render(visitor);
+
+    EXPECT_EQ(visitor.rmVisits, 1);
+    EXPECT_EQ(visitor.modelVisits, 1);
+    EXPECT_EQ(visitor.lastSelected, rm.get());
+}
+
+TEST(SceneManager, UpdateRunsWithoutErrorOnAllUpdatables) {
+    SceneManager mgr;
+    mgr.Add(MakeRM("rm1"));
+    mgr.Add(MakeModel("m1"));
+    mgr.Add(MakeRM("rm2"));
+
+    SUpdateInfo info;
+    info.DeltaTimeInSec = 0.016f;
+    info.ElapsedTimeInSec = 1.0f;
+    EXPECT_NO_THROW(mgr.Update(info));
+}
+
+// -----------------------------------------------------------------------------
+// Model — trivial getters/setters that no test previously called. No GL calls
+// happen here (plain field storage), so these belong in the no-GL suite.
+// -----------------------------------------------------------------------------
+
+TEST(Model, ProgramIDStoredAndReturned) {
+    Model m("m");
+    EXPECT_EQ(m.GetProgramID(), 0u);
+    m.SetProgram(42);
+    EXPECT_EQ(m.GetProgramID(), 42u);
+}
+
+TEST(Model, WireframeFlagStoredAndReturned) {
+    Model m("m");
+    EXPECT_FALSE(m.IsWireframe());
+    m.SetWireframe(true);
+    EXPECT_TRUE(m.IsWireframe());
+}
+
+TEST(Model, SelectedProgramIDStoredAndReturned) {
+    Model m("m");
+    EXPECT_EQ(m.GetSelectedProgramID(), 0u);
+    m.SetSelectedProgram(7);
+    EXPECT_EQ(m.GetSelectedProgramID(), 7u);
 }

@@ -2,8 +2,13 @@
 # Minden build során keletkező fájl (az out/ mappa és tartalma)
 out/
 build/
+build-coverage/
 bin/
 lib/
+
+# --- Code coverage (OpenCppCoverage) ---
+coverage_report/
+LastCoverageResults.log
 
 # --- Visual Studio ---
 # A VS által generált rejtett mappa (Intellisense, DB fájlok, stb.)

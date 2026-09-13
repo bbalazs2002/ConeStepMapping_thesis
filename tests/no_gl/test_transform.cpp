@@ -9,6 +9,17 @@ TEST(Transform, DefaultIsIdentity) {
     EXPECT_EQ(t.GetMatrix(), glm::identity<glm::mat4>());
 }
 
+// Parameterized constructor (loc/rot/scale) — otherwise only the default
+// constructor + setters were ever exercised.
+TEST(Transform, ParameterizedConstructorAppliedToMatrix) {
+    Transform t({ 3.f, 0.f, 0.f }, glm::identity<glm::quat>(), { 2.f, 1.f, 1.f });
+    glm::vec4 p = t.GetMatrix() * glm::vec4(1.f, 0.f, 0.f, 1.f);
+    // scale by 2 on X, then translate by 3: 1*2 + 3 = 5
+    EXPECT_FLOAT_EQ(p.x, 5.f);
+    EXPECT_FLOAT_EQ(p.y, 0.f);
+    EXPECT_FLOAT_EQ(p.z, 0.f);
+}
+
 // UT-02
 TEST(Transform, SetLocationMarksDirty) {
     Transform t;

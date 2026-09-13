@@ -8,6 +8,16 @@ uniform int width = 1;
 uniform int height = 1;
 uniform sampler2D inputImage;
 
+#ifdef CONSERVATIVE
+// Half-texel-diagonal: the maximum possible distance between a texel's
+// center and any point still considered "inside" that texel. Subtracting
+// this from a distance measurement keeps the resulting cone safe for any
+// ray position within the texel, not only its exact center.
+float getHalfDiag() {
+	return sqrt(2.0) / (2.0 * max(float(width - 1), float(height - 1)));
+}
+#endif
+
 float getTan(float fx, vec2 xuv, vec2 nxny) {
 	vec2 yuv = nxny / vec2(width - 1, height - 1);
 	float fy = texture(inputImage, yuv).r;
@@ -17,9 +27,7 @@ float getTan(float fx, vec2 xuv, vec2 nxny) {
 #ifdef CONSERVATIVE
 	// Subtract half-texel-diagonal so the cone remains safe for any ray position
 	// within the current texel, not only at the texel center.
-	// half-texel-diagonal = sqrt(2) / (2 * max(width-1, height-1))
-	float half_diag = sqrt(2.0) / (2.0 * max(float(width - 1), float(height - 1)));
-	dist = max(0.0, dist - half_diag);
+	dist = max(0.0, dist - getHalfDiag());
 #endif
 
 	return max(0., dist / (fy - fx));
@@ -103,8 +111,24 @@ void main() {
 	// Expand outward layer by layer
 	for (int r = 1; r < max(width, height); ++r) {
 
-		// Break if there is no smaller tangen
-		if (length(xuv - (vec2(x, y + r) / vec2(width - 1, height - 1))) / (1 - fx) > minTan) {		// smallest possible tangent is greater than minTan
+		// Break if there is no smaller tangent possible in this or any farther
+		// layer. The bound uses the largest theoretically possible height
+		// difference (1 - fx) against the layer's minimum distance, so it is
+		// a safe (if loose) lower bound on any tangent getTan() could still
+		// produce from here on.
+		//
+		// Under CONSERVATIVE, getTan() itself subtracts a half-texel-diagonal
+		// from every distance before dividing — so the bound must apply the
+		// same correction here, otherwise it is optimistic (uses a larger
+		// distance than getTan() actually would) and can trigger the break
+		// before the true minimal, safe tangent has been found. That silently
+		// produces a *less* conservative cone than CONSERVATIVE mode promises
+		// -- exactly backwards from its purpose.
+		float layerDist = length(xuv - (vec2(x, y + r) / vec2(width - 1, height - 1)));
+#ifdef CONSERVATIVE
+		layerDist = max(0.0, layerDist - getHalfDiag());
+#endif
+		if (layerDist / (1 - fx) > minTan) {
 			break;
 		}
 

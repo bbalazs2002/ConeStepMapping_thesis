@@ -4,6 +4,7 @@ add_executable(tests_no_gl
     test_materialmanager.cpp
     test_modelloader.cpp
     test_scenemanager.cpp
+    test_material.cpp
 )
 
 target_link_libraries(tests_no_gl PRIVATE

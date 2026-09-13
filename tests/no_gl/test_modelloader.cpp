@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <cstdint>
+#include <functional>
 #include <glm/glm.hpp>
 
 // -----------------------------------------------------------------------
@@ -39,6 +40,14 @@ TEST(ModelLoader_Path, ResolveTexturePathAbsolutePassthrough) {
         std::filesystem::path(PROJECT_ROOT) / "Assets" / "HMaps" / "cone.jpg";
     auto result = ModelLoader::ResolveTexturePath(abs.string(), "");
     EXPECT_TRUE(result.is_absolute());
+}
+
+// An absolute mtlSearchPath is returned unchanged, without being resolved
+// relative to the .obj file's directory.
+TEST(ModelLoader_Path, ResolveMTLSearchPathAbsolutePassthrough) {
+    std::filesystem::path abs = std::filesystem::path(PROJECT_ROOT) / "Assets";
+    auto result = ModelLoader::ResolveMTLSearchPath("some/obj/path.obj", abs);
+    EXPECT_EQ(result, abs);
 }
 
 // -----------------------------------------------------------------------
@@ -109,6 +118,24 @@ TEST(ModelLoader_MergeNormals, DistinctPositionsKeepOwnNormals) {
     EXPECT_NEAR(output[0].mergedNormal.y, 0.f, 1e-5f);
     EXPECT_NEAR(output[1].mergedNormal.x, 0.f, 1e-5f);
     EXPECT_NEAR(output[1].mergedNormal.y, 1.f, 1e-5f);
+}
+
+// Two vertices at the same position with exactly opposing normals sum to a
+// near-zero vector — MergeNormals falls back to the vertex's own normal
+// instead of normalizing a (0,0,0) vector.
+TEST(ModelLoader_MergeNormals, FallsBackToOwnNormalWhenSumIsNearZero) {
+    std::vector<Vertex> input(2);
+    input[0].position = { 0.f, 0.f, 0.f };
+    input[0].normal   = { 0.f, 1.f, 0.f };
+    input[0].texcoord = { 0.f, 0.f };
+
+    input[1].position = { 0.f, 0.f, 0.f }; // same position
+    input[1].normal   = { 0.f, -1.f, 0.f }; // exactly opposite -> sum is (0,0,0)
+    input[1].texcoord = { 1.f, 1.f };
+
+    auto output = ModelLoader::MergeNormals(input);
+    EXPECT_EQ(output[0].mergedNormal, input[0].normal);
+    EXPECT_EQ(output[1].mergedNormal, input[1].normal);
 }
 
 // -----------------------------------------------------------------------
@@ -233,6 +260,53 @@ TEST_F(ModelLoaderFileFixture, CustomVertexWithoutTransformFuncThrows) {
         std::runtime_error
     );
 }
+
+// LoadFromOBJ<Vertex> (the default/identity vertex type) also accepts an
+// optional transformFunc — a distinct code path from the no-transformFunc
+// "direct move" case. Passing identity here still exercises it.
+TEST_F(ModelLoaderFileFixture, VertexTypeWithTransformFuncUsesIt) {
+    WriteOBJ();
+    bool called = false;
+    std::function<std::vector<Vertex>(const std::vector<Vertex>&)> identity =
+        [&](const std::vector<Vertex>& in) { called = true; return in; };
+
+    auto data = ModelLoader::LoadFromOBJ<Vertex>(objPath, "./", identity);
+    EXPECT_TRUE(called);
+    ASSERT_FALSE(data.matMesh.empty());
+    EXPECT_EQ(data.matMesh[0].mesh.vertexArray.size(), 3u);
+}
+
+// The realistic use case for a custom VertexT: loading straight into
+// VertexMergedNorm via ModelLoader::MergeNormals as the transformFunc —
+// exercises the "Custom Vertex Type, transformFunc provided" branch that
+// CreateModelFromOBJ() never reaches (it only ever loads plain Vertex).
+TEST_F(ModelLoaderFileFixture, VertexMergedNormWithMergeNormalsTransformFunc) {
+    WriteOBJ();
+    auto data = ModelLoader::LoadFromOBJ<VertexMergedNorm>(
+        objPath, "./", ModelLoader::MergeNormals);
+    ASSERT_FALSE(data.matMesh.empty());
+    EXPECT_EQ(data.matMesh[0].mesh.vertexArray.size(), 3u);
+}
+
+// A relative face index that resolves out of range (here: a negative index
+// used before any vertex was defined) makes tinyobjloader's ParseFromFile
+// itself fail -> LoadFromOBJ propagates that as a thrown runtime_error.
+// (A positive out-of-range index like "f 999" is accepted by tinyobjloader
+// without bounds-checking against the vertex count -- it is not a parse
+// error there, and would instead crash inside our own InternalLoader when
+// indexing attrib.vertices. That is a separate, pre-existing robustness gap,
+// not something this test can safely exercise.)
+TEST_F(ModelLoaderFileFixture, MalformedOBJThrowsOnParseFailure) {
+    {
+        std::ofstream ofs(objPath);
+        ofs << "f -1 -2 -3\n"; // negative index with zero vertices defined
+    }
+    EXPECT_THROW(
+        ModelLoader::LoadFromOBJ<Vertex>(objPath),
+        std::runtime_error
+    );
+}
+
 
 // -----------------------------------------------------------------------
 // LoadFromOBJ — with MTL

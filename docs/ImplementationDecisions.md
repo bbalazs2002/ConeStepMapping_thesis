@@ -487,3 +487,33 @@ A `Clean()` OpenGL hívásokat tartalmaz (`glDeleteBuffers`, `glDeleteProgram`, 
 **Miért:** A heightmap a conemap előállításának bemenete, nem a renderelés bemenete. A `ConeStepMapping` technique a conemapet mintavételezi, nem a heightmapet — a heightmap megtartása csak plusz GPU-memória lenne felesleges hozzáféréssel. Ha a felhasználó újra generálni akar (pl. paraméter változtatás után), a heightmapet a `TextureManager` cache-éből töltjük vissza.
 
 **Megjegyzés:** A `LinearSearch` technique-hoz a heightmap valóban szükséges lenne (a technique közvetlenül a heightmapet mintavételezi). Ez ismert hiányosság — `LinearSearch` aktív technique esetén a `SetHeightmap()` hívásnak meg kellene tartania a heightmapet is. Jelenlegi állapotban `LinearSearch`-höz is csak conemap generálás után működik a ray marching, amit az `Architecture.md` "Known open issues" táblája rögzít.
+
+---
+
+## Debug SSBO mint teszt-oracle a GPU-oldali ray marching ellenőrzéséhez
+
+**Hol:** `tests/gl/test_raymarching.cpp` — `DebugSSBOReportsHitForStraightDownRayOnFlatSurface`
+
+**Probléma:** A tényleges ray marching algoritmus (be-/kilépési pont számítás, lépésköz, találat) kizárólag GLSL-ben fut (`Geom_RM_abcd.geom` + `RayMarch_common.glsl`) — ennek nincs semmilyen C++ oldali megfigyelhetősége, így hagyományos unit teszttel nem ellenőrizhető. A `LinearSearch`/`ConeStepMapping` C++ wrapper osztályok csak a program ID-t és az uniformokat kezelik, magát az algoritmus helyességét sosem érintik.
+
+**Döntés:** A már meglévő debug SSBO rendszert (lásd "Debug vizualizáció — SSBO-alapú konfiguráció" döntés) teszt-oracle-ként használjuk. A teszt egy ismert geometriájú (sík négyszög) és ismert (konstans szürke) heightmapű `RayMarchedModel`-t épít fel valódi, `ShaderManager`-rel lefordított shaderekkel, majd `OpenGLRendererVisitor::Visit()`-tel — a valódi renderelési útvonalon keresztül — debug módban rajzoltatja ki. A rajzolás után a `debugNumericalSSBO`-t pontosan úgy olvassa vissza (`glGetNamedBufferSubData`), ahogy a `MyApp::ExportDebugLog()` és az ImGui *Values* panel teszi, és a visszakapott lépésszámot/találati UV-t analitikusan várt értékekkel veti össze.
+
+**Miért ez a helyes megoldás:** A debug rendszert eredetileg vizuális hibakereséshez építettük, de mivel ugyanazokat az adatokat (lépésszám, találati UV, be-/kilépési pontok) SSBO-ba írja, amit a CPU is vissza tud olvasni, semmilyen extra instrumentáció nem kellett hozzá — a meglévő mechanizmust egy második célra (automatizált ellenőrzés) is fel lehetett használni.
+
+**Korlát:** Ez a teszt a rendereléshez ténylegesen lelinkelt `.cpp` fájlokat (pl. `ConemapGenerator.cpp`, `LinearSearch.cpp`) is bevonja a C++ code coverage mérésébe, de magát a GLSL kódot (a tényleges sugárkövetési algoritmust) a coverage eszköz (OpenCppCoverage) nem tudja mérni — az kizárólag ezzel a funkcionális teszttel (a debug SSBO-n át visszaolvasott eredménnyel) igazolható.
+
+---
+
+## Két talált és javított hiba a conemap generálásban és mintavételezésben (Phase 20)
+
+**Hol:** `Comp_Conemap.comp` (korai kilépési feltétel); `RayMarch_common.glsl` (`conemap_get()`, `INTERP_CONE` ág)
+
+**Felfedezés útja:** A felhasználó két, konzervatív módban generált conemapet tartalmazó screenshotot készített ugyanarról a jelenetről — a konzervatív mód vizuálisan **rosszabb** eredményt adott (egy nagy, hegyes torzítás jelent meg egy tüskeszerű terepelem közelében), holott elméletileg csak biztonságosabbnak (szűkebb kúpúnak) kellett volna lennie. A felhasználó egy minimális, 5×5-ös, egyetlen közép-texelen 1, mindenhol máshol 0 magasságú tesztheightmapet készített, a debug kamerát a tüske felé irányította, és exportálta a debug logot (`ExportDebugLog()`): a sugár 13 lépés után `exited_prism` eredménnyel, találat nélkül futott ki a prizmából.
+
+**Hiba #1 — a korai kilépési feltétel figyelmen kívül hagyja a `CONSERVATIVE` korrekciót.** A `Comp_Conemap.comp` réteg-bejárásának korai megszakítási feltétele (`dist / (1 - fx) > minTan`) a **nyers** (fél-texel-átlóval nem csökkentett) távolságot használja, míg a `getTan()` CONSERVATIVE módban ennél **kisebb** (`dist - half_diag`) távolsággal számol. Emiatt a keresés korábban áll le, mint ahogy a ténylegesen legkisebb (legbiztonságosabb) érintőt megtalálná — a tárolt kúp kevésbé konzervatív marad, mint amit a CONSERVATIVE mechanizmus ígér. **Javítás:** a korai kilépés feltétele is levonja a `half_diag`-ot, de kizárólag `#ifdef CONSERVATIVE` ág alatt — az ORIGINAL algoritmus változatlan marad. Empirikusan mérve (64×64-es hegy+tüske heightmap): 4096 texelből 3 különbözik, mindhárom a javított (kisebb, konzervatívabb) irányba.
+
+**Hiba #2 — egy lokális magasság-maximum texel szerkezetileg sosem kap korlátozott kúpot.** A `getTan(fx, xuv, nxny)` formula (`dist / (fy - fx)`) csak akkor ad pozitív, korlátozó értéket, ha a vizsgált szomszéd **magasabb** ($f_y > f_x$). Egy lokális csúcs texelre nézve minden szomszéd alacsonyabb vagy egyenlő, tehát minden `getTan()` hívás `≤ 0`-t ad, és mivel a kód csak `tn > 0` esetén frissíti a `minTan`-t, a csúcs texel kúpja **sosem mozdul el a kezdeti 1.0-ról (45°, teljesen nyitott)** — ez a viselkedés a korai kilépési hibától függetlenül, a generálás algoritmusának szerkezetéből fakad. Mivel a kúp-csatorna alapértelmezetten nem interpolált (`INTERP_CONE` ki), egy, a csúcshoz közeli, de nem pontosan rajta lévő lekérdezés (ahol a bilineárisan interpolált *magasság* még nem érte el a csúcsot) a legközelebbi-szomszéd mintavételezés miatt mégis a csúcs (hibásan) nyitott kúpját kapja — a sugár emiatt túl nagy lépést tehet, és átugorhatja a tüskét.
+
+**Javítás:** az `INTERP_CONE` define jelentése bilineáris blendről **4-szomszéd minimumra** változott (`conemap_getConeMin()`): a bilineáris mintavételezés által érintett 4 texel kúpértékéből a legkisebbet választjuk interpoláció helyett. Ez matematikailag indokolt: egy biztonsági korlát (a kúp) lineáris interpolációja nem garantáltan biztonságos a köztes pontra, de több, egyenként biztonságos korlát minimuma igen — így egy hibásan nyitott csúcs-kúp a szomszédai felől kompenzálódik. **Miért nem az alapértelmezett (nem-interpolált) módban:** a tiszta legközelebbi-szomszéd mintavételezés definíció szerint csak egyetlen texelt néz, nincs mód a szomszédok bevonására — a javítás ezért csak `INTERP_CONE` bekapcsolt állapotban aktiválódik.
+
+**Empirikus igazolás:** a felhasználó pontos reprodukciós esetét (5×5 heightmap, kamera-koordináták a debug logból) újra lefuttatva — a hibás (nem interpolált kúp) verzió 13 lépés után, találat nélkül, `exited_prism` eredménnyel állt le (**pontos egyezés** a felhasználó logjával); a javított (min-alapú) verzió 17 lépés után talált, UV=(0.4999, 0.4449), néhány század pontossággal a tüske valódi helyén (0.5, 0.5).

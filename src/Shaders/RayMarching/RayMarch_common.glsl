@@ -7,9 +7,23 @@
 //
 // Interpolation permutations (injected via #define before #include):
 //   INTERP_HEIGHT — bilinear height sampling via texture(); default: texelFetch (nearest)
-//   INTERP_CONE   — bilinear cone-tangent sampling via texture(); default: texelFetch (nearest)
+//   INTERP_CONE   — conservative min-of-4-neighborhood cone-tangent sampling;
+//                   default: texelFetch (nearest, single texel)
 //   Both, one, or neither may be defined independently.
-//   The Texture(w,h,GL_RGBA8) constructor sets GL_LINEAR, so texture() gives bilinear.
+//
+// Why INTERP_CONE is a minimum, not a blend:
+//   The cone tangent is a *safety bound*, not a continuous quantity — bilinearly
+//   blending two independently-safe tangents does not, in general, produce a
+//   safe tangent for the point between them. A texel that is a local height
+//   maximum (no taller neighbor within the generator's search window) always
+//   receives the maximally open default tangent (see Comp_Conemap.comp), since
+//   getTan() only ever constrains a texel against *taller* neighbors. Nearest
+//   sampling near such a texel can therefore return an unconstrained cone for
+//   a query point whose (bilinearly interpolated) height has not yet reached
+//   that peak, letting the ray step straight through the surface. Taking the
+//   minimum of the four texels a bilinear fetch would have blended is still a
+//   valid conservative bound (the minimum of several safe bounds is itself
+//   safe) and, critically, is not fooled by a single mis-shaped neighbor.
 //
 // Linear search height sampler:
 //   By default ls_sampleHeight reads from coneMap.r so the geometry shader debug
@@ -101,10 +115,28 @@ struct StepReturn {
 // Conemap sampling
 // ---------------------------------------------------------------------------
 
+#ifdef INTERP_CONE
+// Minimum of the four texels a bilinear fetch at `uv` would have blended.
+// See the file-header comment for why this replaces a smooth blend.
+float conemap_getConeMin(vec2 uv) {
+    ivec2 size = textureSize(coneMap, 0);
+    vec2  texelPos = uv * vec2(size) - 0.5;
+    ivec2 base = ivec2(floor(texelPos));
+
+    float m = 1.0; // widest possible cone; min() below only ever narrows it
+    for (int dy = 0; dy <= 1; ++dy) {
+        for (int dx = 0; dx <= 1; ++dx) {
+            ivec2 idx = clamp(base + ivec2(dx, dy), ivec2(0), size - 1);
+            m = min(m, texelFetch(coneMap, idx, 0).g);
+        }
+    }
+    return m;
+}
+#endif
+
 // .r = height, .g = tangent of cone half-angle
-// Each channel is sampled independently:
-//   INTERP_HEIGHT → bilinear height  (texture()); otherwise nearest (texelFetch)
-//   INTERP_CONE   → bilinear tangent (texture()); otherwise nearest (texelFetch)
+//   INTERP_HEIGHT → bilinear height (texture()); otherwise nearest (texelFetch)
+//   INTERP_CONE   → conservative min-of-4-neighborhood tangent; otherwise nearest (texelFetch)
 vec2 conemap_get(vec2 uv) {
 #ifdef INTERP_HEIGHT
     float h = texture(coneMap, uv).r;
@@ -114,7 +146,7 @@ vec2 conemap_get(vec2 uv) {
 #endif
 
 #ifdef INTERP_CONE
-    float t = texture(coneMap, uv).g;
+    float t = conemap_getConeMin(uv);
 #else
     float t = texelFetch(coneMap, clamp(ivec2(uv * vec2(textureSize(coneMap, 0))),
                                         ivec2(0), textureSize(coneMap, 0) - 1), 0).g;

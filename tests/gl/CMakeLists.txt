@@ -3,6 +3,9 @@ add_executable(tests_gl
     test_texturemanager.cpp
     test_mesh_build.cpp
     test_scene_integration.cpp
+    test_material_gl.cpp
+    test_raymarching.cpp
+    test_model_render.cpp
 )
 
 target_link_libraries(tests_gl PRIVATE

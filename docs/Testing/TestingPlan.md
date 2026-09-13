@@ -6,6 +6,60 @@
 >
 > **Státusz jelölések:**  ✅ Átment  ❌ Hibás  ⚠️ Részlegesen  🔲 Nem fut még
 
+## 0. Automatizált teszt-szuit — aktuális állapot (2026-09-12)
+
+A GTest-alapú automatizált szuit (`tests/no_gl` + `tests/gl`, ld. `.github/workflows/ci.yml`)
+**117 teszt, mind zöld**: 69 GL-kontextus nélkül, 48 GL-kontextussal. Ezek a lenti
+UT-01…27 / IT-01…12 tételek egy részét lefedik, de a suite szerkezete azóta
+bővebb és másképp tagolt, mint az eredeti terv — a részletes fejezet-szöveghez
+ld. `temp/Testing/Automatikus_tesztek.tex`.
+
+**OpenCppCoverage mérés** (no_gl + gl suite összevonva, csak a ténylegesen
+linkelt kódra vetítve): 1015/1079 sor = **94,1%** (induló állapot: 429/758 =
+56,6%). Modulonkénti bontás: `temp/Testing/UnitTestCoverage.png`. Hét modul
+(`Command`, `Transform`, `RayMarching`, `Manager`, `RendererVisitor`,
+`Material`, `Texture`) 100%-os. A maradék hiány két csoportra bomlik:
+
+- **Szándékosan lefedetlen:** `Camera::SetAngle()`/`SetZNear()`/`SetZFar()`
+  — a kész alkalmazás sosem hívja őket (a FOV/vágósíkok indításkor
+  rögzülnek), egy rájuk írt teszt csak a `glm::perspective` helyességét
+  igazolná, nem az alkalmazásét. Ld. indoklás: `temp/Testing/Automatikus_tesztek.tex`.
+- **Aránytalanul költséges lenne:** a `GLUtils.cpp` maradék hibaágai (sikertelen
+  fájlmegnyitás, sikertelen shaderfordítás naplózása) csak mesterségesen
+  előidézett hibás bemenettel érhetők el; a `Mesh::Render()` hiányzó-anyag ága
+  `exit(1)`-et hív, így nem tesztelhető a teszt-futtatható összeomlasztása
+  nélkül.
+
+**RayMarching lefedettség: 0% → 97,2%** (0/28 → 70/72 sor). A `ConemapGenerator`,
+`LinearSearch` és `ConeStepMapping` osztályok korábban egyáltalán nem szerepeltek
+a mért binárisban (a linker sosem húzta be őket, mert semmi sem hivatkozott rájuk).
+Az új `tests/gl/test_raymarching.cpp` a `ShaderManager`-en keresztül valódi
+production shadereket fordít (conemap compute shader mindkét variánsban, a teljes
+`ls`/`csm` vertex+geometry+fragment lánc), és:
+- ellenőrzi a `ConemapGenerator::Generate()` kimenetét (méret, magasság-csatorna
+  visszaolvasása `glGetTextureImage`-dzsel egy ismert, sík heightmapre),
+- ellenőrzi a `LinearSearch`/`ConeStepMapping` wrapper osztályok azonosítóit és
+  hogy a `SetUniforms()` valódi programmal hiba nélkül lefut,
+- egy teljes pipeline tesztben (`DebugSSBOReportsHitForStraightDownRayOnFlatSurface`)
+  **a debug SSBO-kat használja megfigyelési csatornaként**: ismert geometriát és
+  heightmapet renderel `OpenGLRendererVisitor::Visit()`-tel, debug módban, majd
+  pontosan úgy olvassa vissza a lépésszámot és a találati UV-t, ahogy
+  `MyApp::ExportDebugLog()` — ezzel a GPU-n futó GLSL algoritmus helyessége is
+  automatikusan ellenőrizhető, holott a shader kód maga sosem jelenik meg a
+  C++ code coverage-ben.
+
+Melléktermékként a shader-fordítás (`GLUtils.cpp`, `ShaderManager.cpp`) és a
+`Material`/`Model`/`SceneManager` Visitor-diszpecselése is jelentősen javult
+(ld. a diagramot).
+
+**Talált és javított hiba:** a `TextureManagerFixture.ExpiredCacheMissCreatesNewObject`
+teszt (UT-13) flaky volt (~35% bukási arány 20 ismétlésen) — a `t2.get() != rawPtr`
+nyers pointer-összehasonlítás hibás feltevésen alapult (a felszabadított heap-cím
+újrafelhasználható az allokátor által). A `TextureManager` kódja helyesnek
+bizonyult; a teszt lett javítva (`t2->IsValid()` + `GetCachedCount() == 1`
+ellenőrzésre), ld. `tests/gl/test_texturemanager.cpp`. 30/30 ismételt futás
+stabilan zöld a javítás után.
+
 ---
 
 ## 1. Fekete doboz tesztek (Black-box / Funkcionalitás)
