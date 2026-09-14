@@ -21,10 +21,19 @@ jobs:
 
       # Clone the latest vcpkg — needed because SDL3 was only added in 2024,
       # and any pinned 2023 commit lacks the port.
+      # NOTE: --depth 1 (a plain shallow clone) does NOT work together with
+      # vcpkg.json's pinned builtin-baseline commit — vcpkg needs to
+      # `git show <that-sha>:versions/baseline.json` from the vcpkg repo
+      # itself, and a depth-1 clone only has the tip commit's objects, so
+      # that lookup fails unless the pinned baseline happens to BE the tip.
+      # --filter=blob:none is a "partial clone": full commit/tree history
+      # (so any baseline commit is reachable) with file contents fetched
+      # lazily, only for what's actually requested - fast like a shallow
+      # clone, correct like a full one.
       - name: Bootstrap vcpkg
         shell: pwsh
         run: |
-          git clone --depth 1 https://github.com/microsoft/vcpkg.git vcpkg
+          git clone --filter=blob:none https://github.com/microsoft/vcpkg.git vcpkg
           .\vcpkg\bootstrap-vcpkg.bat -disableMetrics
           echo "VCPKG_ROOT=${{ github.workspace }}\vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Append
 
