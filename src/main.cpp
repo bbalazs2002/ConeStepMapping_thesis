@@ -1,11 +1,17 @@
 // standard
 #include <iostream>
 #include <sstream>
+#include <string>
 
-// memory leak debug
+// memory leak debug (Windows + Debug builds only; compiled out of every
+// release build, never runs on non-Windows platforms)
+#if defined(_WIN32) && defined(DEBUG)
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
+#define NOMINMAX
+#include <Windows.h>
+#endif
 
 // Log (only in debug)
 #include "Utils/Log.h"
@@ -32,9 +38,29 @@ IGraphicsApp *app;
 
 int main(int argc, char* args[]) {
 
-    // log memory leaks
-#ifdef DEBUG
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    // log memory leaks: redirect the CRT leak report to a .log file next to
+    // the .exe instead of the debugger's Output window, and print only the
+    // log file's path to the console.
+#if defined(_WIN32) && defined(DEBUG)
+    {
+        char exePath[MAX_PATH];
+        GetModuleFileNameA(nullptr, exePath, MAX_PATH);
+        std::string logPath(exePath);
+        logPath = logPath.substr(0, logPath.find_last_of("\\/") + 1) + "memleak_report.log";
+
+        HANDLE logHandle = CreateFileA(logPath.c_str(), GENERIC_WRITE, FILE_SHARE_READ,
+            nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+        if (logHandle != INVALID_HANDLE_VALUE) {
+            _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
+            _CrtSetReportFile(_CRT_WARN, (_HFILE)logHandle);
+            std::cout << "[DEBUG] Memory leak report: " << logPath << std::endl;
+        } else {
+            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+                "[DEBUG] Could not open %s for the memory leak report.", logPath.c_str());
+        }
+
+        _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    }
 #endif
 
     // --- 1. Initialize SDL ---
@@ -110,6 +136,12 @@ int main(int argc, char* args[]) {
     // Enable docking panels
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+
+    // Optional: Load a custom font for larger text
+    // ImFontConfig fontConfig;
+    // fontConfig.SizePixels = 26.0f; // default is 13.0f
+    // io.Fonts->AddFontDefault(&fontConfig);
 
     // --- 6. Main Application Loop ---
     {

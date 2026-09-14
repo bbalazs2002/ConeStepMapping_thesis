@@ -102,7 +102,7 @@ void MyApp::RenderGUI()
     // -- Models panel (was "Scene") --------------------------------------------
 
     if (ImGui::Begin("Models")) {
-        const float listWidth = 160.f;
+        const float listWidth = 250.f;
         const auto& models = m_sceneManager.GetSceneObjects();
 
         ImGui::BeginChild("ModelList", ImVec2(listWidth, 0.f), true);
@@ -208,7 +208,7 @@ void MyApp::RenderGUI()
                     // Interpolation (switches shader permutation instantly)
                     bool interpChanged = false;
                     if (ImGui::Checkbox("Interpolate height", &m_interpHeight)) interpChanged = true;
-                    if (ImGui::Checkbox("Interpolate cone",   &m_interpCone))   interpChanged = true;
+                    if (ImGui::Checkbox("Min. cone",   &m_interpCone))   interpChanged = true;
                     if (interpChanged)
                         UpdateTechniquePrograms();
 

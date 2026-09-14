@@ -1,6 +1,7 @@
 {
   "name": "csm-thesis",
   "version-string": "1.0.0",
+  "builtin-baseline": "b84cf72dea76740e1e987d572a90cada8c317e73",
   "dependencies": [
     "glew",
     "glm",
