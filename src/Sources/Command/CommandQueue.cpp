@@ -3,6 +3,7 @@
 #include "Headers/Command/CommandQueue.h"
 #include "Interfaces/ICommand.h"
 
+CommandQueue::CommandQueue()  = default;
 CommandQueue::~CommandQueue() = default;
 
 void CommandQueue::Push(std::unique_ptr<ICommand> cmd)

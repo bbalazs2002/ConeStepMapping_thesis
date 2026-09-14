@@ -7,6 +7,7 @@
 class CommandQueue : public ICommandQueue {
 public:
 
+    CommandQueue();
     ~CommandQueue() override;
 
     void Push(std::unique_ptr<ICommand> cmd) override;
