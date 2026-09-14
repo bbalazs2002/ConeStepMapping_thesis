@@ -35,12 +35,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             build-essential cmake ninja-build pkg-config git curl zip unzip tar \
-            libgl1-mesa-dev libegl1-mesa-dev libglu1-mesa-dev mesa-common-dev \
+            libgl1-mesa-dev libegl1-mesa-dev libglu1-mesa-dev libgles2-mesa-dev mesa-common-dev \
+            libdrm-dev libgbm-dev \
             libx11-dev libxext-dev libxrandr-dev libxinerama-dev libxcursor-dev \
-            libxi-dev libxfixes-dev libxss-dev \
+            libxi-dev libxfixes-dev libxss-dev libxtst-dev \
             libxkbcommon-dev libwayland-dev wayland-protocols \
             libdbus-1-dev libibus-1.0-dev \
-            libasound2-dev libpulse-dev libudev-dev \
+            libasound2-dev libpulse-dev libudev-dev libusb-1.0-0-dev liburing-dev \
             libdecor-0-dev \
             imagemagick fonts-dejavu-core
 
