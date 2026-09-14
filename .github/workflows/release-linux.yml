@@ -1,0 +1,149 @@
+name: Release - Linux AppImage
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to attach the AppImage to (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build-appimage:
+    name: Build Linux AppImage
+    # Pinned to 22.04 (not ubuntu-latest) so the glibc/libstdc++ baseline we
+    # link against stays old enough to run on most current distros (Debian
+    # 12+, Ubuntu 22.04+, Mint 21+, Fedora) - a binary built against a newer
+    # glibc would refuse to run on any of those, while the reverse works.
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # SDL3's default Linux features (x11, wayland, ibus) need these system
+      # dev packages to configure; vcpkg does not vendor X11/Wayland itself
+      # since those are OS-provided on Linux. libgl1-mesa-dev supplies the
+      # libGL.so needed to link GLEW/SDL3's GL context creation.
+      - name: Install system build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build pkg-config git curl zip unzip tar \
+            libgl1-mesa-dev libegl1-mesa-dev mesa-common-dev \
+            libx11-dev libxext-dev libxrandr-dev libxinerama-dev libxcursor-dev \
+            libxi-dev libxfixes-dev libxss-dev \
+            libxkbcommon-dev libwayland-dev wayland-protocols \
+            libdbus-1-dev libibus-1.0-dev \
+            libasound2-dev libpulse-dev libudev-dev \
+            libdecor-0-dev \
+            imagemagick fonts-dejavu-core
+
+      # Same pattern as the Windows CI job (.github/workflows/ci.yml): fresh
+      # vcpkg clone, manifest mode reads vcpkg.json from the repo root.
+      - name: Bootstrap vcpkg
+        run: |
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git vcpkg
+          ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
+          echo "VCPKG_ROOT=${{ github.workspace }}/vcpkg" >> "$GITHUB_ENV"
+
+      - name: Cache vcpkg installed packages
+        uses: actions/cache@v4
+        with:
+          path: vcpkg_installed
+          key: vcpkg-${{ runner.os }}-x64-linux-${{ hashFiles('vcpkg.json') }}
+
+      # x64-linux is vcpkg's static-library triplet (dynamic CRT/glibc only),
+      # so SDL3/GLEW/glm/imgui/tinyobjloader/libpng/libjpeg/zlib all end up
+      # baked into the binary. Only glibc/libstdc++/libGL/libX11/libwayland
+      # remain as host-provided dynamic libs - exactly the set linuxdeploy
+      # (below) knows to leave alone rather than bundle.
+      - name: Install vcpkg packages
+        run: ./vcpkg/vcpkg install --triplet x64-linux
+
+      - name: Configure CMake
+        run: |
+          cmake -B build-release -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET=x64-linux \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_TESTS=OFF
+
+      - name: Build
+        run: cmake --build build-release --target CSM_thesis --parallel
+
+      # Same relative layout as the Windows dist package: the binary looks
+      # for "src/Shaders/..." and "Assets/..." next to itself first
+      # (GetExecutableDir()/ResolveResourcePath() in Utils/GLUtils.cpp).
+      - name: Assemble AppDir
+        run: |
+          set -eu
+          APPDIR="$PWD/AppDir"
+          mkdir -p "$APPDIR/usr/bin/src" \
+                   "$APPDIR/usr/share/applications" \
+                   "$APPDIR/usr/share/icons/hicolor/256x256/apps"
+
+          cp build-release/CSM_thesis "$APPDIR/usr/bin/"
+          cp -r src/Shaders "$APPDIR/usr/bin/src/Shaders"
+          cp -r Assets "$APPDIR/usr/bin/Assets"
+
+          printf '%s\n' \
+            '[Desktop Entry]' \
+            'Type=Application' \
+            'Name=Cone Step Mapping Demo' \
+            'Comment=Cone Step Mapping thesis demo application' \
+            'Exec=CSM_thesis' \
+            'Icon=csm-thesis' \
+            'Categories=Graphics;3DGraphics;' \
+            'Terminal=false' \
+            > "$APPDIR/csm-thesis.desktop"
+          cp "$APPDIR/csm-thesis.desktop" "$APPDIR/usr/share/applications/csm-thesis.desktop"
+
+          # Placeholder icon (no branded icon exists in the repo yet) -
+          # linuxdeploy requires one to be present to build the AppImage.
+          convert -size 256x256 xc:'#1b1f2a' -gravity center -pointsize 48 \
+            -fill white -font DejaVu-Sans-Bold -annotate +0+0 'CSM' \
+            "$APPDIR/csm-thesis.png"
+          cp "$APPDIR/csm-thesis.png" "$APPDIR/usr/share/icons/hicolor/256x256/apps/csm-thesis.png"
+
+      - name: Download linuxdeploy
+        run: |
+          curl -fsSLo linuxdeploy-x86_64.AppImage \
+            https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          chmod +x linuxdeploy-x86_64.AppImage
+
+      # APPIMAGE_EXTRACT_AND_RUN avoids needing FUSE on the runner (GitHub-
+      # hosted runners don't have it set up for unprivileged AppImage
+      # mounting); it also propagates to the appimagetool subprocess that
+      # linuxdeploy spawns internally for --output appimage.
+      - name: Build AppImage
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: "1"
+          OUTPUT: CSM_thesis-linux-x86_64.AppImage
+        run: |
+          ./linuxdeploy-x86_64.AppImage \
+            --appdir AppDir \
+            --executable AppDir/usr/bin/CSM_thesis \
+            --desktop-file AppDir/csm-thesis.desktop \
+            --icon-file AppDir/csm-thesis.png \
+            --output appimage
+          ls -la *.AppImage
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CSM_thesis-linux-x86_64
+          path: CSM_thesis-linux-x86_64.AppImage
+
+      - name: Attach to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.event.release.tag_name || inputs.tag }}"
+          gh release upload "$TAG" CSM_thesis-linux-x86_64.AppImage \
+            --clobber --repo "${{ github.repository }}"

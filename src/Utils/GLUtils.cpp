@@ -7,6 +7,7 @@
 #include <regex>
 #include <set>
 
+#include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 
 #include "Log.h"
@@ -15,6 +16,36 @@
 #pragma message(__FILE__ "("  ": warning: PROJECT_ROOT is not defined! Fallback route: ./")
 #define PROJECT_ROOT "./"
 #endif
+
+const std::filesystem::path& GetExecutableDir() {
+    static const std::filesystem::path exeDir = [] {
+        // SDL3's SDL_GetBasePath() returns an internally-cached string;
+        // unlike SDL2, the caller must not free it.
+        const char* base = SDL_GetBasePath();
+        return base ? std::filesystem::path(base) : std::filesystem::path();
+    }();
+    return exeDir;
+}
+
+// PROJECT_ROOT is an absolute path baked in at compile time (the dev
+// machine's source tree) so that resources are found no matter which
+// build/*/Config/ folder the .exe happens to run from during development.
+// That same absolute path is meaningless once the .exe is copied to another
+// machine, so a distributed build first looks for resources next to the
+// running .exe (mirroring the same relative "src/Shaders/...",
+// "Assets/..." paths already used everywhere in the codebase) and only
+// falls back to PROJECT_ROOT if that lookup misses -- which keeps normal
+// dev builds working exactly as before.
+std::filesystem::path ResolveResourcePath(const std::filesystem::path& fileName) {
+    const std::filesystem::path& exeDir = GetExecutableDir();
+
+    if (!exeDir.empty()) {
+        std::filesystem::path candidate = exeDir / fileName;
+        if (std::filesystem::exists(candidate))
+            return candidate;
+    }
+    return std::filesystem::path(PROJECT_ROOT) / fileName;
+}
 
 ///////////////////////////
 // --- SHADER LOADER --- //
@@ -106,7 +137,7 @@ static void preprocessShaderCode(std::string& shaderCode, const std::filesystem:
 
 GLuint AttachShader(const GLuint programID, GLenum shaderType, const std::filesystem::path& fileName) {
 
-    std::filesystem::path fullPath = std::filesystem::path(PROJECT_ROOT) / fileName;
+    std::filesystem::path fullPath = ResolveResourcePath(fileName);
 
     LOG("[GLUtils] Loading shader: ", fullPath.generic_string());
 
@@ -126,7 +157,7 @@ GLuint AttachShaderWithDefines(const GLuint programID, GLenum shaderType,
     if (defines.empty())
         return AttachShader(programID, shaderType, fileName);
 
-    std::filesystem::path fullPath = std::filesystem::path(PROJECT_ROOT) / fileName;
+    std::filesystem::path fullPath = ResolveResourcePath(fileName);
 
     LOG("[GLUtils] Loading shader (with defines): ", fullPath.generic_string());
 
@@ -249,7 +280,7 @@ GLsizei NumberOfMIPLevels( const ImageRGBA& image )
 }
 
 [[nodiscard]] ImageRGBA ImageFromFile(const std::filesystem::path& fileName, bool needsFlip) {
-    const std::filesystem::path fullPath = std::filesystem::path(PROJECT_ROOT) / fileName;
+    const std::filesystem::path fullPath = ResolveResourcePath(fileName);
     LOG("[GLUtils] Loading texture: ", fullPath.generic_string());
 
     ImageRGBA img;

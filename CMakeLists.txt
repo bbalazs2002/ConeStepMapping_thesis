@@ -49,12 +49,19 @@ target_link_libraries(CSM_lib PUBLIC
 add_executable(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
 target_link_libraries(${PROJECT_NAME} PRIVATE CSM_lib)
 
-# 5. Copy all runtime DLLs next to the executable after each build (Windows).
-#    Ensures the correct vcpkg-built DLLs
+# 5. Copy all runtime DLLs next to the executable after each build (Windows):
+#    both the vcpkg-built DLLs and the MSVC redistributable DLLs
+#    (msvcp140.dll, vcruntime140.dll, ...). Without the latter, the built
+#    .exe only runs on machines that already have the matching Visual C++
+#    Redistributable installed
 if(WIN32)
+    set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
+    include(InstallRequiredSystemLibraries)
+
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_RUNTIME_DLLS:${PROJECT_NAME}>
+            ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
             $<TARGET_FILE_DIR:${PROJECT_NAME}>
         COMMAND_EXPAND_LISTS
     )

@@ -3,6 +3,8 @@
 out/
 build/
 build-coverage/
+build-release/
+dist/
 bin/
 lib/
 

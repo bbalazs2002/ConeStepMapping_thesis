@@ -3,6 +3,8 @@
 #include "Headers/Renderer/DebugRenderer.h"
 #include "Headers/RendererVisitor/OpenGLRendererVisitor.h"
 #include "Utils/SDL_GLDebugMessageCallback.h"
+#include "Utils/GLUtils.hpp"
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <ctime>
@@ -119,13 +121,16 @@ void MyApp::ExportDebugLog()
             stepData.data());
     }
 
-    // -- Build timestamped filename --------------------------------------------
+    // -- Build timestamped filename ---------------------------------------------
+    // Always written next to the .exe (not the current working directory,
+    // which depends on how the program was launched).
     std::time_t now = std::time(nullptr);
     char timeBuf[32];
     std::strftime(timeBuf, sizeof(timeBuf), "%Y%m%d_%H%M%S", std::localtime(&now));
     std::string filename = std::string("debug_") + timeBuf + ".log";
+    std::filesystem::path filePath = GetExecutableDir() / filename;
 
-    std::ofstream f(filename);
+    std::ofstream f(filePath);
     if (!f.is_open()) return;
 
     f << std::fixed << std::setprecision(6);

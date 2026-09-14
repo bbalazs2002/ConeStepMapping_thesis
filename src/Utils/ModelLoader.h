@@ -119,7 +119,7 @@ public:
     static inline std::filesystem::path RelToAbsPath(const std::filesystem::path& path) {
         return path.is_absolute() ?
             path :
-            std::filesystem::path(PROJECT_ROOT) / path;
+            ResolveResourcePath(path);
     }
     static inline std::filesystem::path ResolveMTLSearchPath(const std::filesystem::path& objPath, const std::filesystem::path& mtlSearchPath)
     {

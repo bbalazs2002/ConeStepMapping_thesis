@@ -152,6 +152,21 @@ struct OGLObject
 
 // Segéd függvények
 
+// Directory containing the running executable (trailing separator, cached
+// after the first call). Empty if SDL could not determine it. Use this
+// directly for files that should always sit next to the .exe (e.g. an
+// exported log), and ResolveResourcePath() below for bundled resources
+// that also need to keep working from a dev build's build/*/Config/ folder.
+[[nodiscard]] const std::filesystem::path& GetExecutableDir();
+
+// Resolves a resource-relative path (a shader, texture, or model file):
+// looks next to the running executable first (so a redistributed build
+// finds its own bundled copies), and only falls back to the compile-time
+// PROJECT_ROOT if that lookup misses (dev builds, where the .exe lives
+// under build/*/Config/, several directories away from the real source
+// tree). Shared by GLUtils' own shader/texture loading and by ModelLoader.
+[[nodiscard]] std::filesystem::path ResolveResourcePath( const std::filesystem::path& fileName );
+
 GLuint AttachShader( const GLuint programID, GLenum shaderType, const std::filesystem::path& _fileName );
 GLuint AttachShaderCode( const GLuint programID, GLenum shaderType, std::string_view shaderCode );
 
