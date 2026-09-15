@@ -34,8 +34,8 @@ std::shared_ptr<RayMarchedModel> MyApp::CreateDefaultRayMarchedModel(const std::
 
     model->AddMesh(std::move(mesh));
 
-    auto heightmap = m_textureManager.GetOrLoad(m_heightMaps[m_activeHeightmapIdx], false);
-    model->SetHeightmap(heightmap, m_conemapGenerator.get());
+    auto heightmap = m_textureManager.GetOrLoad(m_heightmapPathBuf, false);
+    model->SetHeightmap(heightmap, m_conemapGenerator.get(), m_heightmapPathBuf);
 
     return model;
 }

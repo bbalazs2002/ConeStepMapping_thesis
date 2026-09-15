@@ -159,9 +159,9 @@ int main(int argc, char* args[]) {
 
 
     // Optional: Load a custom font for larger text
-    // ImFontConfig fontConfig;
-    // fontConfig.SizePixels = 26.0f; // default is 13.0f
-    // io.Fonts->AddFontDefault(&fontConfig);
+    ImFontConfig fontConfig;
+    fontConfig.SizePixels = 26.0f; // default is 13.0f
+    io.Fonts->AddFontDefault(&fontConfig);
 
     // --- 6. Main Application Loop ---
     {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <vector>
 #include <glm/glm.hpp>
 #include <GL/glew.h>
@@ -20,9 +21,11 @@ public:
 
     void SetTechnique(std::shared_ptr<IRayMarchingTechnique> t);
     // Generates the conemap from heightmap via gen and stores the result.
-    // The heightmap itself is not retained — only the conemap is kept.
-    // If gen == nullptr, m_conemap is left unchanged.
-    void SetHeightmap(std::shared_ptr<Texture> heightmap, ConemapGenerator* gen);
+    // The heightmap texture itself is not retained — only the conemap and the
+    // path it came from (for GetHeightmapPath(), e.g. debug export) are kept.
+    // If gen == nullptr, neither is updated. path defaults to empty for
+    // callers (e.g. tests) that don't care about GetHeightmapPath().
+    void SetHeightmap(std::shared_ptr<Texture> heightmap, ConemapGenerator* gen, std::string path = {});
 
     void AddMesh(std::shared_ptr<Mesh> mesh) { m_meshes.push_back(std::move(mesh)); }
     const std::vector<std::shared_ptr<Mesh>>& GetMeshes() const { return m_meshes; }
@@ -30,6 +33,7 @@ public:
     // (+,!) — no public setter; use SetHeightmap() / SetTechnique()
     const std::shared_ptr<Texture>&               GetConemap()   const { return m_conemap; }
     const std::shared_ptr<IRayMarchingTechnique>& GetTechnique() const { return m_technique; }
+    const std::string&                            GetHeightmapPath() const { return m_heightmapPath; }
 
     GLuint GetSelectedProgramID() const     { return m_selectedProgramID; }
     void   SetSelectedProgram(GLuint id)    { m_selectedProgramID = id; }
@@ -68,6 +72,7 @@ private:
     GLuint m_selectedProgramID = 0;
 
     std::shared_ptr<Texture>               m_conemap;
+    std::string                            m_heightmapPath;
     std::shared_ptr<IRayMarchingTechnique> m_technique;
     std::vector<std::shared_ptr<Mesh>>     m_meshes;
 };

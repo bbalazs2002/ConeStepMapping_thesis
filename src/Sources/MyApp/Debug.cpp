@@ -2,6 +2,7 @@
 
 #include "Headers/Renderer/DebugRenderer.h"
 #include "Headers/RendererVisitor/OpenGLRendererVisitor.h"
+#include "Headers/Model/RayMarchedModel.h"
 #include "Utils/SDL_GLDebugMessageCallback.h"
 #include "Utils/GLUtils.hpp"
 #include <filesystem>
@@ -146,7 +147,6 @@ void MyApp::ExportDebugLog()
     else
         f << "# Primitive: " << primID << "\n";
 
-    f << "# Heightmap: " << m_heightMaps[m_activeHeightmapIdx] << "\n";
     f << "# Steps:  " << stepCount << "\n";
     f << "# Hit:    " << (wasHit ? "YES" : "NO");
     if (wasHit)
@@ -159,6 +159,30 @@ void MyApp::ExportDebugLog()
         if (flags & 2) f << " exited_prism";
         if (flags & 4) f << " converged";
         f << "\n";
+    }
+
+    // -- RayMarched models in the scene -----------------------------------------
+    // The debug SSBOs above are scene-wide (keyed by a raw gl_PrimitiveID, which
+    // is only unique WITHIN a single draw call), so there is no reliable way to
+    // attribute the captured data to one specific model when the scene has more
+    // than one RayMarchedModel. Listing every model's own heightmap here, with
+    // the currently GUI-selected one marked, is the closest honest substitute —
+    // it does not claim the captured primitive necessarily belongs to that model.
+    f << "#\n";
+    f << "# [RayMarched models in scene]\n";
+    {
+        const auto& sceneObjects = m_sceneManager.GetSceneObjects();
+        bool anyRM = false;
+        for (int i = 0; i < (int)sceneObjects.size(); ++i) {
+            auto rm = std::dynamic_pointer_cast<RayMarchedModel>(sceneObjects[i]);
+            if (!rm) continue;
+            anyRM = true;
+            f << "#   " << rm->GetName() << "  heightmap="
+              << (rm->GetHeightmapPath().empty() ? "(none)" : rm->GetHeightmapPath())
+              << (i == m_selectedIndex ? "  [selected]" : "") << "\n";
+        }
+        if (!anyRM)
+            f << "#   (none)\n";
     }
 
     // -- Primitive vertices ----------------------------------------------------

@@ -14,5 +14,5 @@ SetHeightmapCommand::SetHeightmapCommand(std::shared_ptr<RayMarchedModel> surfac
 void SetHeightmapCommand::Execute()
 {
     auto texture = m_textureManager.GetOrLoad(m_path);
-    m_surface->SetHeightmap(std::move(texture), m_generator);
+    m_surface->SetHeightmap(std::move(texture), m_generator, m_path);
 }

@@ -97,10 +97,10 @@ protected:
     float      m_elapsedTime = 0.f;
 
     // GUI state
-    bool m_showAxes           = true;
-    int  m_selectedIndex      = -1;
-    int  m_activeHeightmapIdx = 0;
-    bool m_objLoadFailed      = false;
+    bool m_showAxes            = true;
+    int  m_selectedIndex       = -1;
+    bool m_objLoadFailed       = false;
+    bool m_heightmapLoadFailed = false;
 
     // Global light direction (applied to all RayMarchedModels)
     glm::vec3 m_lightDir = glm::vec3(0.0f, 5.0f, 0.0f);
@@ -111,22 +111,14 @@ protected:
     // .obj path input buffer for Add .obj Model
     char m_objPathBuf[512] = {};
 
+    // Heightmap path input buffer for the Global panel (PNG/JPEG only,
+    // validated in RenderGUI); initialized to a default heightmap in Init,
+    // and reused as the default heightmap for newly created RayMarched
+    // models.
+    char m_heightmapPathBuf[256] = {};
+
     // Conemap sampling permutation state
     bool m_interpHeight = true;   // true = bilinear height (default)
     bool m_interpCone   = false;  // true = bilinear cone tangent
     bool m_conservative = false;  // true = conservative conemap generation
-
-    const std::vector<std::string> m_heightMaps{
-        "Assets/HMaps/heightmap_dot.png",
-        "Assets/HMaps/spikes.png",
-        "Assets/HMaps/hemisphere.png",
-        "Assets/HMaps/cone.jpg",
-        "Assets/HMaps/heightmap-terrain.png",
-        "Assets/HMaps/heightmap-terrain2.png",
-        "Assets/HMaps/heightmap-river.png",
-        "Assets/HMaps/heightmap-pyramid.jpg",
-        "Assets/HMaps/heightmap-geometries.png",
-        "Assets/HMaps/Earth-heightmap-small.png",
-        "Assets/HMaps/desert-heightmap.jpg",
-    };
 };

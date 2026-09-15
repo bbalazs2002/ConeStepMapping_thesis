@@ -26,6 +26,7 @@ bool MyApp::Init()
     glCullFace(GL_BACK);
 
     std::strncpy(m_skyboxPathBuf, "Assets/sky1", sizeof(m_skyboxPathBuf) - 1);
+    std::strncpy(m_heightmapPathBuf, "Assets/HMaps/heightmap_dot.png", sizeof(m_heightmapPathBuf) - 1);
 
     // 1. Shaders --------------------------------------------------------------
 
@@ -163,8 +164,8 @@ bool MyApp::Init()
 
     surface->AddMesh(std::move(planeMeshObj));
 
-    auto heightmap = m_textureManager.GetOrLoad("Assets/HMaps/heightmap_dot.png", false);
-    surface->SetHeightmap(heightmap, m_conemapGenerator.get());
+    auto heightmap = m_textureManager.GetOrLoad(m_heightmapPathBuf, false);
+    surface->SetHeightmap(heightmap, m_conemapGenerator.get(), m_heightmapPathBuf);
 
     m_sceneManager.Add(std::move(surface));
 

@@ -24,13 +24,14 @@ void RayMarchedModel::SetTechnique(std::shared_ptr<IRayMarchingTechnique> t)
     m_technique = std::move(t);
 }
 
-void RayMarchedModel::SetHeightmap(std::shared_ptr<Texture> heightmap, ConemapGenerator* gen)
+void RayMarchedModel::SetHeightmap(std::shared_ptr<Texture> heightmap, ConemapGenerator* gen, std::string path)
 {
     if (gen == nullptr) {
         LOG_ERROR("RayMarchedModel '", m_name, "': SetHeightmap called with gen == nullptr — conemap not generated");
         return;
     }
     m_conemap = gen->Generate(*heightmap);
+    m_heightmapPath = std::move(path);
 }
 
 void RayMarchedModel::AcceptGUIVisitor(IGUIVisitor& v)

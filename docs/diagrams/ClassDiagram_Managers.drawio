@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" version="29.6.6">
   <diagram id="eZ3DBZCcoTpwNlvO6_q3" name="Oldal-1">
-    <mxGraphModel dx="1783" dy="2263" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0" adaptiveColors="auto">
+    <mxGraphModel dx="2037" dy="2419" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0" adaptiveColors="auto">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -46,7 +46,7 @@
           <mxGeometry height="22" width="340" y="144" as="geometry" />
         </mxCell>
         <mxCell id="scm_p" parent="pkg_mgr" style="swimlane;fontStyle=1;startSize=26;childLayout=stackLayout;horizontal=1;fillColor=#d5e8d4;strokeColor=#82b366;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=1;collapsible=0;marginBottom=0;portConstraint=eastwest;" value="SceneManager" vertex="1">
-          <mxGeometry height="254" width="340" x="15" y="206" as="geometry" />
+          <mxGeometry height="276" width="340" x="15" y="206" as="geometry" />
         </mxCell>
         <mxCell id="scm_a0" parent="scm_p" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="..." vertex="1">
           <mxGeometry height="22" width="340" y="26" as="geometry" />
@@ -63,23 +63,26 @@
         <mxCell id="scm_m2" parent="scm_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ Update(info : SUpdateInfo) : void" vertex="1">
           <mxGeometry height="22" width="340" y="100" as="geometry" />
         </mxCell>
-        <mxCell id="scm_m3" parent="scm_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ Render(v : IModelRendererVisitor&amp;) : void" vertex="1">
+        <mxCell id="2QQoJO1PFbDSMdLVFNHl-1" parent="scm_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ Render(v : IModelRendererVisitor&amp;) : void" vertex="1">
           <mxGeometry height="22" width="340" y="122" as="geometry" />
         </mxCell>
-        <mxCell id="scm_m4" parent="scm_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ RenderGUI(v : IGUIVisitor&amp;) : void" vertex="1">
+        <mxCell id="scm_m3" parent="scm_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ Render(v : IModelRendererVisitor&amp;) : void" vertex="1">
           <mxGeometry height="22" width="340" y="144" as="geometry" />
         </mxCell>
-        <mxCell id="scm_m5" parent="scm_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ GetSceneObjects() : const vector&lt;shared_ptr&lt;ISceneObject&gt;&gt;&amp;" vertex="1">
+        <mxCell id="scm_m4" parent="scm_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ RenderGUI(v : IGUIVisitor&amp;) : void" vertex="1">
           <mxGeometry height="22" width="340" y="166" as="geometry" />
         </mxCell>
-        <mxCell id="scm_m6" parent="scm_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ SetSelected(selected : const ISceneObject*) : void" vertex="1">
+        <mxCell id="scm_m5" parent="scm_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ GetSceneObjects() : const vector&lt;shared_ptr&lt;ISceneObject&gt;&gt;&amp;" vertex="1">
           <mxGeometry height="22" width="340" y="188" as="geometry" />
         </mxCell>
-        <mxCell id="scm_m7" parent="scm_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ GetSelected() : const ISceneObject*" vertex="1">
+        <mxCell id="scm_m6" parent="scm_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ SetSelected(selected : const ISceneObject*) : void" vertex="1">
           <mxGeometry height="22" width="340" y="210" as="geometry" />
         </mxCell>
-        <mxCell id="scm_m8" parent="scm_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ Clear() : void" vertex="1">
+        <mxCell id="scm_m7" parent="scm_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ GetSelected() : const ISceneObject*" vertex="1">
           <mxGeometry height="22" width="340" y="232" as="geometry" />
+        </mxCell>
+        <mxCell id="scm_m8" parent="scm_p" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ Clear() : void" vertex="1">
+          <mxGeometry height="22" width="340" y="254" as="geometry" />
         </mxCell>
         <mxCell id="mm_p" parent="pkg_mgr" style="swimlane;fontStyle=1;startSize=26;childLayout=stackLayout;horizontal=1;fillColor=#d5e8d4;strokeColor=#82b366;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=1;collapsible=0;marginBottom=0;portConstraint=eastwest;" value="MaterialManager" vertex="1">
           <mxGeometry height="100" width="340" x="15" y="470" as="geometry" />
@@ -258,7 +261,7 @@
         <mxCell id="e_scm_iscene" edge="1" parent="1" source="scm_m3" style="edgeStyle=orthogonalEdgeStyle;startArrow=diamond;startFill=0;startSize=15;endArrow=none;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="iscene_s">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="200" y="360" />
+              <mxPoint x="200" y="381" />
               <mxPoint x="200" y="10" />
               <mxPoint x="755" y="10" />
             </Array>
@@ -272,7 +275,7 @@
         <mxCell id="e_scm_iupd" edge="1" parent="1" source="scm_m3" style="edgeStyle=orthogonalEdgeStyle;startArrow=diamond;startFill=0;startSize=15;endArrow=none;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="iupd_s">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="200" y="360" />
+              <mxPoint x="200" y="381" />
               <mxPoint x="200" y="10" />
               <mxPoint x="535" y="10" />
             </Array>
@@ -286,7 +289,7 @@
         <mxCell id="e_scm_imrv" edge="1" parent="1" source="scm_m3" style="edgeStyle=orthogonalEdgeStyle;startArrow=diamond;startFill=0;startSize=15;endArrow=none;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="imrv_s">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="200" y="359" />
+              <mxPoint x="200" y="381" />
               <mxPoint x="200" y="10" />
               <mxPoint x="315" y="10" />
             </Array>
@@ -334,7 +337,7 @@
         <mxCell id="QbAoDjRHvSpaOIH6NXRk-1" edge="1" parent="1" source="scm_m3" style="edgeStyle=orthogonalEdgeStyle;startArrow=diamond;startFill=0;startSize=15;endArrow=none;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" target="iguiv_s">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="200" y="359" />
+              <mxPoint x="200" y="381" />
               <mxPoint x="200" y="10" />
               <mxPoint x="975" y="10" />
             </Array>

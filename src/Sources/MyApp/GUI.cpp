@@ -3,7 +3,10 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <algorithm>
 #include <array>
+#include <cctype>
+#include <cstring>
 #include <filesystem>
 #include "Headers/Model/RayMarchedModel.h"
 #include "Headers/Renderer/SkyboxRenderer.h"
@@ -114,6 +117,18 @@ void MyApp::RenderGUI()
             if (ImGui::Selectable(models[i]->GetName().c_str(), selected)) {
                 m_selectedIndex = i;
                 m_commandQueue->Push(std::make_unique<SetSelectedCommand>(m_sceneManager, models[i]));
+
+                // Sync the Heightmap path field to whatever this model
+                // actually has loaded — it's a single shared buffer, not
+                // per-model, so without this it would keep showing
+                // whichever model's path was last typed/loaded, even after
+                // switching selection to a model with a different heightmap.
+                m_heightmapLoadFailed = false;
+                if (auto rmSel = std::dynamic_pointer_cast<RayMarchedModel>(models[i])) {
+                    std::strncpy(m_heightmapPathBuf, rmSel->GetHeightmapPath().c_str(),
+                        sizeof(m_heightmapPathBuf) - 1);
+                    m_heightmapPathBuf[sizeof(m_heightmapPathBuf) - 1] = '\0';
+                }
             }
             ImGui::PopID();
         }
@@ -191,17 +206,31 @@ void MyApp::RenderGUI()
                     ImGui::EndCombo();
                 }
 
-                if (ImGui::BeginCombo("Heightmap", m_heightMaps[m_activeHeightmapIdx].c_str())) {
-                    for (int i = 0; i < (int)m_heightMaps.size(); ++i) {
-                        if (ImGui::Selectable(m_heightMaps[i].c_str(), m_activeHeightmapIdx == i)) {
-                            m_activeHeightmapIdx = i;
+                ImGui::TextUnformatted("Heightmap path (.png / .jpg):");
+                ImGui::SetNextItemWidth(-1.f);
+                ImGui::InputText("##heightmappath", m_heightmapPathBuf, sizeof(m_heightmapPathBuf));
+                if (ImGui::Button("Load Heightmap", ImVec2(-1, 0))) {
+                    m_heightmapLoadFailed = false;
+
+                    std::filesystem::path hmPath(m_heightmapPathBuf);
+                    std::string ext = hmPath.extension().string();
+                    std::transform(ext.begin(), ext.end(), ext.begin(),
+                        [](unsigned char c) { return std::tolower(c); });
+
+                    if (ext == ".png" || ext == ".jpg" || ext == ".jpeg") {
+                        auto tex = m_textureManager.GetOrLoad(hmPath, false);
+                        if (tex->IsValid())
                             m_commandQueue->Push(std::make_unique<SetHeightmapCommand>(
-                                rm, m_textureManager, m_heightMaps[i], m_conemapGenerator.get()
+                                rm, m_textureManager, hmPath.string(), m_conemapGenerator.get()
                             ));
-                        }
+                        else
+                            m_heightmapLoadFailed = true;
+                    } else {
+                        m_heightmapLoadFailed = true;
                     }
-                    ImGui::EndCombo();
                 }
+                if (m_heightmapLoadFailed)
+                    ImGui::TextColored(ImVec4(1.f, 0.35f, 0.35f, 1.f), "Failed to load (PNG/JPEG only)");
 
                 // -- Conemap section -------------------------------------------
                 if (ImGui::TreeNode("Conemap")) {
@@ -224,17 +253,21 @@ void MyApp::RenderGUI()
                     if (ImGui::Button("Regenerate")) {
                         m_conemapGenerator->SetConservative(m_conservative);
                         m_commandQueue->Push(std::make_unique<SetHeightmapCommand>(
-                            rm, m_textureManager, m_heightMaps[m_activeHeightmapIdx],
+                            rm, m_textureManager, std::string(m_heightmapPathBuf),
                             m_conemapGenerator.get()));
                     }
 
-                    // Conemap preview
-                    GLuint previewID = m_conemapGenerator->GetLastConemapID();
-                    if (previewID != 0) {
+                    // Conemap preview — read from the SELECTED model's own
+                    // conemap (not m_conemapGenerator->GetLastConemapID(),
+                    // which only ever reflects whichever model's conemap was
+                    // generated most recently, regardless of what's selected
+                    // right now).
+                    const auto& conemap = rm->GetConemap();
+                    if (conemap && conemap->IsValid()) {
                         ImGui::Spacing();
                         ImGui::TextUnformatted("Preview (r=height, g=cone tan):");
                         float w = ImGui::GetContentRegionAvail().x;
-                        ImGui::Image(static_cast<ImTextureID>(previewID), ImVec2(w, w));
+                        ImGui::Image(static_cast<ImTextureID>(conemap->GetID()), ImVec2(w, w));
                     }
 
                     ImGui::TreePop();
