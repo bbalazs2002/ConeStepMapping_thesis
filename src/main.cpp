@@ -110,7 +110,7 @@ int main(int argc, char* args[]) {
     }
 
     SDL_GL_SetSwapInterval(1); // Enable VSync
-    
+
     // --- 4. Initialize GLEW ---
     // glewExperimental is required for core-profile contexts: GLEW's classic
     // extension detection queries glGetString(GL_EXTENSIONS), which core
@@ -120,10 +120,21 @@ int main(int argc, char* args[]) {
     // that this never surfaced there.
     glewExperimental = GL_TRUE;
     GLenum glewErr = glewInit();
-    if (glewErr != GLEW_OK) {
+    // GLEW_ERROR_NO_GLX_DISPLAY is a known false alarm on Linux: glewInit()
+    // unconditionally probes GLX (glXGetCurrentDisplay()), but if SDL
+    // created the context via EGL instead (e.g. a Wayland session, which
+    // this app's SDL3 build supports), there's no GLX involved at all - the
+    // probe fails even though the context and every core GL function
+    // pointer GLEW already loaded (via glGetString/glGetStringi, unrelated
+    // to GLX) are perfectly valid. Any other error code is a real failure.
+    if (glewErr != GLEW_OK && glewErr != GLEW_ERROR_NO_GLX_DISPLAY) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "[GLEW] Initialization failed: %s",
             reinterpret_cast<const char*>(glewGetErrorString(glewErr)));
         return 1;
+    }
+    if (glewErr == GLEW_ERROR_NO_GLX_DISPLAY) {
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+            "[GLEW] No GLX display (expected when the context is EGL-backed, e.g. Wayland) - continuing.");
     }
 
     // Log OpenGL version info
