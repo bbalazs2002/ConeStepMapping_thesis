@@ -110,10 +110,19 @@ int main(int argc, char* args[]) {
     }
 
     SDL_GL_SetSwapInterval(1); // Enable VSync
-
+    
     // --- 4. Initialize GLEW ---
-    if (glewInit() != GLEW_OK) {
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "[GLEW] Initialization failed.");
+    // glewExperimental is required for core-profile contexts: GLEW's classic
+    // extension detection queries glGetString(GL_EXTENSIONS), which core
+    // profiles don't support (only glGetStringi is valid there), so
+    // glewInit() can fail even with a perfectly valid context. Common on
+    // Linux/Mesa; Windows' proprietary drivers tend to be lenient enough
+    // that this never surfaced there.
+    glewExperimental = GL_TRUE;
+    GLenum glewErr = glewInit();
+    if (glewErr != GLEW_OK) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "[GLEW] Initialization failed: %s",
+            reinterpret_cast<const char*>(glewGetErrorString(glewErr)));
         return 1;
     }
 
