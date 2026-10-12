@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 #include "Headers/Model/ModelBase.h"
 
 ModelBase::ModelBase(std::string name)

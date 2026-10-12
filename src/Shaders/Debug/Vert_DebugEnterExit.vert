@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 #version 430 core
 
 // 16 vertices, GL_LINES: 2 crosses × 4 lines × 2 vertices

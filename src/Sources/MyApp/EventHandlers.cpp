@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 #include "MyApp.h"
 
 void MyApp::KeyboardDown(const SDL_KeyboardEvent& key)

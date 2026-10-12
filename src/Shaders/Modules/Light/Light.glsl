@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 struct LightCalculateContributionParams {
     Light light;
     vec3 position;      // fragment position

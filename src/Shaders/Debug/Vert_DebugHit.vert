@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 #version 430 core
 
 // 8 vertices, GL_LINES: 1 cross at the hit point

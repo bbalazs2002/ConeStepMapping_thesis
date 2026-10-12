@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 // Custom GTest main: initializes SDL3 + OpenGL 4.5 context before running any tests,
 // and tears it down cleanly afterwards.
 // All test files in the GL suite can assume a valid GL context from the first TEST().

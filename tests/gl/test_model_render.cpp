@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 #include <gtest/gtest.h>
 #include "Headers/Manager/ShaderManager.h"
 #include "Headers/RendererVisitor/OpenGLRendererVisitor.h"

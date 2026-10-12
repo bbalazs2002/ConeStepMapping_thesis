@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 #include "Headers/Manager/TextureManager.h"
 #include "Headers/Texture/Texture.h"
 

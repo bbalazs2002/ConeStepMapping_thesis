@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 struct MaterialUniforms {
     vec4 diffuseColorTex;           // xyz: diffuse color, w: has diffuse texture
     vec4 specularColorTex;          // xyz: specular color, w: has specular texture

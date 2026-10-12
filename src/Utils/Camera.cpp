@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 #include "Camera.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <math.h>

@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 #include <gtest/gtest.h>
 #include "Headers/Transform/Transform.h"
 #include <glm/gtc/matrix_transform.hpp>

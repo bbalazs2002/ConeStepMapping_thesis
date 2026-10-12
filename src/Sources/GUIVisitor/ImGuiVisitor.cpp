@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 #include "Headers/GUIVisitor/ImGuiVisitor.h"
 #include "Interfaces/ICommandQueue.h"
 #include "Headers/Model/ModelBase.h"

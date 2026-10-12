@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 #version 430 core
 
 layout (location = 0 ) in vec3 vs_in_pos;

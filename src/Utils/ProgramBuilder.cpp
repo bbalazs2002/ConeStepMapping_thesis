@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 #include "ProgramBuilder.h"
 #include "GLUtils.hpp"
 #include <SDL3/SDL_log.h>

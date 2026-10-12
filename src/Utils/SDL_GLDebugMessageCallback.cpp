@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 // This is free and unencumbered software released into the public domain.
 // 
 // Anyone is free to copy, modify, publish, use, compile, sell, or distribute

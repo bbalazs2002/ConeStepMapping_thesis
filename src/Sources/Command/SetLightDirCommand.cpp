@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 #include "Headers/Command/SetLightDirCommand.h"
 #include "Headers/Manager/SceneManager.h"
 #include "Headers/Model/RayMarchedModel.h"

@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 #include "Headers/RayMarching/LinearSearch.h"
 #include "Headers/Model/RayMarchedModel.h"
 #include "Headers/Texture/Texture.h"

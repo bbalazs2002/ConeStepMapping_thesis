@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 #version 430 core
 
 // debugVisualSSBO    (binding 0): slot[1..4] = invM (tex->scene)

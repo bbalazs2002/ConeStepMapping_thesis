@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 #include "Headers/Model/Mesh.h"
 #include "Headers/Material/Material.h"
 #include "Utils/Log.h"

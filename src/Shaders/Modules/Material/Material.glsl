@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 float[13] MaterialPrepare(vec2 texCoord) {
     // --- Material Preparation (Texture Sampling) ---
     vec3 diffuseColor = materialData.diffuseColorTex.xyz;

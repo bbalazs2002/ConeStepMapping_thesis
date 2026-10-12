@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 #include <memory>
 
 #include "Headers/Command/CommandQueue.h"

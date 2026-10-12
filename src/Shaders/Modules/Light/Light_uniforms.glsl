@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 #ifndef LIGHT_LIGHTS_SSBO
 	#error "LIGHT_LIGHTS_SSBO macro is undefined!"
 #endif

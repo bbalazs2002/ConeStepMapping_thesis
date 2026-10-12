@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 #include "Headers/Renderer/DebugRenderer.h"
 #include "Headers/Debug/RayMarchDebugState.h"
 #include "Utils/ICamera.h"

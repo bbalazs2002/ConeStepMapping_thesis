@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 // Shared ray marching types, helpers, and intersection algorithms.
 // Included by the fragment shaders and (for visual debug) by the geometry shader.
 //

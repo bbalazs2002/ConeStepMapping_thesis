@@ -1,3 +1,5 @@
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
+
 #version 430 core
 
 // stepCount instances × 3 vertices, GL_LINE_STRIP (indirect instanced draw)
