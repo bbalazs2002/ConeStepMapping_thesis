@@ -11,13 +11,13 @@
 // Path utilities
 // -----------------------------------------------------------------------
 
-// UT-18: relative path -> absolute (prepends PROJECT_ROOT)
+// relative path -> absolute (prepends PROJECT_ROOT)
 TEST(ModelLoader_Path, RelToAbsPathMakesAbsolute) {
     auto result = ModelLoader::RelToAbsPath("Assets/test.obj");
     EXPECT_TRUE(result.is_absolute());
 }
 
-// UT-19: absolute path is returned unchanged
+// absolute path is returned unchanged
 TEST(ModelLoader_Path, RelToAbsPathAbsolutePassthrough) {
     std::filesystem::path abs = std::filesystem::path(PROJECT_ROOT) / "Assets" / "test.obj";
     auto result = ModelLoader::RelToAbsPath(abs);
@@ -25,7 +25,7 @@ TEST(ModelLoader_Path, RelToAbsPathAbsolutePassthrough) {
               std::filesystem::weakly_canonical(abs));
 }
 
-// UT-20: relative texture name + texFolder -> absolute path containing folder
+// relative texture name + texFolder -> absolute path containing folder
 TEST(ModelLoader_Path, ResolveTexturePathRelative) {
     std::filesystem::path texFolder =
         std::filesystem::path(PROJECT_ROOT) / "Assets" / "Fire_Extinguisher";
@@ -34,7 +34,7 @@ TEST(ModelLoader_Path, ResolveTexturePathRelative) {
     EXPECT_TRUE(result.string().find("Fire_Extinguisher") != std::string::npos);
 }
 
-// UT-21: absolute texture path is returned unchanged
+// absolute texture path is returned unchanged
 TEST(ModelLoader_Path, ResolveTexturePathAbsolutePassthrough) {
     std::filesystem::path abs =
         std::filesystem::path(PROJECT_ROOT) / "Assets" / "HMaps" / "cone.jpg";
@@ -54,7 +54,7 @@ TEST(ModelLoader_Path, ResolveMTLSearchPathAbsolutePassthrough) {
 // MergeNormals
 // -----------------------------------------------------------------------
 
-// UT-23: output size matches input
+// output size matches input
 TEST(ModelLoader_MergeNormals, OutputSizeMatchesInput) {
     std::vector<Vertex> input(6);
     for (int i = 0; i < 6; ++i) {
@@ -66,7 +66,7 @@ TEST(ModelLoader_MergeNormals, OutputSizeMatchesInput) {
     EXPECT_EQ(output.size(), input.size());
 }
 
-// UT-24: MergeNormals preserves texcoords exactly
+// MergeNormals preserves texcoords exactly
 TEST(ModelLoader_MergeNormals, PreservesTexcoords) {
     std::vector<Vertex> input(4);
     for (int i = 0; i < 4; ++i) {
@@ -81,7 +81,7 @@ TEST(ModelLoader_MergeNormals, PreservesTexcoords) {
     }
 }
 
-// UT-22: two vertices at same position get averaged+normalized merged normal
+// two vertices at same position get averaged+normalized merged normal
 TEST(ModelLoader_MergeNormals, AveragesNormalsAtSharedPosition) {
     std::vector<Vertex> input(2);
     input[0].position = { 0.f, 0.f, 0.f };
@@ -220,7 +220,7 @@ protected:
 // LoadFromOBJ — no MTL
 // -----------------------------------------------------------------------
 
-// UT-25: valid OBJ without MTL returns non-empty matMesh
+// valid OBJ without MTL returns non-empty matMesh
 TEST_F(ModelLoaderFileFixture, ValidOBJReturnsData) {
     WriteOBJ();
     auto data = ModelLoader::LoadFromOBJ<Vertex>(objPath);
@@ -244,7 +244,7 @@ TEST_F(ModelLoaderFileFixture, ValidOBJHasThreeVertices) {
     EXPECT_EQ(data.matMesh[0].mesh.vertexArray.size(), 3u);
 }
 
-// UT-26: non-existent file returns empty matMesh without throwing
+// non-existent file returns empty matMesh without throwing
 TEST(ModelLoader_Load, MissingOBJReturnsEmpty) {
     auto nonexistent = std::filesystem::temp_directory_path() / "csm_test_no_such_file.obj";
     std::filesystem::remove(nonexistent);
@@ -252,7 +252,7 @@ TEST(ModelLoader_Load, MissingOBJReturnsEmpty) {
     EXPECT_TRUE(data.matMesh.empty());
 }
 
-// UT-27: VertexMergedNorm without transformFunc throws runtime_error
+// VertexMergedNorm without transformFunc throws runtime_error
 TEST_F(ModelLoaderFileFixture, CustomVertexWithoutTransformFuncThrows) {
     WriteOBJ();
     EXPECT_THROW(

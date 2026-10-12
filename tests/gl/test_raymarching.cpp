@@ -19,15 +19,6 @@
 #include <cstring>
 #include <vector>
 
-// Previously untested: the entire RayMarching module (ConemapGenerator,
-// LinearSearch, ConeStepMapping) was 0% covered because nothing ever linked
-// a real compiled ray marching shader program. These tests compile the
-// production shaders via the real ShaderManager, exercise the CPU-side
-// wrapper classes, and — for the GPU-side ray marching algorithm itself,
-// which has no C++ surface at all — use the debug SSBOs as an observation
-// channel: render a primitive with debug capture on, then read back
-// stepCount / hit UV exactly like MyApp::ExportDebugLog() does.
-
 namespace {
 
 // Writes a small, perfectly flat 24-bit grayscale BMP heightmap (no row
@@ -78,7 +69,7 @@ std::shared_ptr<Mesh> MakeFlatQuadMesh() {
     return mesh;
 }
 
-// Mirrors MyApp::InitDebugSSBOs() layout (see docs/Debug.md / Debug.cpp).
+// Mirrors MyApp::InitDebugSSBOs() layout.
 struct DebugSSBOs {
     GLuint visual = 0, numerical = 0;
 
@@ -140,7 +131,7 @@ protected:
     }
 };
 
-} // namespace
+}
 
 // -- ConemapGenerator ----------------------------------------------------------
 

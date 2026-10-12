@@ -60,7 +60,7 @@ private:
     }
 };
 
-// UT-10: same path + same flip -> same shared_ptr (cache hit)
+// same path + same flip -> same shared_ptr (cache hit)
 TEST_F(TextureManagerFixture, CacheHitReturnsSamePointer) {
     TextureManager mgr;
     auto t1 = mgr.GetOrLoad(tex1, false);
@@ -69,7 +69,7 @@ TEST_F(TextureManagerFixture, CacheHitReturnsSamePointer) {
     EXPECT_EQ(t1.get(), t2.get());
 }
 
-// UT-11: same path, different flip -> different objects
+// same path, different flip -> different objects
 TEST_F(TextureManagerFixture, DifferentFlipGivesDifferentObject) {
     TextureManager mgr;
     auto t_noflip = mgr.GetOrLoad(tex1, false);
@@ -79,7 +79,7 @@ TEST_F(TextureManagerFixture, DifferentFlipGivesDifferentObject) {
     EXPECT_NE(t_noflip.get(), t_flip.get());
 }
 
-// UT-12: missing file does not crash
+// missing file does not crash
 TEST(TextureManager, MissingFileDoesNotCrash) {
     TextureManager mgr;
     EXPECT_NO_THROW({
@@ -90,7 +90,7 @@ TEST(TextureManager, MissingFileDoesNotCrash) {
     });
 }
 
-// UT-13: weak_ptr GC — after dropping all refs, next GetOrLoad reloads instead
+// weak_ptr GC — after dropping all refs, next GetOrLoad reloads instead
 // of resurrecting the expired entry.
 //
 // Note: this used to compare `t2.get() != rawPtr` (raw pointer identity).
@@ -171,10 +171,7 @@ TEST_F(TextureManagerFixture, MoveAssignmentTransfersOwnershipAndFreesTarget) {
 }
 
 // ---------------------------------------------------------------------------
-// Cubemap — Texture's 3rd constructor and TextureManager::GetOrLoadCubemap()
-// were entirely untested (the skybox is the only production consumer, and
-// Assets/ is gitignored, so no test previously touched this path). Reuses
-// the same 1x1 BMP for all 6 faces -- content doesn't matter, only that
+// Reuses the same 1x1 BMP for all 6 faces -- content doesn't matter, only that
 // each face loads and the resulting object is a valid GL_TEXTURE_CUBE_MAP.
 // ---------------------------------------------------------------------------
 

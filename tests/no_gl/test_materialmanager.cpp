@@ -14,7 +14,7 @@ static Material MakeMat(const std::string& name,
     return m;
 }
 
-// UT-07: same material descriptor → same shared_ptr
+// same material descriptor → same shared_ptr
 TEST(MaterialManager, CacheHitReturnsSamePointer) {
     MaterialManager mgr;
     auto mat = MakeMat("red", { 1.f, 0.f, 0.f });
@@ -23,7 +23,7 @@ TEST(MaterialManager, CacheHitReturnsSamePointer) {
     EXPECT_EQ(p1.get(), p2.get());
 }
 
-// UT-08: different descriptor → different shared_ptr
+// different descriptor → different shared_ptr
 TEST(MaterialManager, DifferentDescriptorGivesNewObject) {
     MaterialManager mgr;
     auto p1 = mgr.GetOrCreate(MakeMat("red",  { 1.f, 0.f, 0.f }));
@@ -31,7 +31,7 @@ TEST(MaterialManager, DifferentDescriptorGivesNewObject) {
     EXPECT_NE(p1.get(), p2.get());
 }
 
-// UT-09: weak_ptr GC — after all external refs drop, GetOrCreate still works
+// weak_ptr GC — after all external refs drop, GetOrCreate still works
 // Note: address comparison is intentionally avoided because the heap allocator
 // may reuse the same address for the new object, making ptr equality unreliable.
 // The test verifies that the GC mechanism does not break future cache lookups.

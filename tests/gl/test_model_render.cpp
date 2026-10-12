@@ -18,11 +18,6 @@
 #include <cstdint>
 #include <vector>
 
-// Previously untested: OpenGLRendererVisitor::Visit(const Model&) — the
-// entire regular (non-RayMarched) model rendering path, including wireframe
-// mode and the "selected object gets a wireframe overlay" branch, which is
-// also present (and equally untested) in Visit(const RayMarchedModel&).
-
 namespace {
 
 std::shared_ptr<Mesh> MakeTriangleMesh() {
@@ -63,7 +58,7 @@ protected:
     }
 };
 
-} // namespace
+}
 
 TEST_F(ModelRenderFixture, VisitModelRunsWithoutGLError) {
     ASSERT_NE(modelProgram, 0u);

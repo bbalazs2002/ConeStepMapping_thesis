@@ -204,6 +204,7 @@ void MyApp::RenderGUI()
                             m_commandQueue->Push(std::make_unique<SetTechniqueCommand>(rm, tech));
                     }
                     ImGui::EndCombo();
+                    m_debugState.dirty = true;
                 }
 
                 ImGui::TextUnformatted("Heightmap path (.png / .jpg):");
@@ -257,11 +258,7 @@ void MyApp::RenderGUI()
                             m_conemapGenerator.get()));
                     }
 
-                    // Conemap preview — read from the SELECTED model's own
-                    // conemap (not m_conemapGenerator->GetLastConemapID(),
-                    // which only ever reflects whichever model's conemap was
-                    // generated most recently, regardless of what's selected
-                    // right now).
+                    // Conemap preview
                     const auto& conemap = rm->GetConemap();
                     if (conemap && conemap->IsValid()) {
                         ImGui::Spacing();

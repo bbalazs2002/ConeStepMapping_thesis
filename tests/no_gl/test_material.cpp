@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
 #include "Headers/Material/Material.h"
 
-// Previously untested: operator== and Hash() never ran in any test suite.
-
 TEST(Material, DefaultConstructedAreEqual) {
     Material a, b;
     EXPECT_TRUE(a == b);

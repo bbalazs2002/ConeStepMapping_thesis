@@ -21,7 +21,7 @@ public:
     void Execute() override { log.push_back(id); }
 };
 
-// UT-14: FIFO execution order
+// FIFO execution order
 TEST(CommandQueue, ExecutesInInsertionOrder) {
     CommandQueue q;
     std::vector<int> order;
@@ -36,7 +36,7 @@ TEST(CommandQueue, ExecutesInInsertionOrder) {
     EXPECT_EQ(order[2], 3);
 }
 
-// UT-15: queue is empty after Execute — second Execute is a no-op
+// queue is empty after Execute — second Execute is a no-op
 TEST(CommandQueue, EmptyAfterExecute) {
     CommandQueue q;
     int count = 0;
@@ -47,7 +47,7 @@ TEST(CommandQueue, EmptyAfterExecute) {
     EXPECT_EQ(count, 1); // no additional increments
 }
 
-// UT-16: Clear drops commands without executing them
+// Clear drops commands without executing them
 TEST(CommandQueue, ClearPreventsExecution) {
     CommandQueue q;
     int count = 0;

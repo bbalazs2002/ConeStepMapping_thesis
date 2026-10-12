@@ -11,9 +11,9 @@
 #include <filesystem>
 #include <fstream>
 
-// IT-11: OBJ loading -> Vertex layout -> Mesh::Build round-trip
+// OBJ loading -> Vertex layout -> Mesh::Build round-trip
 // Creates a minimal single-triangle OBJ in a temp directory so the test has
-// no dependency on the Assets/ folder (which is gitignored).
+// no dependency on the Assets/ folder.
 TEST(Integration_OBJ, LoadFromOBJWithVertexLayoutSucceeds) {
     auto tmpDir = std::filesystem::temp_directory_path() / "csm_integration_obj";
     std::filesystem::create_directories(tmpDir);
@@ -39,10 +39,7 @@ TEST(Integration_OBJ, LoadFromOBJWithVertexLayoutSucceeds) {
     }
 }
 
-// IT-12: same texture path cached — only one GL texture object created
-// NOTE: Assets/HMaps/cone.jpg is intentionally not committed to the repo.
-// If the file is missing, GetOrLoad still returns a non-null (but invalid) Texture.
-// This is deliberate: the test only verifies cache identity (t1.get() == t2.get()),
+// The test only verifies cache identity (t1.get() == t2.get()),
 // not that the texture loaded successfully. GetID() equality holds whether both
 // are valid (same ID > 0) or both invalid (both 0).
 TEST(Integration_TextureCache, SameHeightmapUsedByTwoModelsIsCached) {
@@ -79,8 +76,7 @@ TEST(Integration_Mesh_Material, MeshMaterialBindingRoundtrip) {
     EXPECT_NE(mesh->GetVAO(), 0u);
 }
 
-// IT-05 (partial): SetHeightmap with nullptr generator is a no-op
-// NOTE: Assets/HMaps/cone.jpg is intentionally not committed to the repo.
+// SetHeightmap with nullptr generator is a no-op
 // The texture may be invalid (file missing on CI), but that is fine here:
 // the test only checks that SetHeightmap does not crash when the generator
 // is null, and that m_conemap stays null afterwards. Texture validity is

@@ -3,7 +3,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
 
-// UT-05
 TEST(Transform, DefaultIsIdentity) {
     Transform t;
     EXPECT_EQ(t.GetMatrix(), glm::identity<glm::mat4>());
@@ -20,7 +19,6 @@ TEST(Transform, ParameterizedConstructorAppliedToMatrix) {
     EXPECT_FLOAT_EQ(p.z, 0.f);
 }
 
-// UT-02
 TEST(Transform, SetLocationMarksDirty) {
     Transform t;
     t.GetMatrix();
@@ -45,7 +43,7 @@ TEST(Transform, SetScaleMarksDirty) {
     EXPECT_TRUE(t.IsDirty());
 }
 
-// UT-01: cache — GetMatrix() returns the same reference on second call
+// cache — GetMatrix() returns the same reference on second call
 TEST(Transform, CacheReturnsSameReferenceWhenClean) {
     Transform t;
     t.SetLocation({ 3.f, 1.f, 2.f });
@@ -76,7 +74,7 @@ TEST(Transform, ScaleAppliedToMatrix) {
     EXPECT_FLOAT_EQ(m[2][2], 4.f);
 }
 
-// UT-06: +90° around Y maps +X to -Z (GLM right-hand convention)
+// +90° around Y maps +X to -Z (GLM right-hand convention)
 TEST(Transform, RotationY90MapsXToNegZ) {
     Transform t;
     t.SetRotation(glm::angleAxis(glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f)));
@@ -87,7 +85,7 @@ TEST(Transform, RotationY90MapsXToNegZ) {
     EXPECT_NEAR(result.z, -1.f, 1e-5f);
 }
 
-// UT-03: world matrix without parent == local matrix
+// world matrix without parent == local matrix
 TEST(Transform, WorldMatrixEqualsLocalWithNoParent) {
     Transform t;
     t.SetLocation({ 1.f, 2.f, 3.f });
@@ -95,7 +93,7 @@ TEST(Transform, WorldMatrixEqualsLocalWithNoParent) {
     EXPECT_EQ(t.GetWorldMatrix(), t.GetMatrix());
 }
 
-// UT-04: parent translation propagates into child world matrix
+// parent translation propagates into child world matrix
 TEST(Transform, WorldMatrixCombinesParentTranslation) {
     Transform parent;
     parent.SetLocation({ 10.f, 0.f, 0.f });

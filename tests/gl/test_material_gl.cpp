@@ -4,9 +4,6 @@
 #include "Headers/Texture/Texture.h"
 #include <GL/glew.h>
 
-// Previously untested: UploadMaterialToShader / ClearMaterialFromShader never
-// ran against a real linked program in any test suite.
-
 namespace {
 
 GLuint CompileModelProgram() {
@@ -18,7 +15,7 @@ GLuint CompileModelProgram() {
     return prog;
 }
 
-} // namespace
+}
 
 TEST(MaterialGL, UploadWithoutTexturesDoesNotError) {
     GLuint prog = CompileModelProgram();
