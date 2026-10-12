@@ -1,6 +1,6 @@
-// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
-
 #version 430 core
+
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
 
 in  vec3 v_col;
 out vec4 fs_out_col;

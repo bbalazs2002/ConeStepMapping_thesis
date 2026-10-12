@@ -1,6 +1,6 @@
-// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
-
 #version 430 core
+
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
 
 // debugVisualSSBO    (binding 0): slot[1..4] = invM (tex->scene)
 // debugNumericalSSBO (binding 1): slot[1] = eye (scene), slot[13] = TexEnter, slot[14] = TexExit

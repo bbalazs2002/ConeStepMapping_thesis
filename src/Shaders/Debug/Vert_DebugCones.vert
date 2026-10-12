@@ -1,6 +1,6 @@
-// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
-
 #version 430 core
+
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
 
 // stepCount instances × 3 vertices, GL_LINE_STRIP (indirect instanced draw)
 // Per step, a V-shape: left → apex → right (2 segments, no duplicate apex)

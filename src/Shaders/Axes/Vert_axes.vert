@@ -1,6 +1,6 @@
-// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
-
 #version 430
+
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
 
 // Variables going forward through the pipeline
 out vec3 vs_out_color;

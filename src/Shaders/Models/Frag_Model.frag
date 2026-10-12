@@ -1,6 +1,6 @@
-// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
-
 #version 430 core
+
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
 
 // pipeline-ból bejövő per-fragment attribútumok
 in vec3 vs_out_pos;

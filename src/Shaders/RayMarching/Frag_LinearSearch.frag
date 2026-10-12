@@ -1,6 +1,6 @@
-// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
-
 #version 430
+
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
 
 in vec3 gs_out_tex;
 in vec3 gs_out_norm;

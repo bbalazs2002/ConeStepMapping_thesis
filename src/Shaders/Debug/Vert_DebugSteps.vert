@@ -1,6 +1,6 @@
-// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
-
 #version 430 core
+
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
 
 // stepCount vertices, GL_POINTS (indirect draw)
 // debugVisual[9 + gl_VertexID] = vec4(uᵢ, 1.0) — step position in texture space

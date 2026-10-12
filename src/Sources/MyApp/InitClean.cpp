@@ -67,7 +67,7 @@ bool MyApp::Init()
         { GL_GEOMETRY_SHADER, "src/Shaders/RayMarching/Geom_RM_abcd.geom" },
         { GL_FRAGMENT_SHADER, "src/Shaders/RayMarching/Frag_ConeStepMapping.frag" }
     };
-
+    
     m_shaderManager.Load("ls_HN",     lsStages);
     m_shaderManager.Load("ls_HB",     lsStages,  { "INTERP_HEIGHT" });
     m_shaderManager.Load("csm_HN_CN", csmStages);
@@ -170,7 +170,7 @@ bool MyApp::Init()
     surface->SetHeightmap(heightmap, m_conemapGenerator.get(), m_heightmapPathBuf);
 
     m_sceneManager.Add(std::move(surface));
-
+    
     return true;
 }
 

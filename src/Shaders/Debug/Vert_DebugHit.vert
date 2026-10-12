@@ -1,6 +1,6 @@
-// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
-
 #version 430 core
+
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
 
 // 8 vertices, GL_LINES: 1 cross at the hit point
 // If no hit (wasHit = false): degenerate vertices at origin

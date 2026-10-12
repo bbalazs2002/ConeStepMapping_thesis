@@ -1,6 +1,6 @@
-// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
-
 #version 430 core
+
+// This file may contain AI-assisted (Claude Code) code, reviewed by the author.
 
 // 16 vertices, GL_LINES: 2 crosses × 4 lines × 2 vertices
 // Arms are screen-space offsets (constant NDC size, always face camera).
