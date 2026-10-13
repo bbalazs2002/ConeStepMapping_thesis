@@ -53,7 +53,7 @@ void main()
         IntersectParams(u1, u2, gs_out_TexEye));
 
     if (!data.wasHit) {
-        if (displayNonConverged) {
+        if (displayNonConverged && bool(data.flags & 1)) {
             fs_out_col = vec4(1.0, 0.0, 1.0, 1.0);
         } else if (discardFragments) {
             discard;
