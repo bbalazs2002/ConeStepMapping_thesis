@@ -97,3 +97,71 @@ std::shared_ptr<Model> MyApp::CreateModelFromOBJ(const std::string& path)
         return nullptr;
     }
 }
+
+std::shared_ptr<RayMarchedModel> MyApp::CreateRayMarchedModelFromOBJ(const std::string& path)
+{
+    try {
+        // VertexMergedNorm + MergeNormals: averages per-position normals across
+        // adjacent triangles so the ray marching bounding prisms share consistent
+        // extrusion directions at shared vertices (see docs/ImplementationPlan_MergedNormals.md).
+        auto data = ModelLoader::LoadFromOBJ<VertexMergedNorm>(
+            path, "./", ModelLoader::MergeNormals);
+        if (data.matMesh.empty()) return nullptr;
+
+        std::string stemName = std::filesystem::path(path).stem().string();
+        if (stemName.empty()) stemName = "Surface";
+
+        // Texture paths in the .mtl are relative to the .obj file's directory
+        std::filesystem::path texFolder = std::filesystem::path(path).parent_path();
+
+        auto model = std::make_shared<RayMarchedModel>(stemName);
+        model->SetTechnique(m_techniques["cone_step_mapping"]);
+        model->SetSelectedProgram(m_shaderManager.Get("model_selected"));
+        model->SetLightDir(m_lightDir);
+
+        for (auto& mm : data.matMesh) {
+            auto mesh = std::make_shared<Mesh>();
+            mesh->Build<VertexMergedNorm>(std::move(mm.mesh));
+
+            Material mat;
+
+            if (mm.materialID >= 0 && mm.materialID < (int)data.materials.size()) {
+                const auto& tmat = data.materials[mm.materialID];
+
+                mat.SetName(tmat.name.empty() ? stemName + "_mat" : tmat.name);
+                mat.SetAmbientColor (glm::vec3(tmat.ambient[0],  tmat.ambient[1],  tmat.ambient[2]));
+                mat.SetDiffuseColor (glm::vec3(tmat.diffuse[0],  tmat.diffuse[1],  tmat.diffuse[2]));
+                mat.SetSpecularColor(glm::vec3(tmat.specular[0], tmat.specular[1], tmat.specular[2]));
+                mat.SetShininess(tmat.shininess);
+
+                auto loadTex = [&](const std::string& texName) -> std::shared_ptr<Texture> {
+                    if (texName.empty()) return nullptr;
+                    auto absPath = ModelLoader::ResolveTexturePath(texName, texFolder);
+                    return m_textureManager.GetOrLoad(absPath, false);
+                };
+
+                if (auto t = loadTex(tmat.diffuse_texname))  mat.SetDiffuseTex(t);
+                if (auto t = loadTex(tmat.specular_texname)) mat.SetSpecularTex(t);
+                if (auto t = loadTex(tmat.emissive_texname)) mat.SetEmissionTex(t);
+                if (auto t = loadTex(tmat.normal_texname))   mat.SetNormalTex(t);
+            } else {
+                mat.SetName(stemName + "_default");
+                mat.SetDiffuseColor(glm::vec3(0.8f));
+            }
+
+            mesh->SetMaterial(m_materialManager.GetOrCreate(mat));
+            model->AddMesh(std::move(mesh));
+        }
+
+        // Reuse whichever heightmap path is currently in the shared input
+        // buffer — consistent with CreateDefaultRayMarchedModel; the
+        // per-model "Load Heightmap" control lets the user pick a
+        // different one afterwards.
+        auto heightmap = m_textureManager.GetOrLoad(m_heightmapPathBuf, false);
+        model->SetHeightmap(heightmap, m_conemapGenerator.get(), m_heightmapPathBuf);
+
+        return model;
+    } catch (...) {
+        return nullptr;
+    }
+}

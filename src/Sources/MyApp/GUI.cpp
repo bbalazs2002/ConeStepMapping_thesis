@@ -122,9 +122,7 @@ void MyApp::RenderGUI()
 
                 // Sync the Heightmap path field to whatever this model
                 // actually has loaded — it's a single shared buffer, not
-                // per-model, so without this it would keep showing
-                // whichever model's path was last typed/loaded, even after
-                // switching selection to a model with a different heightmap.
+                // per-model
                 m_heightmapLoadFailed = false;
                 if (auto rmSel = std::dynamic_pointer_cast<RayMarchedModel>(models[i])) {
                     std::strncpy(m_heightmapPathBuf, rmSel->GetHeightmapPath().c_str(),
@@ -163,6 +161,15 @@ void MyApp::RenderGUI()
             if (newModel)
                 m_commandQueue->Push(std::make_unique<CreateObjObjectCommand>(
                     m_sceneManager, std::move(newModel)));
+            else
+                m_objLoadFailed = true;
+        }
+        if (ImGui::Button("Add RayMarched .obj", ImVec2(-1, 0))) {
+            m_objLoadFailed = false;
+            auto newModel = CreateRayMarchedModelFromOBJ(std::string(m_objPathBuf));
+            if (newModel)
+                m_commandQueue->Push(std::make_unique<CreateRMObjectCommand>(
+                    m_sceneManager, newModel));
             else
                 m_objLoadFailed = true;
         }
