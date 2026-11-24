@@ -24,6 +24,8 @@ layout(binding = 4) uniform sampler2D coneMap;
 
 #include "../Modules/Camera/Camera_uniforms.glsl"
 #include "RayMarch_common.glsl"
+#include "../Modules/Material/Material_uniforms.glsl"
+#include "../Modules/Material/Material.glsl"
 
 void main()
 {
@@ -70,13 +72,18 @@ void main()
 
     vec2 uv = data.uvh.xy;
 
-    vec3 ambient = vec3(conemap_getHeight(uv)) * 0.5;
+    float[13] colors = MaterialPrepare(uv);
+    vec3 ambientColor  = vec3(colors[0], colors[1], colors[2]);
+    vec3 albedo        = vec3(colors[3], colors[4], colors[5]);
+    vec3 specularColor = vec3(colors[6], colors[7], colors[8]);
+    float shininess    = max(colors[12], 1.0);
+
     vec3 norm    = ls_sampleNormal(uv);
     vec3 viewDir = normalize(cameraData.eye - gs_out_pos);
 
     float diffuse  = 0.4 * max(dot(normalize(lightDir.xzy), norm), 0.0);
     vec3  reflDir  = reflect(-normalize(lightDir.xzy), norm);
-    float specular = 0.3 * pow(max(dot(viewDir, reflDir), 0.0), 32.0);
+    float specular = 0.3 * pow(max(dot(viewDir, reflDir), 0.0), shininess);
 
-    fs_out_col = vec4(ambient + diffuse + specular, 1.0);
+    fs_out_col = vec4(.1 + ambientColor * 0.5 + albedo * diffuse + specularColor * specular, 1.0);
 }

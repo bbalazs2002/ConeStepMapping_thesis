@@ -68,6 +68,10 @@ protected:
     std::shared_ptr<Model>           CreateModelFromOBJ(const std::string& path);
     std::shared_ptr<RayMarchedModel> CreateRayMarchedModelFromOBJ(const std::string& path);
 
+    // Builds the startup demo scene (grid of shapes/textures, bowl,
+    // ground, Equinox) -- see Sources/MyApp/CreateDemoScene.cpp.
+    void CreateDemoScene();
+
     // Managers — GL-context-independent value members
     std::unique_ptr<ICommandQueue> m_commandQueue{ std::make_unique<CommandQueue>() };
     SceneManager    m_sceneManager;

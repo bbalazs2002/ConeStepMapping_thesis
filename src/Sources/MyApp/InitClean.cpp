@@ -67,7 +67,7 @@ bool MyApp::Init()
         { GL_GEOMETRY_SHADER, "src/Shaders/RayMarching/Geom_RM_apex.geom" },
         { GL_FRAGMENT_SHADER, "src/Shaders/RayMarching/Frag_ConeStepMapping.frag" }
     };
-    
+
     m_shaderManager.Load("ls_HN",     lsStages);
     m_shaderManager.Load("ls_HB",     lsStages,  { "INTERP_HEIGHT" });
     m_shaderManager.Load("csm_HN_CN", csmStages);
@@ -129,9 +129,9 @@ bool MyApp::Init()
 
     // 4. Camera ---------------------------------------------------------------
     m_camera.SetView(
-        glm::vec3(0.f, 10.f, 5.f),
-        glm::vec3(0.f,  4.f, 0.f),
-        glm::vec3(0.f,  1.f, 0.f)
+        glm::vec3(0.f, 18.f, 26.f),
+        glm::vec3(0.f,  2.f, -6.f),
+        glm::vec3(0.f,  1.f,  0.f)
     );
     m_camera.SetAspect(static_cast<float>(m_windowSize.x) / m_windowSize.y);
     m_cameraManipulator.SetCamera(&m_camera);
@@ -140,37 +140,8 @@ bool MyApp::Init()
     InitDebugSSBOs();
 
     // 6. Scene ----------------------------------------------------------------
+    CreateDemoScene();
 
-    // --- Heightmap surface ---
-    auto surface = std::make_shared<RayMarchedModel>("Heightmap Surface");
-    surface->SetTechnique(m_techniques["cone_step_mapping"]);
-    surface->SetSelectedProgram(m_shaderManager.Get("model_selected"));
-    surface->SetLightDir(m_lightDir);
-
-    MeshObject<VertexMergedNorm> planeMesh;
-    planeMesh.vertexArray = {
-        { { -2.5f, 0.f, -2.5f }, { 0.f, 1.f, 0.f }, { 0.f, 1.f, 0.f }, { 0.f, 0.f } },
-        { {  2.5f, 0.f, -2.5f }, { 0.f, 1.f, 0.f }, { 0.f, 1.f, 0.f }, { 1.f, 0.f } },
-        { {  2.5f, 0.f,  2.5f }, { 0.f, 1.f, 0.f }, { 0.f, 1.f, 0.f }, { 1.f, 1.f } },
-        { { -2.5f, 0.f,  2.5f }, { 0.f, 1.f, 0.f }, { 0.f, 1.f, 0.f }, { 0.f, 1.f } },
-    };
-    planeMesh.indexArray = { 0, 1, 2,  0, 2, 3 };
-
-    auto planeMeshObj = std::make_shared<Mesh>();
-    planeMeshObj->Build<VertexMergedNorm>(std::move(planeMesh));
-
-    Material surfaceMat;
-    surfaceMat.SetName("surface_default");
-    surfaceMat.SetDiffuseColor(glm::vec3(0.8f));
-    planeMeshObj->SetMaterial(m_materialManager.GetOrCreate(surfaceMat));
-
-    surface->AddMesh(std::move(planeMeshObj));
-
-    auto heightmap = m_textureManager.GetOrLoad(m_heightmapPathBuf, false);
-    surface->SetHeightmap(heightmap, m_conemapGenerator.get(), m_heightmapPathBuf);
-
-    m_sceneManager.Add(std::move(surface));
-    
     return true;
 }
 
