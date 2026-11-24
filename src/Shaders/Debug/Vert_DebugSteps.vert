@@ -20,7 +20,12 @@ void main()
     mat4 invM = mat4(debugVisual[1], debugVisual[2], debugVisual[3], debugVisual[4]);
 
     vec3 texPos = debugVisual[9 + gl_VertexID].xyz;
-    gl_Position = u_viewProj * invM * vec4(texPos, 1.0);
+
+    // invM is a genuine projective (not affine) inverse when the apex-based
+    // merged-normal correction is active — perspective divide before any
+    // further (affine) transform.
+    vec4 scenePosH = invM * vec4(texPos, 1.0);
+    gl_Position = u_viewProj * vec4(scenePosH.xyz / scenePosH.w, 1.0);
 
     // Color: green to yellow toward the last step — makes the march direction visible
     int   stepCount = int(indirectSteps.x);

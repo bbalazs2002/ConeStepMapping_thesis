@@ -28,12 +28,17 @@ void main()
     }
 
     mat4 invM   = mat4(debugVisual[1], debugVisual[2], debugVisual[3], debugVisual[4]);
-    vec3 hitTex = debugNumerical[23 + (stepCount - 1) * 2 + 1].xyz; // last step position
+    // Per-step data starts at 28 (must match DBG_STEP_BASE in RayMarch_common.glsl)
+    vec3 hitTex = debugNumerical[28 + (stepCount - 1) * 2 + 1].xyz; // last step position
 
     int  lineIdx = gl_VertexID / 2;      // 0..3 (which arm)
     bool isEnd   = (gl_VertexID % 2) == 1;
 
-    vec4 centerClip = u_viewProj * invM * vec4(hitTex, 1.0);
+    // invM is a genuine projective (not affine) inverse when the apex-based
+    // merged-normal correction is active — perspective divide before any
+    // further (affine) transform.
+    vec4 centerH    = invM * vec4(hitTex, 1.0);
+    vec4 centerClip = u_viewProj * vec4(centerH.xyz / centerH.w, 1.0);
 
     // Screen-space arms: offset in NDC units, scaled by w to survive perspective division
     const float ARM = 0.03;

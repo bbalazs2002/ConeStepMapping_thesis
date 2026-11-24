@@ -49,9 +49,9 @@
 layout(std430, binding = 0) buffer DebugVisualSSBO { vec4 debugVisual[]; };
 
 // debugNumericalSSBO layout:
-//   indirectSteps  (uvec4, offset   0): {stepCount,   1, 0, 0} — GL_DRAW_INDIRECT_BUFFER for steps
-//   indirectCones  (uvec4, offset  16): {3, stepCount, 0, 0} — GL_DRAW_INDIRECT_BUFFER for cones (instanced LINE_STRIP)
-//   debugNumerical (vec4[], offset 32): header[0..22] + per-step data[23+]
+//   indirectSteps  (uvec4,  offset  0): {stepCount,   1, 0, 0} — GL_DRAW_INDIRECT_BUFFER for steps
+//   indirectCones  (uvec4,  offset 16): {3, stepCount, 0, 0} — GL_DRAW_INDIRECT_BUFFER for cones (instanced LINE_STRIP)
+//   debugNumerical (vec4[], offset 32): header[0..27] + per-step data[28+]
 layout(std430, binding = 1) buffer DebugNumericalSSBO {
     uvec4 indirectSteps;
     uvec4 indirectCones;
@@ -59,14 +59,15 @@ layout(std430, binding = 1) buffer DebugNumericalSSBO {
 };
 
 #define SSBO_PADDING 9
+#define DBG_STEP_BASE 28
 
 int g_debugStepIdx = 0;
 
 #define DBG_WRITE_STEP(ui_pos, ti_val, t_val, height_val, tan_val) \
     if (g_debugStepIdx < 512) { \
         debugVisual[SSBO_PADDING + g_debugStepIdx] = vec4(ui_pos, 1.0); \
-        debugNumerical[23 + g_debugStepIdx * 2]     = vec4(ti_val, t_val, height_val, tan_val); \
-        debugNumerical[23 + g_debugStepIdx * 2 + 1] = vec4(ui_pos, 0.0); \
+        debugNumerical[DBG_STEP_BASE + g_debugStepIdx * 2]     = vec4(ti_val, t_val, height_val, tan_val); \
+        debugNumerical[DBG_STEP_BASE + g_debugStepIdx * 2 + 1] = vec4(ui_pos, 0.0); \
         ++g_debugStepIdx; \
     }
 #else
@@ -95,7 +96,7 @@ struct IntersectParams {
 };
 
 struct IntersectReturn {
-    vec2  uv;
+    vec3  uvh;    // (u, v, height) — texture-space hit position
     float t;
     float last_t;
     bool  wasHit;
@@ -112,6 +113,20 @@ struct StepParams {
 struct StepReturn {
     float t;
 };
+
+// ---------------------------------------------------------------------------
+// Projective transform helper
+// ---------------------------------------------------------------------------
+
+// M and T (scene <-> texture / unit-prism space) are genuinely projective when
+// built from the apex-based merged-normal correction (see Geom_RM_abcd.geom and
+// docs/ImplementationPlan_MergedNormals.md) — unlike the old single-corner
+// affine construction, the result of M*v or T*v is not guaranteed to already
+// have w = 1, so every point transform through M/T (or their inverses) needs
+// an explicit perspective divide.
+vec3 perspectiveDiv(vec4 h) {
+    return h.xyz / h.w;
+}
 
 // ---------------------------------------------------------------------------
 // Conemap sampling
@@ -202,10 +217,10 @@ IntersectReturn findIntersection_linearSearch(IntersectParams params) {
         float h = LS_SAMPLE_HEIGHT(u.xy);
         DBG_WRITE_STEP(u, step, t, h, 0.0)
         if (h > u.z)
-            return IntersectReturn(u.xy, t, t, true, 0, stepCount);
+            return IntersectReturn(u, t, t, true, 0, stepCount);
         ++stepCount;
     }
-    return IntersectReturn(vec2(0.0), 0.0, 0.0, false, 0, stepCount);
+    return IntersectReturn(vec3(0.0), 0.0, 0.0, false, 0, stepCount);
 }
 
 // ---------------------------------------------------------------------------
@@ -241,7 +256,7 @@ IntersectReturn findIntersection_coneStepMapping(IntersectParams params) {
 
     // Pre-check: already below the surface at entry
     if (conemap_getHeight(u1.xy) >= u1.z) {
-        return IntersectReturn(u1.xy, 0.0, 0.0, true, 0, 0);
+        return IntersectReturn(u1, 0.0, 0.0, true, 0, 0);
     }
 
     vec3 v = u1 - e;    // direction from camera to entry point
@@ -251,6 +266,18 @@ IntersectReturn findIntersection_coneStepMapping(IntersectParams params) {
     if      (abs(v.x) > 1e-4) maxT = (u2.x - e.x) / v.x;
     else if (abs(v.y) > 1e-4) maxT = (u2.y - e.y) / v.y;
     else                       maxT = (u2.z - e.z) / v.z;
+
+    // u2.z is identically the unit-prism "y" at the same point — T and M
+    // share their homogeneous row under the apex construction (see
+    // Geom_RM_apex.geom), so both reduce to the same k*(alpha+beta+gamma-1)
+    // numerator over the same denominator. So u2.z ~ 0 iff the ray leaves
+    // the prism through its own BASE face rather than a side/top face.
+    // Reaching the base is *always* a hit, unconditionally: any real
+    // height is >= 0, which is exactly what the ray's own height has
+    // dropped to there — no further test needed. Leaving through any other
+    // face carries no such guarantee, and nothing past that boundary is
+    // trustworthy either way (see the loop body below for why).
+    bool exitsThroughBase = u2.z < 1e-4;
 
     float t  = 1.000001;
     vec3  ui = e + t * v;
@@ -265,8 +292,46 @@ IntersectReturn findIntersection_coneStepMapping(IntersectParams params) {
         StepReturn stepData = getNextStep(StepParams(ui, Ray(e, v), tex));
         ti = stepData.t;
 
-        if (ti < 0.0) {
-            return IntersectReturn(vec2(0.0), -1.0, -1.0, false, 0, 0);
+        // ti = dz/denom is a floating-point division, and right at (near-)
+        // convergence dz is itself near zero — rounding can tip a step that
+        // should be ~0 (or a hair positive) to a tiny negative value. Only
+        // treat a step as a genuine wrong-direction failure once it's
+        // negative by more than that noise floor; a near-zero negative step
+        // is clamped to 0 instead, so the loop still takes it, resamples at
+        // (essentially) the same point, and lets the ui.z <= tex.r check
+        // below make the actual convergence call.
+        if (ti < -1e-6) {
+            return IntersectReturn(vec3(0.0), -1.0, -1.0, false, 0, 0);
+        }
+        ti = max(ti, 0.0);
+
+        // The cone tangent only guarantees "the ray does not cross the
+        // (texture-wide) heightfield while inside this cone" — it says
+        // nothing about our triangle's own valid UV footprint, because the
+        // conemap generator has no notion of per-triangle boundaries at
+        // all. A texel at the edge of a flat, zero-height region (e.g.
+        // unused texture padding next to this triangle's own small patch)
+        // gets a maximally open cone regardless of whether stepping that
+        // far would carry the ray straight past maxT — recognizing and
+        // respecting that boundary is entirely the ray-marching loop's own
+        // responsibility, never something the cone data can be trusted for.
+        //
+        // When the step would reach/pass maxT, exitsThroughBase (computed
+        // above from u2.z) tells us which of the two possible cases we're
+        // in: reaching the prism's own base is an unconditional hit, with
+        // nothing further to check; reaching a side/top face without
+        // having converged means the ray left this triangle's region
+        // without finding one, and nothing past that point belongs to this
+        // triangle's own data. Either way, there is no "partially trust
+        // it" option — a half-step toward the boundary was tried and
+        // rejected (it only approaches, never actually reaches, the base
+        // face exactly, so the one case that's unconditionally a hit was
+        // never recognized as one).
+        if (t + ti >= maxT) {
+            if (exitsThroughBase) {
+                return IntersectReturn(u2, maxT, t, true, 4, stepCount);
+            }
+            return IntersectReturn(vec3(0.0), t, last_t, false, 2, stepCount);
         }
 
         last_t = t;
@@ -287,7 +352,7 @@ IntersectReturn findIntersection_coneStepMapping(IntersectParams params) {
           | (int(ti <= 1e-6)   << 2);
 
     bool wasHit = bool(flags & 4) && !bool(flags & 1);
-    return IntersectReturn(ui.xy, t, last_t, wasHit, flags, stepCount);
+    return IntersectReturn(ui, t, last_t, wasHit, flags, stepCount);
 }
 
 // ---------------------------------------------------------------------------

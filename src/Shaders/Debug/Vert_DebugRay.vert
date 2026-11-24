@@ -19,9 +19,16 @@ void main()
 {
     mat4 invM = mat4(debugVisual[1], debugVisual[2], debugVisual[3], debugVisual[4]);
 
-    vec3 eye   = debugNumerical[1].xyz;                           // scene space (CPU-written)
-    vec3 enter = (invM * vec4(debugNumerical[13].xyz, 1.0)).xyz;  // TexEnter → scene space
-    vec3 exit = (invM * vec4(debugNumerical[14].xyz, 1.0)).xyz;   // TexExit  → scene space
+    vec3 eye = debugNumerical[1].xyz; // scene space (CPU-written)
+
+    // invM is a genuine projective (not affine) inverse when the apex-based
+    // merged-normal correction is active — perspective divide is required
+    // here (unlike u_viewProj-chained cases elsewhere, these results feed
+    // into a plain position array, not an automatically-divided gl_Position).
+    vec4 enterH = invM * vec4(debugNumerical[13].xyz, 1.0); // TexEnter → scene space
+    vec4 exitH  = invM * vec4(debugNumerical[14].xyz, 1.0); // TexExit  → scene space
+    vec3 enter  = enterH.xyz / enterH.w;
+    vec3 exit   = exitH.xyz  / exitH.w;
 
     // GL_LINES: (0,1) = eye→enter, (2,3) = enter→exit
     vec3 positions[4] = vec3[4](eye, enter, enter, exit);

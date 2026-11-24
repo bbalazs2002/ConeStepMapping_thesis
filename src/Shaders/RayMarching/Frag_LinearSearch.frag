@@ -32,7 +32,7 @@ void main()
     mat4 M  = gs_out_Scene2Tex;
 
     vec3 p0 = gs_out_UnitEye;
-    vec3 p1 = (T * vec4(p, 1.0)).xyz;
+    vec3 p1 = perspectiveDiv(T * vec4(p, 1.0));
     vec3 v  = normalize(p1 - p0);
 
     UnitIntersection unitInt = intersectUnitPrism(Ray(gs_out_UnitEye, v));
@@ -43,11 +43,16 @@ void main()
     }
 
     // Entry and exit in texture space.
-    // When near < 0 the camera is inside the prism; start from the camera position
-    // in texture space instead of the rasterised face's texcoord.
+    // The camera is inside the prism only when near < 0 < far — i.e. t=0
+    // (the camera) sits strictly between the two intersections.
+    //
+    // When the camera is outside, the entry point is this fragment's own
+    // position — computed through M, NOT read from gs_out_tex.
     vec3 uu = gs_out_UnitEye + unitInt.far * v;
-    vec3 u1 = (unitInt.near < 0.0) ? gs_out_TexEye : gs_out_tex;
-    vec3 u2 = (M * inverse(T) * vec4(uu, 1.0)).xyz;
+    vec3 u1 = (unitInt.near < 0.0 && unitInt.far > 0.0)
+        ? gs_out_TexEye
+        : perspectiveDiv(M * vec4(p, 1.0));
+    vec3 u2 = perspectiveDiv(M * inverse(T) * vec4(uu, 1.0));
 
     IntersectReturn data = findIntersection_linearSearch(
         IntersectParams(u1, u2, gs_out_TexEye));
@@ -63,7 +68,7 @@ void main()
         return;
     }
 
-    vec2 uv = data.uv;
+    vec2 uv = data.uvh.xy;
 
     vec3 ambient = vec3(conemap_getHeight(uv)) * 0.5;
     vec3 norm    = ls_sampleNormal(uv);

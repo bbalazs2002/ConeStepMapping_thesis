@@ -352,7 +352,8 @@ void MyApp::RenderDebugPanel()
 
                 const GLintptr kNumericalOffset = 2 * static_cast<GLintptr>(sizeof(glm::uvec4));
 
-                glm::vec4 hdr[23];
+                // Header is now 28 vec4 slots
+                glm::vec4 hdr[28];
                 glGetNamedBufferSubData(m_debugState.debugNumericalSSBO,
                     kNumericalOffset, sizeof(hdr), hdr);
 
@@ -409,6 +410,33 @@ void MyApp::RenderDebugPanel()
                         hdr[19].x, hdr[19].y, hdr[19].z, hdr[22].x, hdr[22].y);
                 }
 
+                // Apex-fit diagnostics (see Geom_RM_apex.geom): slots [23..27].
+                // usedApex == false can mean either "normals too parallel, apex
+                // never computed" (d/e/f/P_apex/mu/nu/rho/k/wB/wC all read back
+                // as 0) or "apex computed but k/wB/wC guard rejected it" (the
+                // values below are then the real, rejected fit — useful for
+                // seeing which of the three went out of range).
+                {
+                    bool usedApex = hdr[26].w > 0.5f;
+                    if (ImGui::CollapsingHeader("Apex-fit diagnostics")) {
+                        if (usedApex)
+                            ImGui::TextColored(ImVec4(0.4f, 1.f, 0.4f, 1.f), "Used: apex method");
+                        else
+                            ImGui::TextColored(ImVec4(1.f, 0.6f, 0.f, 1.f), "Used: affine fallback");
+
+                        ImGui::Text("d: (%.4f, %.4f, %.4f)  mu:  %.4f",
+                            hdr[23].x, hdr[23].y, hdr[23].z, hdr[23].w);
+                        ImGui::Text("e: (%.4f, %.4f, %.4f)  nu:  %.4f",
+                            hdr[24].x, hdr[24].y, hdr[24].z, hdr[24].w);
+                        ImGui::Text("f: (%.4f, %.4f, %.4f)  rho: %.4f",
+                            hdr[25].x, hdr[25].y, hdr[25].z, hdr[25].w);
+                        ImGui::Text("P_apex: (%.4f, %.4f, %.4f)",
+                            hdr[26].x, hdr[26].y, hdr[26].z);
+                        ImGui::Text("k: %.4f   wB: %.4f   wC: %.4f",
+                            hdr[27].x, hdr[27].y, hdr[27].z);
+                    }
+                }
+
                 if (stepCount > 0) {
                     char stepsLabel[32];
                     snprintf(stepsLabel, sizeof(stepsLabel), "Steps (%d)###Steps", stepCount);
@@ -417,7 +445,7 @@ void MyApp::RenderDebugPanel()
                         int readCount = stepCount < 512 ? stepCount : 512;
                         std::vector<glm::vec4> stepData(readCount * 2);
                         glGetNamedBufferSubData(m_debugState.debugNumericalSSBO,
-                            kNumericalOffset + 23 * static_cast<GLintptr>(sizeof(glm::vec4)),
+                            kNumericalOffset + 28 * static_cast<GLintptr>(sizeof(glm::vec4)),
                             readCount * 2 * sizeof(glm::vec4),
                             stepData.data());
 

@@ -39,20 +39,25 @@ void MyApp::SetupDebugCallback()
 //   [offset 0]  GS:  uvec4 indirectSteps = {stepCount, 1, 0, 0}
 //   [offset 16] GS:  uvec4 indirectCones = {3, stepCount, 0, 0}  (instanced LINE_STRIP)
 //   [offset 32] debugNumerical[] flexible array (vec4):
-//     [0]    GS:  (stepCount, flags, 0, 0)
-//     [1]    CPU: debugCamera.eye
-//     [2]    CPU: debugCamera.at
-//     [3-6]  GS:  M (scene-->tex) columns
-//     [7]    GS:  TexEye
-//     [8-11] GS:  T (scene-->unit prism) columns
-//     [12]   GS:  T_eye
-//     [13]   GS:  TexEnter
-//     [14]   GS:  TexExit
-//     [15]   GS:  TexDir
-//     [16]   GS:  hit UV (w=1) or vec4(0)
-//     [17-19]GS:  vertex[0-2] scene positions
-//     [20-22]GS:  vertex[0-2] UV coordinates
-//     [23+]  GS:  (ti,t,h,tan) + (ui,0) per step
+//     [0]     GS:  (stepCount, flags, 0, 0)
+//     [1]     CPU: debugCamera.eye
+//     [2]     CPU: debugCamera.at
+//     [3-6]   GS:  M (scene-->tex) columns
+//     [7]     GS:  TexEye
+//     [8-11]  GS:  T (scene-->unit prism) columns
+//     [12]    GS:  T_eye
+//     [13]    GS:  TexEnter
+//     [14]    GS:  TexExit
+//     [15]    GS:  TexDir
+//     [16]    GS:  hit UV (w=1) or vec4(0)
+//     [17-19] GS:  vertex[0-2] scene positions
+//     [20-22] GS:  vertex[0-2] UV coordinates
+//     [23]    GS:  (d, mu)        -- apex-fit diagnostics, see Geom_RM_apex.geom
+//     [24]    GS:  (e, nu)
+//     [25]    GS:  (f, rho)
+//     [26]    GS:  (P_apex, usedApex: 1.0/0.0)
+//     [27]    GS:  (k, wB, wC, -)
+//     [28+]   GS:  (ti,t,h,tan) + (ui,0) per step
 
 void MyApp::InitDebugSSBOs()
 {
@@ -61,10 +66,10 @@ void MyApp::InitDebugSSBOs()
     glNamedBufferData(m_debugState.debugVisualSSBO,
         (9 + 512) * sizeof(glm::vec4), nullptr, GL_DYNAMIC_DRAW);
 
-    // debugNumericalSSBO: 2 uvec4 (indirect commands) + 23 header vec4s + 512x2 step vec4s
+    // debugNumericalSSBO: 2 uvec4 (indirect commands) + 28 header vec4s + 512x2 step vec4s
     glCreateBuffers(1, &m_debugState.debugNumericalSSBO);
     glNamedBufferData(m_debugState.debugNumericalSSBO,
-        2 * sizeof(glm::uvec4) + (23 + 512 * 2) * sizeof(glm::vec4),
+        2 * sizeof(glm::uvec4) + (28 + 512 * 2) * sizeof(glm::vec4),
         nullptr, GL_DYNAMIC_DRAW);
 
     // Initialize indirect command slots to {0, 1, 0, 0}
@@ -103,10 +108,10 @@ void MyApp::CleanupDebugSSBOs()
 
 void MyApp::ExportDebugLog()
 {
-    // -- Read back SSBO header (23 vec4 slots) --------------------------------
+    // -- Read back SSBO header (28 vec4 slots) --------------------------------
     const GLintptr kNumericalOffset = 2 * static_cast<GLintptr>(sizeof(glm::uvec4));
 
-    glm::vec4 hdr[23];
+    glm::vec4 hdr[28];
     glGetNamedBufferSubData(m_debugState.debugNumericalSSBO,
         kNumericalOffset, sizeof(hdr), hdr);
 
@@ -114,12 +119,12 @@ void MyApp::ExportDebugLog()
     int  flags     = static_cast<int>(hdr[0].y + 0.5f);
     bool wasHit    = hdr[16].w > 0.5f;
 
-    // -- Read back per-step data (starts at slot 23) ---------------------------
+    // -- Read back per-step data (starts at slot 28) ---------------------------
     int readCount = std::min(stepCount, 512);
     std::vector<glm::vec4> stepData(readCount * 2);
     if (readCount > 0) {
         glGetNamedBufferSubData(m_debugState.debugNumericalSSBO,
-            kNumericalOffset + 23 * static_cast<GLintptr>(sizeof(glm::vec4)),
+            kNumericalOffset + 28 * static_cast<GLintptr>(sizeof(glm::vec4)),
             readCount * 2 * static_cast<GLintptr>(sizeof(glm::vec4)),
             stepData.data());
     }
@@ -196,6 +201,20 @@ void MyApp::ExportDebugLog()
       << "   UV: " << hdr[21].x << "  " << hdr[21].y << "\n";
     f << "# v2 scene: " << hdr[19].x << "  " << hdr[19].y << "  " << hdr[19].z
       << "   UV: " << hdr[22].x << "  " << hdr[22].y << "\n";
+
+    // -- Apex-fit diagnostics (see Geom_RM_apex.geom) --------------------------
+    f << "#\n";
+    f << "# [Apex-fit diagnostics]\n";
+    bool usedApex = hdr[26].w > 0.5f;
+    f << "# Used apex method: " << (usedApex ? "YES" : "NO (affine fallback)") << "\n";
+    f << "# d: " << hdr[23].x << "  " << hdr[23].y << "  " << hdr[23].z
+      << "   mu:  " << hdr[23].w << "\n";
+    f << "# e: " << hdr[24].x << "  " << hdr[24].y << "  " << hdr[24].z
+      << "   nu:  " << hdr[24].w << "\n";
+    f << "# f: " << hdr[25].x << "  " << hdr[25].y << "  " << hdr[25].z
+      << "   rho: " << hdr[25].w << "\n";
+    f << "# P_apex: " << hdr[26].x << "  " << hdr[26].y << "  " << hdr[26].z << "\n";
+    f << "# k: " << hdr[27].x << "   wB: " << hdr[27].y << "   wC: " << hdr[27].z << "\n";
 
     // -- Ray in texture space --------------------------------------------------
     f << "#\n";

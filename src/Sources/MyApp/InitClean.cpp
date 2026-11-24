@@ -59,12 +59,12 @@ bool MyApp::Init()
 
     const std::vector<ShaderStage> lsStages = {
         { GL_VERTEX_SHADER,   "src/Shaders/RayMarching/Vert_RM.vert" },
-        { GL_GEOMETRY_SHADER, "src/Shaders/RayMarching/Geom_RM_abcd.geom" },
+        { GL_GEOMETRY_SHADER, "src/Shaders/RayMarching/Geom_RM_apex.geom" },
         { GL_FRAGMENT_SHADER, "src/Shaders/RayMarching/Frag_LinearSearch.frag" }
     };
     const std::vector<ShaderStage> csmStages = {
         { GL_VERTEX_SHADER,   "src/Shaders/RayMarching/Vert_RM.vert" },
-        { GL_GEOMETRY_SHADER, "src/Shaders/RayMarching/Geom_RM_abcd.geom" },
+        { GL_GEOMETRY_SHADER, "src/Shaders/RayMarching/Geom_RM_apex.geom" },
         { GL_FRAGMENT_SHADER, "src/Shaders/RayMarching/Frag_ConeStepMapping.frag" }
     };
     

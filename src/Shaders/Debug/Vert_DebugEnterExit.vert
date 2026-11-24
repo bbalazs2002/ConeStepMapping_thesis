@@ -28,7 +28,11 @@ void main()
         ? debugNumerical[13].xyz   // TexEnter
         : debugNumerical[14].xyz;  // TexExit
 
-    vec4 centerClip = u_viewProj * invM * vec4(center, 1.0);
+    // invM is a genuine projective (not affine) inverse when the apex-based
+    // merged-normal correction is active — perspective divide before any
+    // further (affine) transform.
+    vec4 centerH     = invM * vec4(center, 1.0);
+    vec4 centerClip  = u_viewProj * vec4(centerH.xyz / centerH.w, 1.0);
 
     // Screen-space arms: offset in NDC units, scaled by w to survive perspective division
     const float ARM = 0.025;

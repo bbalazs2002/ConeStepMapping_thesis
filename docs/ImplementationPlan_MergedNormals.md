@@ -61,50 +61,74 @@ generáljuk — ami viszont **nem egyezik meg** a jelenlegi, repedésmentes
 extrudálással ($d_i = v_i + h_{max}\cdot n_i$, csúcsonként **rögzített
 hosszúságú** eltolás a saját normális mentén).
 
-### A felfedezés: nem kell $\mu=\nu=\rho$-t megkövetelni
+### A felfedezés: egy súlyozott homogén nevezővel a felső lap vízszintes marad
 
-Ha a felső csúcsok célpontjainak magasságát **nem rögzítjük** 1-re
-mindhárom csúcsnál, hanem szabadon hagyjuk ($y_d, y_e, y_f$ külön-külön
-változók), a levezetés azt mutatja, hogy a mátrix konzisztenciájához
-**pontosan egyetlen** megkötésre van szükség:
+**Frissítés: ez a szakasz felülírja az eredeti, "döntött felső síkos"
+tervet — a ténylegesen megvalósított konstrukció egyszerűbb és jobb
+annál, amit itt eredetileg elterveztünk.** Ahelyett, hogy a felső
+csúcsok célmagasságát ($y_d, y_e, y_f$) szabadon hagynánk (ami egy
+primitívenként döntött síkhoz vezetne — ld. lent, "korábbi terv"),
+vezessünk be két szabad paramétert a **nevezőbe** (a homogén osztóba).
+Apex-középpontú koordinátákban legyen
+$$D(\alpha,\beta,\gamma) = \alpha + w_\beta\beta + w_\gamma\gamma,$$
+és definiáljuk a projektív leképezést (homogén osztás után) a
+következőképp:
+$$
+x = \frac{w_\beta\beta}{D}, \qquad y = \frac{k(\alpha+\beta+\gamma-1)}{D}, \qquad z = \frac{w_\gamma\gamma}{D}
+$$
 
-$$\frac{y_d \cdot \mu}{1-\mu} = \frac{y_e \cdot \nu}{1-\nu} = \frac{y_f \cdot \rho}{1-\rho} \;(=: C)$$
-
-Ez **3 ismeretlenre 1 egyenlet** — tehát **mindig megoldható**,
-tetszőleges (akár mind különböző) $\mu,\nu,\rho$ esetén! Rögzítve pl.
-$y_d=1$-et (ugyanaz a konvenció, mint ma), a másik kettő abból
-következik: $y_e = \frac{C(1-\nu)}{\nu}$, $y_f = \frac{C(1-\rho)}{\rho}$,
-ahol $C = \frac{\mu}{1-\mu}$.
+Ez a forma — $k,w_\beta,w_\gamma$ értékétől **függetlenül** — $a,b,c$-t
+és az apexet (az origót) már önmagában helyesen képezi le: $a,b,c$-nél
+az $y$ számlálója mindig nulla (mert ott $\alpha+\beta+\gamma=1$),
+$d,e,f$-nél pedig az $x$, illetve $z$ koordináta automatikusan a helyes
+($0$, illetve $0$) értéket veszi fel. Egyedül az $y=1$ feltétel marad
+valódi megkötés $\mathbf d,\mathbf e,\mathbf f$-nél, pontonként egy-egy
+egyenlet, amelyekből $k,w_\beta,w_\gamma$ **egymásra épülve, zárt
+alakban** adódik:
+$$
+k = \frac{\mu}{\mu-1}, \qquad w_\beta = \frac{k(\nu-1)}{\nu}, \qquad w_\gamma = \frac{k(\rho-1)}{\rho}
+$$
 
 **Ez azt jelenti: a crack-mentes (csúcsonként rögzített $h_{max}$ hosszúságú)
-extrudálás MELLETT is létezik egzakt projektív mátrix, amely mind a hat
-referenciapontot pontosan leképezi** — nem kell választani a pontosság és a
-repedésmentesség között!
+extrudálás mellett létezik egzakt projektív mátrix, amely mind a hat
+referenciapontot pontosan leképezi, ÉS az egységprizma felső lapja
+mindvégig pontosan $y=1$-ben marad** — nincs szükség megdöntött síkra,
+és nem kell választani a pontosság és a repedésmentesség között.
 
-### Ára: az egységprizma felső lapja megdől
+Az `intersectUnitPrism` függvény (jelenleg hardkódolt $y \leq 1$
+feltétellel) emiatt **változatlan marad** — nincs szükség primitívenkénti,
+tetszőleges síkegyenletre történő általánosításra.
 
-A fenti megoldás egyetlen következménye: a céltartomány (egységprizma tér)
-felső lapja **már nem feltétlenül vízszintes** ($y=1$ sík), hanem egy
-$(0,y_d,0)$, $(1,y_e,0)$, $(0,y_f,1)$ pontokon átmenő **döntött sík**
-(ami primitívenként más, hiszen $y_d,y_e,y_f$ primitívenként számolódik).
-Ez azt jelenti, hogy az `intersectUnitPrism` függvény (jelenleg hardkódolt
-$y \leq 1$ feltétellel) **egyetlen féltér-tesztjét** általánosítani kell:
-a fix $y=1$ sík helyett egy primitívenként átadott, tetszőleges síkegyenletet
-kell használnia. A másik négy féltér-teszt (x≥0, y≥0, z≥0, x+z≤1)
-**változatlan marad** — ez egy kis, jól körülhatárolt, zárt alakú
-módosítás, **nem** bilineáris folt / world-space marching csere (ahogy a
-Hoetzlein-cikk teljes megoldása igényelné).
+A textúra tér felé mutató $R_M$ mátrix ugyanazt a $k,w_\beta,w_\gamma$
+hármast használja, csak az $(x,y,z)$ célpontok helyén $(u,v,h)$-t; mivel
+a magassági ($h$, illetve $y$) komponens képlete a két mátrixban szó
+szerint megegyezik, $M$ és $T$ egy közös homogén (negyedik) sort örököl
+— ez a tulajdonság a későbbi hibakeresés során is fontos szerepet kapott
+(ld. `docs/MergedNormals_DebuggingLog.md`).
+
+*(Korábbi terv, már nem érvényes: ha a felső csúcsok célmagasságát
+$y_d,y_e,y_f$ szabad változóknak tekintjük, és $y_d=1$-et rögzítjük, a
+konzisztenciához $\frac{y_d\mu}{1-\mu}=\frac{y_e\nu}{1-\nu}=\frac{y_f\rho}{1-\rho}$
+egyetlen megkötése elég — ez viszont $y_e,y_f\neq1$-hez, azaz egy
+primitívenként döntött felső síkhoz vezetett volna, ami az
+`intersectUnitPrism` módosítását igényelte volna. A fenti,
+súlyozott-nevezős konstrukció ugyanazt a szabadságfokot a nevezőbe
+teszi át, így a felső lap sosem dől meg.)*
 
 ### Degenerált eset: majdnem párhuzamos normálisok
 
 Ha a három normális majdnem párhuzamos (sík/enyhén görbülő felületrész),
-az apex nagyon távol kerül, és $\mu,\nu,\rho \to 1$ — ekkor a fenti
-képletekben $C = \mu/(1-\mu) \to \infty$, numerikusan instabil. Ez
-pontosan az az eset, ahol a **jelenlegi affin konstrukció már amúgy is
-pontos** (mert ott tényleg nincs szükség projekcióra). Megoldás: ha
-$|1-\mu|$ (vagy ezzel ekvivalensen az apex távolsága) egy küszöb alatt van,
-**essünk vissza a jelenlegi affin útvonalra változtatás nélkül** — ez egy
-természetes, jól indokolt elágazási feltétel.
+az apex nagyon távol kerül, és $\mu,\nu,\rho \to 1$ — ekkor $k =
+\mu/(\mu-1) \to \pm\infty$, numerikusan instabil (és ugyanígy
+$w_\beta,w_\gamma$ is elszállhat). Ez pontosan az az eset, ahol a
+**jelenlegi affin konstrukció már amúgy is pontos** (mert ott tényleg
+nincs szükség projekcióra). A megvalósításban $k,w_\beta,w_\gamma$-t egy
+rögzített $(10^{-3},10^{3})$ tartományra szűkítjük (pozitív és nem túl
+szélsőséges érték) — ha ez nem teljesül, **essünk vissza a jelenlegi
+affin útvonalra, változtatás nélkül**. (Ez szigorúbb, mint csupán $\mu$
+közelségét vizsgálni $1$-hez: a $\mu,\nu,\rho$ "kifelé mutató"
+előjelmintájától való eltérést — pl. nagyon lapos, csaknem elfajult
+háromszögeknél — is kiszűri.)
 
 ## Kritikus felülvizsgálat: milyen torzítást okoz ez a végső felületen?
 
@@ -191,8 +215,12 @@ keresés milyen segédgeometriát/mátrixot használt.
    eredménye — működik kitérő (nem pontosan metsző) egyenesekre is. Ha a
    normálisok majdnem párhuzamosak, az illesztés instabillá válik, ekkor a
    jelenlegi affin konstrukcióra esünk vissza.
-2. **Az `intersectUnitPrism`-et módosítani kell** — az $y\le1$ felső-lap
-   teszt primitívenkénti síkra cserélődik, a másik 4 teszt változatlan.
+2. **Az `intersectUnitPrism`-et NEM kell módosítani** — a végleges
+   (súlyozott nevezős) konstrukció mellett a felső lap mindvégig
+   pontosan $y=1$ marad, a féltér-tesztek (beleértve az $y\le1$-et is)
+   változatlanok. (Az eredeti terv egy primitívenkénti döntött síkot
+   irányzott elő — ez a lépés végül szükségtelennek bizonyult, ld. "A
+   felfedezés" szakasz frissített levezetését.)
 3. **A világtér-beli prizma-geometria (`d,e,f`, azaz a ténylegesen kirajzolt
    csúcsok) NEM változik** — továbbra is `d_i = v_i + h_max·n_i`, kizárólag
    a saját (megosztott, repedésmentes) vertex-normálistól függően. **Szándékosan
@@ -291,21 +319,20 @@ része ennek a körnek** — ld. lejjebb, "Fejlesztési lehetőség".
       affin M/T számítás változatlanul.
    c. Egyébként: kiszámítani $\mu,\nu,\rho$-t a **jelenlegi, crack-mentes**
       $d_i = v_i + h_{max}\cdot n_i$ pontokból (ez **nem változik**), majd
-      $y_d=1, y_e, y_f$-et a konzisztencia-képletből, majd felépíteni az
-      új projektív M/T mátrixot (zárt alak, a fenti $R \cdot N$ szerkezet
-      szerint).
-   d. Kiszámolni és kimenetként továbbadni (geometry shader → fragment
-      shader, pl. egy `flat`/interpolálatlan kimeneti változóval) a döntött
-      felső sík egyenletét ($y_e, y_f$, vagy ezekből levezetett sík-normál +
-      eltolás).
+      $k,w_\beta,w_\gamma$-t a fenti zárt képletekből, majd felépíteni az
+      új projektív $M,T$ mátrixot ($M=R_M\cdot N$, $T=R\cdot N$). Ha
+      $k,w_\beta$ vagy $w_\gamma$ a megengedett tartományon kívül esik,
+      szintén vissza kell esni az affin konstrukcióra.
 2. **Minden M/T-vel végzett ponttranszformáció helyén** (a felderítés szerint:
    `Geom_RM_abcd.geom`, `Frag_ConeStepMapping.frag`, `Frag_LinearSearch.frag`,
    és az összes `src/Shaders/Debug/Vert_Debug*.vert`, ahol `invM`-et
    használnak) **perspektív osztás hozzáadása** (`.xyz / .w`). Ez az affin
    fallback esetén ártalmatlan no-op (ott $w=1$ mindig).
-3. **`intersectUnitPrism` (`RayMarch_common.glsl`) general­izálása:** az
-   $y \leq 1$ féltér-teszt helyett egy paraméterül kapott, primitívenkénti
-   sík használata (a másik négy teszt változatlan).
+3. ~~`intersectUnitPrism` (`RayMarch_common.glsl`) generalizálása~~ — **ez
+   végül szükségtelennek bizonyult**: a súlyozott homogén nevezős
+   konstrukció mellett a felső lap mindvégig pontosan $y=1$ marad, a
+   függvény változatlan maradhat (ld. "A felfedezés" szakasz
+   frissítését).
 
 **Zéró CPU-oldali és vertex-attribútum változás** — az apex-keresés és a
 mátrix-konstrukció teljes egészében a geometry shaderben történik, a már
@@ -373,15 +400,17 @@ matematikai javítást:
   — mint kapcsolódó munka / inspiráció, még ha a végső megoldás más is lett.
 - `Befoglalo-geometria.tex` "Megjegyzés: normálisok egyesítése" alfejezet
   átírása: a probléma leírása után bemutatni az apex-alapú projektív
-  transzformációt — a levezetéssel, a döntött felső sík koncepciójával, és
-  a majdnem-párhuzamos esetre vonatkozó fallback-kel. Explicit, őszintén
-  dokumentálni kell a megmaradó, háromszög-határokra korlátozódó
-  él-inkonzisztenciát mint vállalt korlátot (nem állítható, hogy a probléma
-  teljesen megszűnt) — valamint megemlíteni a kijavítás módját
-  (keresés/végső-rekonstrukció szétválasztása) mint jövőbeli, nem
-  megvalósított finomítást.
-- `Tertranszformaciok.tex` / `Unit-prism-intersection.tex` kiegészítése az
-  általánosított (per-primitív döntött felső síkú) egységprizma-metszéssel.
+  transzformációt — a levezetéssel, a súlyozott homogén nevezős
+  konstrukcióval (a felső lap nem dől meg), és a majdnem-párhuzamos
+  esetre vonatkozó fallback-kel. Explicit, őszintén dokumentálni kell a
+  megmaradó, háromszög-határokra korlátozódó él-inkonzisztenciát mint
+  vállalt korlátot (nem állítható, hogy a probléma teljesen megszűnt) —
+  valamint megemlíteni a kijavítás módját (keresés/végső-rekonstrukció
+  szétválasztása) mint jövőbeli, nem megvalósított finomítást.
+- `Tertranszformaciok.tex` kiegészítése az apex-alapú projektív mátrix
+  levezetésével ($P_{apex}$, $\mu,\nu,\rho$, $k,w_\beta,w_\gamma$, $R$,
+  $R_M$). A `Unit-prism-intersection.tex` **nem** igényel módosítást — a
+  felső lap nem dől meg, az `intersectUnitPrism` változatlan marad.
 
 ## Ellenőrzés
 
@@ -391,8 +420,9 @@ matematikai javítást:
 - **2. fázis után:** ugyanazon a modellen — elvárt: a torzulás a
   háromszögek *belsejében* megszűnik, a felső lap sosem "csavarodik meg".
   Debug rendszerrel (lépés-vizualizáció, be-/kilépési pontok) összevetve
-  ellenőrizhető, hogy a belépési/kilépési pontok és a lépések a döntött
-  felső síkkal konzisztensek.
+  ellenőrizhető, hogy a belépési/kilépési pontok és a lépések konzisztensek
+  maradnak (a felső lap az egységprizma térben változatlanul $y=1$-nél
+  van, nincs primitívenkénti döntés).
 - **Élkonzisztencia (tudott, vállalt korlát ennél a körnél, nem hiba):**
   egy kocka két szomszédos (más-más apexű) háromszögének közös élét
   közelről, nagy `normalMult` mellett megnézve **várhatóan** látható lesz

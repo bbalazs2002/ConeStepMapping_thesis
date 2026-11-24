@@ -26,8 +26,9 @@ void main()
     int step = gl_InstanceID;  // one instance per cone step
     int part = gl_VertexID;   // 0=left, 1=apex, 2=right
 
-    vec4 num = debugNumerical[23 + step * 2];      // (ti, t, height, tan)
-    vec4 pos = debugNumerical[23 + step * 2 + 1];  // (x, y, z, 0)
+    // Per-step data starts at 28 (must match DBG_STEP_BASE in RayMarch_common.glsl)
+    vec4 num = debugNumerical[28 + step * 2];      // (ti, t, height, tan)
+    vec4 pos = debugNumerical[28 + step * 2 + 1];  // (x, y, z, 0)
 
     float h       = num.z;
     float tan_val = num.w;
@@ -59,6 +60,10 @@ void main()
     else if (part == 1) texPos = apex;
     else                texPos = right_end;
 
-    gl_Position = u_viewProj * invM * vec4(texPos, 1.0);
+    // invM is a genuine projective (not affine) inverse when the apex-based
+    // merged-normal correction is active — perspective divide before any
+    // further (affine) transform.
+    vec4 scenePosH = invM * vec4(texPos, 1.0);
+    gl_Position = u_viewProj * vec4(scenePosH.xyz / scenePosH.w, 1.0);
     v_col       = vec3(0.0, 1.0, 1.0); // cyan
 }
