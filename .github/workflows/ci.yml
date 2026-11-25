@@ -19,23 +19,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Clone the latest vcpkg — needed because SDL3 was only added in 2024,
-      # and any pinned 2023 commit lacks the port.
-      # NOTE: --depth 1 (a plain shallow clone) does NOT work together with
-      # vcpkg.json's pinned builtin-baseline commit — vcpkg needs to
-      # `git show <that-sha>:versions/baseline.json` from the vcpkg repo
-      # itself, and a depth-1 clone only has the tip commit's objects, so
-      # that lookup fails unless the pinned baseline happens to BE the tip.
-      # --filter=blob:none is a "partial clone": full commit/tree history
-      # (so any baseline commit is reachable) with file contents fetched
-      # lazily, only for what's actually requested - fast like a shallow
-      # clone, correct like a full one.
-      - name: Bootstrap vcpkg
+      # windows-latest ships vcpkg preinstalled as a FULL git clone (not
+      # shallow/partial) at C:\vcpkg, already bootstrapped — see
+      # actions/runner-images Windows2022-Readme.md. Using it instead of
+      # cloning vcpkg fresh avoids the network calls that caused
+      # intermittent CI failures: vcpkg's versioning feature does a lazy,
+      # per-dependency blob fetch against the vcpkg repo whenever the local
+      # clone is partial (--filter=blob:none, the old approach here), and
+      # any one of those many per-port fetches failing (e.g. a transient
+      # DNS blip) broke the whole install. A full clone already has every
+      # historical blob on disk, so no per-port network round-trip happens
+      # at all.
+      - name: Use preinstalled vcpkg
         shell: pwsh
         run: |
-          git clone --filter=blob:none https://github.com/microsoft/vcpkg.git vcpkg
-          .\vcpkg\bootstrap-vcpkg.bat -disableMetrics
-          echo "VCPKG_ROOT=${{ github.workspace }}\vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Append
+          if (-not $env:VCPKG_INSTALLATION_ROOT) {
+            throw "VCPKG_INSTALLATION_ROOT not set by the runner image -- the preinstalled-vcpkg assumption this step relies on broke."
+          }
+          echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+          # Best-effort refresh in case vcpkg.json's builtin-baseline is
+          # newer than this runner image's last vcpkg sync. One `git fetch`
+          # is a single network round-trip (not the dozen+ per-port fetches
+          # the old approach triggered), and if it fails, the pinned
+          # baseline is usually already present locally anyway.
+          git -C $env:VCPKG_INSTALLATION_ROOT fetch origin --quiet
 
       # Cache the installed package tree. Key: OS + vcpkg.json contents.
       # A vcpkg.json change invalidates the cache and triggers a full reinstall.
@@ -48,7 +55,7 @@ jobs:
       # Manifest mode: vcpkg reads vcpkg.json in the repo root automatically.
       - name: Install vcpkg packages
         shell: pwsh
-        run: .\vcpkg\vcpkg.exe install --triplet x64-windows
+        run: & "$env:VCPKG_ROOT\vcpkg.exe" install --triplet x64-windows
 
       - name: Configure CMake
         shell: pwsh
