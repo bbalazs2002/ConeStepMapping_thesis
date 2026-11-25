@@ -55,7 +55,8 @@ jobs:
       # Manifest mode: vcpkg reads vcpkg.json in the repo root automatically.
       - name: Install vcpkg packages
         shell: pwsh
-        run: & "$env:VCPKG_ROOT\vcpkg.exe" install --triplet x64-windows
+        run: |
+          & "$env:VCPKG_ROOT\vcpkg.exe" install --triplet x64-windows
 
       - name: Configure CMake
         shell: pwsh
