@@ -117,12 +117,12 @@ protected:
 
         lsProgram = shaderMgr.Load("ls_test", {
             { GL_VERTEX_SHADER,   "src/Shaders/RayMarching/Vert_RM.vert" },
-            { GL_GEOMETRY_SHADER, "src/Shaders/RayMarching/Geom_RM_abcd.geom" },
+            { GL_GEOMETRY_SHADER, "src/Shaders/RayMarching/Geom_RM_apex.geom" },
             { GL_FRAGMENT_SHADER, "src/Shaders/RayMarching/Frag_LinearSearch.frag" }
         });
         csmProgram = shaderMgr.Load("csm_test", {
             { GL_VERTEX_SHADER,   "src/Shaders/RayMarching/Vert_RM.vert" },
-            { GL_GEOMETRY_SHADER, "src/Shaders/RayMarching/Geom_RM_abcd.geom" },
+            { GL_GEOMETRY_SHADER, "src/Shaders/RayMarching/Geom_RM_apex.geom" },
             { GL_FRAGMENT_SHADER, "src/Shaders/RayMarching/Frag_ConeStepMapping.frag" }
         });
     }
@@ -155,7 +155,7 @@ TEST_F(RayMarchingFixture, LoadWithEmptyDefinesDelegatesToTwoArgOverload) {
     // must behave identically to the 2-arg overload (it forwards to it).
     GLuint prog = shaderMgr.Load("ls_empty_defines_test", {
         { GL_VERTEX_SHADER,   "src/Shaders/RayMarching/Vert_RM.vert" },
-        { GL_GEOMETRY_SHADER, "src/Shaders/RayMarching/Geom_RM_abcd.geom" },
+        { GL_GEOMETRY_SHADER, "src/Shaders/RayMarching/Geom_RM_apex.geom" },
         { GL_FRAGMENT_SHADER, "src/Shaders/RayMarching/Frag_LinearSearch.frag" }
     }, {});
     EXPECT_NE(prog, 0u);

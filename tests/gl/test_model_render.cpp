@@ -112,7 +112,7 @@ TEST_F(ModelRenderFixture, VisitSelectedRayMarchedModelDrawsHighlightOverlayWith
     // wireframe-overlay logic.
     GLuint csmProgram = shaderMgr.Load("csm_render_test", {
         { GL_VERTEX_SHADER,   "src/Shaders/RayMarching/Vert_RM.vert" },
-        { GL_GEOMETRY_SHADER, "src/Shaders/RayMarching/Geom_RM_abcd.geom" },
+        { GL_GEOMETRY_SHADER, "src/Shaders/RayMarching/Geom_RM_apex.geom" },
         { GL_FRAGMENT_SHADER, "src/Shaders/RayMarching/Frag_ConeStepMapping.frag" }
     });
     GLuint conemapOriginal = shaderMgr.Load("conemap_render_test",
